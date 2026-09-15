@@ -30,6 +30,7 @@ public class ChassisProfile : Profile
 
         CreateMap<Chassis, ChassisDto>()
             .IncludeBase<Chassis, ChassisListItemDto>()
+            .ForMember(d => d.ManufacturerName, o => o.MapFrom(s => s.Manufacturer.Name))
             .ForMember(d => d.FanMounts, o => o.MapFrom(s => s.FanMounts.Where(x => x.IsActive)))
             .ForMember(d => d.DriveBays, o => o.MapFrom(s => s.DriveBays.Where(x => x.IsActive)))
             .ForMember(d => d.PcieSlots, o => o.MapFrom(s => s.PcieSlots.Where(x => x.IsActive)))

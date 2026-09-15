@@ -106,5 +106,9 @@ describe('header chrome', () => {
     )
     await user.click(screen.getByRole('button', { name: 'Catalog' }))
     expect(screen.getByRole('link', { name: 'CPUs' })).toHaveAttribute('href', '/catalog/cpus')
+    expect(screen.getByRole('link', { name: 'Motherboards' })).toHaveAttribute(
+      'href',
+      '/catalog/motherboards',
+    )
   })
 })

@@ -1,4 +1,5 @@
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using PcBuilderBackend.Application.Catalog.Motherboards;
 using PcBuilderBackend.Application.Catalog.Motherboards.Dto;
@@ -12,15 +13,11 @@ public class MotherboardReadStore(PcBuilderDbContext context, IMapper mapper) : 
 {
     public async Task<MotherboardDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        var entity = await context.Motherboards
+        return await context.Motherboards
             .AsNoTracking()
-            .Include(m => m.PcieSlots)
-            .Include(m => m.M2Slots)
-            .ThenInclude(m => m.FormFactors)
-            .Include(m => m.UsbPorts)
-            .FirstOrDefaultAsync(m => m.Id == id && m.IsActive, cancellationToken);
-
-        return entity == null ? null : mapper.Map<MotherboardDto>(entity);
+            .Where(m => m.Id == id && m.IsActive)
+            .ProjectTo<MotherboardDto>(mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public Task<PagedResult<MotherboardListItemDto>> ListAsync(

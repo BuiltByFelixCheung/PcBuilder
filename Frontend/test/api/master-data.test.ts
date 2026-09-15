@@ -9,6 +9,7 @@ vi.mock('@/api/client.ts', () => ({
 }))
 
 import {
+  listChipsets,
   listCpuSeries,
   listManufacturers,
   listManufacturersByProductType,
@@ -70,5 +71,32 @@ describe('master-data API', () => {
       },
     ])
     expect(get).toHaveBeenCalledWith('/master-data/cpu-series')
+  })
+
+  it('lists chipsets', async () => {
+    get.mockResolvedValue({
+      data: [
+        {
+          id: 'x870',
+          name: 'X870',
+          manufacturerId: 'amd',
+          manufacturerName: 'AMD',
+          socketId: 'am5',
+          socketName: 'AM5',
+        },
+      ],
+    })
+    await expect(listChipsets()).resolves.toEqual([
+      {
+        id: 'x870',
+        name: 'X870',
+        manufacturerId: 'amd',
+        manufacturerName: 'AMD',
+        socketId: 'am5',
+        socketName: 'AM5',
+      },
+    ])
+    expect(get).toHaveBeenCalledWith('/master-data/chipset')
+    expect(masterDataKeys.chipsets).toEqual(['master-data', 'chipsets'])
   })
 })

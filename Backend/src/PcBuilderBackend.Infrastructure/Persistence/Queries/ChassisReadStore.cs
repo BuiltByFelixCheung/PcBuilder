@@ -1,4 +1,5 @@
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using PcBuilderBackend.Application.Catalog.Chassis;
 using PcBuilderBackend.Application.Catalog.Chassis.Dto;
@@ -12,18 +13,11 @@ public class ChassisReadStore(PcBuilderDbContext db, IMapper mapper) : IChassisR
 {
     public async Task <ChassisDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        var entity = await db.Chassis
+        return await db.Chassis
             .AsNoTracking()
-            .Include(x => x.FanMounts)
-            .ThenInclude(x => x.Options)
-            .Include(x => x.DriveBays)
-            .Include(x => x.PcieSlots)
-            .Include(x => x.Radiators)
-            .Include(x => x.PsuFormFactors)
-            .Include(x => x.MbFormFactors)
-            .FirstOrDefaultAsync(x => x.Id == id && x.IsActive, cancellationToken);
-
-        return entity is null ? null : mapper.Map<ChassisDto>(entity);
+            .Where(x => x.Id == id && x.IsActive)
+            .ProjectTo<ChassisDto>(mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<PagedResult<ChassisListItemDto>> ListAsync(

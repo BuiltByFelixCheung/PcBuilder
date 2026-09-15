@@ -12,10 +12,10 @@ import { Link } from "react-router-dom";
 export function Navbar() {
 
   const catalogLinks = [
-    { name: "Chassis", href: "#" },
-    { name: "Motherboards", href: "#" },
+    { name: "Chassis", href: "/catalog/chassis" },
+    { name: "Motherboards", href: "/catalog/motherboards" },
     { name: "CPUs", href: "/catalog/cpus" },
-    { name: "RAM", href: "#" },
+    { name: "RAM", href: "/catalog/memories" },
     { name: "Graphics Cards", href: "/catalog/graphics-cards" },
     { name: "Storage", href: "#" },
     { name: "PSUs", href: "#" },
@@ -27,7 +27,7 @@ export function Navbar() {
 
   return (
     <nav
-      className="flex h-8 items-center border-b border-border px-8"
+      className="relative z-50 flex h-8 items-center border-b border-border bg-background px-8"
       aria-label="Catalog"
     >
       <NavigationMenu viewport={false}>

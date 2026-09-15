@@ -105,6 +105,7 @@ export function GraphicsCardListPage() {
         Browse the catalog, then apply filters when you need a narrower set.
       </p>
 
+      <div className="catalog-layout">
       <form className="catalog-filters" onSubmit={applyFilters}>
         <FieldGroup className="catalog-filter-grid">
           <Field>
@@ -287,7 +288,8 @@ export function GraphicsCardListPage() {
         </div>
       </form>
 
-      {renderCatalog()}
+      <div className="catalog-results">{renderCatalog()}</div>
+      </div>
     </section>
   );
 
