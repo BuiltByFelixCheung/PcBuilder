@@ -59,3 +59,76 @@ public sealed class TestWirelessNetworkAdapterRepository(TestApplicationDbContex
 
     public void Add(WirelessNetworkAdapter adapter) => db.WirelessNetworkAdapters.Add(adapter);
 }
+
+public sealed class TestMotherboardRepository(TestApplicationDbContext db)
+    : PcBuilderBackend.Application.Catalog.Motherboards.IMotherboardRepository
+{
+    public Task<Motherboard?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
+        db.Motherboards.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+    public Task<Motherboard?> GetWithChildrenAsync(Guid id, CancellationToken cancellationToken) =>
+        db.Motherboards
+            .Include(x => x.PcieSlots)
+            .Include(x => x.M2Slots)
+            .ThenInclude(x => x.FormFactors)
+            .Include(x => x.UsbPorts)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+    public async Task<IReadOnlyList<Motherboard>> GetByIdsAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken) =>
+        await db.Motherboards.Where(x => ids.Contains(x.Id)).ToListAsync(cancellationToken);
+
+    public void Add(Motherboard motherboard) => db.Motherboards.Add(motherboard);
+
+    public void DeletePcieSlot(MotherboardPcie pcieSlot) => db.MotherboardPcieSlots.Remove(pcieSlot);
+
+    public void DeleteM2Slot(MotherboardM2 m2Slot) => db.MotherboardM2Slots.Remove(m2Slot);
+
+    public void DeleteUsbPort(MotherboardUsb usbPort) => db.MotherboardUsbPorts.Remove(usbPort);
+
+    public void DeleteM2FormFactor(MotherboardM2FormFactor m2FormFactor) =>
+        db.MotherboardM2FormFactors.Remove(m2FormFactor);
+}
+
+public sealed class TestChassisRepository(TestApplicationDbContext db)
+    : PcBuilderBackend.Application.Catalog.Chassis.IChassisRepository
+{
+    public Task<Chassis?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
+        db.Chassis.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+    public Task<Chassis?> GetWithChildrenAsync(Guid id, CancellationToken cancellationToken) =>
+        db.Chassis
+            .Include(x => x.DriveBays)
+            .Include(x => x.FanMounts)
+            .ThenInclude(x => x.Options)
+            .Include(x => x.PcieSlots)
+            .Include(x => x.Radiators)
+            .Include(x => x.MbFormFactors)
+            .Include(x => x.PsuFormFactors)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+    public async Task<IReadOnlyList<Chassis>> GetByIdsAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken) =>
+        await db.Chassis.Where(x => ids.Contains(x.Id)).ToListAsync(cancellationToken);
+
+    public void Add(Chassis chassis) => db.Chassis.Add(chassis);
+
+    public void DeleteDriveBay(ChassisDriveBay driveBay) => db.ChassisDriveBays.Remove(driveBay);
+
+    public void DeleteFanMount(ChassisFanMount fanMount) => db.ChassisFanMounts.Remove(fanMount);
+
+    public void DeleteFanMountOption(ChassisFanMountOption fanMountOption) =>
+        db.ChassisFanMountOptions.Remove(fanMountOption);
+
+    public void DeleteMbFormFactor(ChassisMbFormFactor mbFormFactor) =>
+        db.ChassisMbFormFactors.Remove(mbFormFactor);
+
+    public void DeletePcieSlot(ChassisPcieSlot pcieSlot) => db.ChassisPcieSlots.Remove(pcieSlot);
+
+    public void DeleteRadiator(ChassisRadiator radiator) => db.ChassisRadiators.Remove(radiator);
+
+    public void DeletePsuFormFactor(ChassisPsuFormFactor psuFormFactor) =>
+        db.ChassisPsuFormFactors.Remove(psuFormFactor);
+}
