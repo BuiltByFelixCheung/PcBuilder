@@ -14,38 +14,43 @@ public sealed partial class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
-        if (exception is OperationCanceledException)
+        switch (exception)
         {
-            RequestCancelled(logger, exception, httpContext.Request.Method, httpContext.Request.Path);
-
-            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-            return true;
-        }
-
-        if (exception is ValidationException validationException)
-        {
-            logger.LogWarning(
-                exception,
-                "Validation failed for {Method} {Path}",
-                httpContext.Request.Method,
-                httpContext.Request.Path);
-
-            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-            var errors = validationException.Errors
-                .GroupBy(e => string.IsNullOrWhiteSpace(e.PropertyName) ? string.Empty : e.PropertyName)
-                .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).Distinct().ToArray());
-
-            return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
+            case OperationCanceledException:
             {
-                HttpContext = httpContext,
-                Exception = exception,
-                ProblemDetails = new HttpValidationProblemDetails(errors)
+                if (logger.IsEnabled(LogLevel.Debug))
                 {
-                    Status = StatusCodes.Status400BadRequest,
-                    Title = "One or more validation errors occurred.",
-                    Instance = httpContext.Request.Path
+                    RequestCancelled(logger, exception, httpContext.Request.Method, httpContext.Request.Path);
                 }
-            });
+
+                httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+                return true;
+            }
+            case ValidationException validationException:
+            {
+                logger.LogWarning(
+                    exception,
+                    "Validation failed for {Method} {Path}",
+                    httpContext.Request.Method,
+                    httpContext.Request.Path);
+
+                httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+                var errors = validationException.Errors
+                    .GroupBy(e => string.IsNullOrWhiteSpace(e.PropertyName) ? string.Empty : e.PropertyName)
+                    .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).Distinct().ToArray());
+
+                return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
+                {
+                    HttpContext = httpContext,
+                    Exception = exception,
+                    ProblemDetails = new HttpValidationProblemDetails(errors)
+                    {
+                        Status = StatusCodes.Status400BadRequest,
+                        Title = "One or more validation errors occurred.",
+                        Instance = httpContext.Request.Path
+                    }
+                });
+            }
         }
 
         var statusCode = exception switch

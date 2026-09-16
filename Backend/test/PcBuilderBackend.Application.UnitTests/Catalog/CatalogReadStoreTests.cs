@@ -3,7 +3,16 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using PcBuilderBackend.Application.Catalog.Chassis.Dto;
+using PcBuilderBackend.Application.Catalog.ChassisFans.Dto;
+using PcBuilderBackend.Application.Catalog.CpuCoolers.Dto;
+using PcBuilderBackend.Application.Catalog.Cpus.Dto;
+using PcBuilderBackend.Application.Catalog.GraphicsCards.Dto;
+using PcBuilderBackend.Application.Catalog.Memories.Dto;
 using PcBuilderBackend.Application.Catalog.Motherboards.Dto;
+using PcBuilderBackend.Application.Catalog.Psus.Dto;
+using PcBuilderBackend.Application.Catalog.StorageDrives.Dto;
+using PcBuilderBackend.Application.Catalog.WiredNetworkAdapters.Dto;
+using PcBuilderBackend.Application.Catalog.WirelessNetworkAdapters.Dto;
 using PcBuilderBackend.Application.Common.Dto;
 using PcBuilderBackend.Application.Common.Mappings;
 using PcBuilderBackend.Domain.Entities;
@@ -21,6 +30,9 @@ public class CatalogReadStoreTests : IDisposable
     private readonly Manufacturer _manufacturer;
     private readonly Socket _socket;
     private readonly Chipset _chipset;
+    private readonly CpuSeries _cpuSeries;
+    private readonly GpuSeries _gpuSeries;
+    private readonly Gpu _gpu;
 
     public CatalogReadStoreTests()
     {
@@ -41,7 +53,15 @@ public class CatalogReadStoreTests : IDisposable
         _db.SaveChanges();
 
         _chipset = new Chipset("X870", _manufacturer.Id, _socket.Id);
+        _cpuSeries = new CpuSeries(_manufacturer.Id, _socket.Id, "Ryzen 7000");
+        _gpuSeries = new GpuSeries(_manufacturer.Id, "GeForce RTX 40");
         _db.Chipsets.Add(_chipset);
+        _db.CpuSeries.Add(_cpuSeries);
+        _db.GpuSeries.Add(_gpuSeries);
+        _db.SaveChanges();
+
+        _gpu = new Gpu("RTX 4070", _manufacturer.Id, _gpuSeries.Id);
+        _db.Gpus.Add(_gpu);
         _db.SaveChanges();
     }
 
@@ -152,6 +172,173 @@ public class CatalogReadStoreTests : IDisposable
         (await store.ListRadiatorsAsync(Guid.NewGuid(), CancellationToken.None)).Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task Remaining_stores_list_filter_and_get_by_id()
+    {
+        var cpu = SeedCpu("7800X3D");
+        var psu = SeedPsu("RM850x");
+        var ram = SeedRam("Fury");
+        var card = SeedGraphicsCard("TUF 4070");
+        var drive = SeedStorage("MX500");
+        var fan = SeedChassisFan("AF120");
+        var cooler = SeedCpuCooler("NH-D15");
+        var wired = SeedWiredNic("I225-V");
+        var wireless = SeedWirelessNic("AX210");
+
+        var cpuStore = new CpuReadStore(_db, _mapper);
+        (await cpuStore.ListAsync(new PagedRequest(), CancellationToken.None)).Items
+            .Should().ContainSingle(x => x.Name == "7800X3D");
+        (await cpuStore.FilterAsync(
+                new PagedRequest<CpuFilter>(new CpuFilter(ManufacturerId: _manufacturer.Id, Name: "7800")),
+                CancellationToken.None)).Items
+            .Should().ContainSingle();
+        (await cpuStore.GetByIdAsync(cpu.Id, CancellationToken.None))!.SeriesName.Should().NotBeNullOrEmpty();
+        (await cpuStore.ListRamCompatsAsync(cpu.Id, CancellationToken.None)).Should().ContainSingle();
+        (await cpuStore.ListSupportChipsetsAsync(cpu.Id, CancellationToken.None)).Should().ContainSingle();
+        (await cpuStore.GetByIdAsync(Guid.NewGuid(), CancellationToken.None)).Should().BeNull();
+        (await cpuStore.FilterAsync(
+                new PagedRequest<CpuFilter>(new CpuFilter(MotherboardId: Guid.NewGuid())),
+                CancellationToken.None)).TotalCount
+            .Should().Be(0);
+
+        var psuStore = new PsuReadStore(_db, _mapper);
+        (await psuStore.ListAsync(new PagedRequest(), CancellationToken.None)).Items
+            .Should().ContainSingle(x => x.Name == "RM850x");
+        (await psuStore.FilterAsync(
+                new PagedRequest<PsuFilter>(new PsuFilter
+                {
+                    Name = "RM",
+                    ManufacturerId = _manufacturer.Id,
+                    FormFactor = PsuFormFactor.Atx
+                }),
+                CancellationToken.None)).Items
+            .Should().ContainSingle();
+        (await psuStore.GetByIdAsync(psu.Id, CancellationToken.None))!.Cables.Should().ContainSingle();
+        (await psuStore.ListCablesAsync(psu.Id, CancellationToken.None)).Should().ContainSingle();
+        (await psuStore.ListCablesAsync(Guid.NewGuid(), CancellationToken.None)).Should().BeEmpty();
+        (await psuStore.FilterAsync(
+                new PagedRequest<PsuFilter>(new PsuFilter { ChassisId = Guid.NewGuid() }),
+                CancellationToken.None)).TotalCount
+            .Should().Be(0);
+
+        var ramStore = new RamReadStore(_db, _mapper);
+        (await ramStore.ListAsync(new PagedRequest(), CancellationToken.None)).Items
+            .Should().ContainSingle(x => x.Name == "Fury");
+        (await ramStore.FilterAsync(
+                new PagedRequest<RamFilter>(new RamFilter
+                {
+                    Name = "Fury",
+                    ManufacturerId = _manufacturer.Id,
+                    DdrGeneration = DdrGeneration.Ddr5
+                }),
+                CancellationToken.None)).Items
+            .Should().ContainSingle();
+        (await ramStore.GetByIdAsync(ram.Id, CancellationToken.None))!.ModulesCount.Should().Be(2);
+        (await ramStore.FilterAsync(
+                new PagedRequest<RamFilter>(new RamFilter { CpuId = Guid.NewGuid() }),
+                CancellationToken.None)).TotalCount
+            .Should().Be(0);
+
+        var gpuStore = new GraphicsCardReadStore(_db, _mapper);
+        (await gpuStore.ListAsync(new PagedRequest(), CancellationToken.None)).Items
+            .Should().ContainSingle(x => x.Name == "TUF 4070");
+        (await gpuStore.FilterAsync(
+                new PagedRequest<GraphicsCardFilter>(new GraphicsCardFilter
+                {
+                    Name = "TUF",
+                    ManufacturerId = _manufacturer.Id,
+                    GpuId = _gpu.Id
+                }),
+                CancellationToken.None)).Items
+            .Should().ContainSingle();
+        (await gpuStore.GetByIdAsync(card.Id, CancellationToken.None))!.VideoMemoryGb.Should().Be(12);
+        (await gpuStore.FilterAsync(
+                new PagedRequest<GraphicsCardFilter>(new GraphicsCardFilter { ChassisId = Guid.NewGuid() }),
+                CancellationToken.None)).TotalCount
+            .Should().Be(0);
+
+        var driveStore = new StorageDriveReadStore(_db, _mapper);
+        (await driveStore.ListAsync(new PagedRequest(), CancellationToken.None)).Items
+            .Should().ContainSingle(x => x.Name == "MX500");
+        (await driveStore.FilterAsync(
+                new PagedRequest<StorageDriveFilter>(new StorageDriveFilter
+                {
+                    Name = "MX",
+                    Media = StorageMedia.Ssd
+                }),
+                CancellationToken.None)).Items
+            .Should().ContainSingle();
+        (await driveStore.GetByIdAsync(drive.Id, CancellationToken.None))!.CapacityGb.Should().Be(1000);
+
+        var fanStore = new ChassisFanReadStore(_db, _mapper);
+        (await fanStore.ListAsync(new PagedRequest(), CancellationToken.None)).Items
+            .Should().ContainSingle(x => x.Name == "AF120");
+        (await fanStore.FilterAsync(
+                new PagedRequest<ChassisFanFilter>(new ChassisFanFilter("AF", _manufacturer.Id, FanDiameterMm.Mm120)),
+                CancellationToken.None)).Items
+            .Should().ContainSingle();
+        (await fanStore.GetByIdAsync(fan.Id, CancellationToken.None))!.FansCountPerPack.Should().Be(3);
+        (await fanStore.FilterAsync(
+                new PagedRequest<ChassisFanFilter>(new ChassisFanFilter(ChassisId: Guid.NewGuid())),
+                CancellationToken.None)).TotalCount
+            .Should().Be(0);
+
+        var coolerStore = new CpuCoolerReadStore(_db, _mapper);
+        (await coolerStore.ListAsync(new PagedRequest(), CancellationToken.None)).Items
+            .Should().ContainSingle(x => x.Name == "NH-D15");
+        (await coolerStore.FilterAsync(
+                new PagedRequest<CpuCoolerFilter>(new CpuCoolerFilter
+                {
+                    Name = "NH",
+                    ManufacturerId = _manufacturer.Id,
+                    Type = CpuCoolerType.Air
+                }),
+                CancellationToken.None)).Items
+            .Should().ContainSingle();
+        (await coolerStore.GetByIdAsync(cooler.Id, CancellationToken.None))!.MaxTdp.Should().Be(220);
+        (await coolerStore.ListCpuCoolerSockets(cooler.Id, CancellationToken.None)).Should().ContainSingle();
+        (await coolerStore.FilterAsync(
+                new PagedRequest<CpuCoolerFilter>(new CpuCoolerFilter { MotherboardId = Guid.NewGuid() }),
+                CancellationToken.None)).TotalCount
+            .Should().Be(0);
+
+        var wiredStore = new WiredNetworkAdapterReadStore(_db, _mapper);
+        (await wiredStore.ListAsync(new PagedRequest(), CancellationToken.None)).Items
+            .Should().ContainSingle(x => x.Name == "I225-V");
+        (await wiredStore.FilterAsync(
+                new PagedRequest<WiredNetworkAdapterFilter>(new WiredNetworkAdapterFilter
+                {
+                    Name = "I225",
+                    HostInterface = WiredHostInterface.Pcie
+                }),
+                CancellationToken.None)).Items
+            .Should().ContainSingle();
+        (await wiredStore.GetByIdAsync(wired.Id, CancellationToken.None))!.MaxSpeedMbps.Should().Be(2500);
+        (await wiredStore.FilterAsync(
+                new PagedRequest<WiredNetworkAdapterFilter>(
+                    new WiredNetworkAdapterFilter { MotherboardId = Guid.NewGuid() }),
+                CancellationToken.None)).TotalCount
+            .Should().Be(0);
+
+        var wirelessStore = new WirelessNetworkAdapterReadStore(_db, _mapper);
+        (await wirelessStore.ListAsync(new PagedRequest(), CancellationToken.None)).Items
+            .Should().ContainSingle(x => x.Name == "AX210");
+        (await wirelessStore.FilterAsync(
+                new PagedRequest<WirelessNetworkAdapterFilter>(new WirelessNetworkAdapterFilter
+                {
+                    Name = "AX",
+                    WifiStandard = WifiStandard.Wifi6E
+                }),
+                CancellationToken.None)).Items
+            .Should().ContainSingle();
+        (await wirelessStore.GetByIdAsync(wireless.Id, CancellationToken.None))!.MaxSpeedMbps.Should().Be(2400);
+        (await wirelessStore.FilterAsync(
+                new PagedRequest<WirelessNetworkAdapterFilter>(
+                    new WirelessNetworkAdapterFilter { MotherboardId = Guid.NewGuid() }),
+                CancellationToken.None)).TotalCount
+            .Should().Be(0);
+    }
+
     private Motherboard SeedMotherboard(string name)
     {
         var board = new Motherboard(
@@ -213,5 +400,152 @@ public class CatalogReadStoreTests : IDisposable
         _db.Chassis.Add(chassis);
         _db.SaveChanges();
         return chassis;
+    }
+
+    private Cpu SeedCpu(string name)
+    {
+        var cpu = new Cpu(
+            name,
+            _manufacturer.Id,
+            new CpuSpecs
+            {
+                SocketId = _socket.Id,
+                SeriesId = _cpuSeries.Id,
+                MaxMemoryGb = 128,
+                ThermalDesignPower = 120,
+                PowerConsumptionWatts = 120
+            });
+        cpu.AddRamCompat(new CpuRamCompat(cpu.Id, DdrGeneration.Ddr5, 2, RamRank.DualRank, 5200));
+        cpu.AddSupportedChipset(new CpuSupportChipset(cpu.Id, _chipset.Id, false));
+        _db.Cpus.Add(cpu);
+        _db.SaveChanges();
+        return cpu;
+    }
+
+    private Psu SeedPsu(string name)
+    {
+        var psu = new Psu(
+            name,
+            _manufacturer.Id,
+            new PsuSpecs
+            {
+                Wattage = 850,
+                Modularity = PsuModularity.FullModular,
+                FormFactor = PsuFormFactor.Atx,
+                LengthMm = 160,
+                WidthMm = 150,
+                HeightMm = 86
+            });
+        psu.AddCable(new PsuCable(psu.Id, PsuCableType.Motherboard24Pin, 1, 1));
+        _db.Psus.Add(psu);
+        _db.SaveChanges();
+        return psu;
+    }
+
+    private Ram SeedRam(string name)
+    {
+        var ram = new Ram(
+            name,
+            _manufacturer.Id,
+            new RamSpecs
+            {
+                Color = "Black",
+                DdrGeneration = DdrGeneration.Ddr5,
+                RamFormFactor = RamFormFactor.UDimm,
+                RamRank = RamRank.DualRank,
+                MemorySizePerStickGb = 16,
+                TotalMemorySizeGb = 32,
+                ModulesCount = 2,
+                MaxMemorySpeedMts = 6000,
+                HeightMm = 40
+            });
+        _db.Rams.Add(ram);
+        _db.SaveChanges();
+        return ram;
+    }
+
+    private GraphicsCard SeedGraphicsCard(string name)
+    {
+        var card = new GraphicsCard(
+            name,
+            _manufacturer.Id,
+            new GraphicsCardSpecs
+            {
+                GpuId = _gpu.Id,
+                VideoMemoryGb = 12,
+                PcieSlotsUsed = 2,
+                PcieGeneration = PcieGeneration.Gen4,
+                LengthMm = 300,
+                WidthMm = 120,
+                HeightMm = 50,
+                PowerConsumptionWatts = 200,
+                PowerConnectorType = PsuCableType.Pcie6Plus2Pin,
+                PowerConnectorCount = 2
+            });
+        _db.GraphicsCards.Add(card);
+        _db.SaveChanges();
+        return card;
+    }
+
+    private StorageDrive SeedStorage(string name)
+    {
+        var drive = new StorageDrive(
+            name,
+            _manufacturer.Id,
+            new StorageDriveSpecs
+            {
+                Media = StorageMedia.Ssd,
+                Interface = StorageInterface.Sata,
+                FormFactor = StorageFormFactor.Sata25,
+                CapacityGb = 1000
+            });
+        _db.StorageDrives.Add(drive);
+        _db.SaveChanges();
+        return drive;
+    }
+
+    private ChassisFan SeedChassisFan(string name)
+    {
+        var fan = new ChassisFan(name, _manufacturer.Id, FanDiameterMm.Mm120, 3);
+        _db.ChassisFans.Add(fan);
+        _db.SaveChanges();
+        return fan;
+    }
+
+    private CpuCooler SeedCpuCooler(string name)
+    {
+        var cooler = new CpuCooler(_manufacturer.Id, name, 220, CpuCoolerType.Air, 165, 32, null);
+        cooler.AddCpuCoolerSocket(new CpuCoolerSocket(cooler.Id, _socket.Id));
+        _db.CpuCoolers.Add(cooler);
+        _db.SaveChanges();
+        return cooler;
+    }
+
+    private WiredNetworkAdapter SeedWiredNic(string name)
+    {
+        var adapter = new WiredNetworkAdapter(
+            name, _manufacturer.Id, WiredHostInterface.Pcie, 2500, pcieSlotType: PcieSlotType.X1);
+        _db.WiredNetworkAdapters.Add(adapter);
+        _db.SaveChanges();
+        return adapter;
+    }
+
+    private WirelessNetworkAdapter SeedWirelessNic(string name)
+    {
+        var adapter = new WirelessNetworkAdapter(
+            name,
+            _manufacturer.Id,
+            new WirelessNetworkAdapterSpecs
+            {
+                WifiStandard = WifiStandard.Wifi6E,
+                HostInterface = WirelessHostInterface.M2,
+                MaxSpeedMbps = 2400,
+                BluetoothVersion = BluetoothVersion.V5Point2,
+                M2Key = M2Key.E,
+                M2FormFactor = M2FormFactor.M22230
+            });
+        _db.WirelessNetworkAdapters.Add(adapter);
+        _db.SaveChanges();
+        return adapter;
     }
 }
