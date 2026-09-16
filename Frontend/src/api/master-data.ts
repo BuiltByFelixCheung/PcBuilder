@@ -29,6 +29,13 @@ export type ChipsetOption = NamedMasterData & {
   socketName: string
 }
 
+export type GpuOption = NamedMasterData & {
+  manufacturerId: string
+  manufacturerName: string
+  gpuSeriesId: string
+  gpuSeriesName: string
+}
+
 export type ProductType =
   | 'chassis'
   | 'chassisfan'

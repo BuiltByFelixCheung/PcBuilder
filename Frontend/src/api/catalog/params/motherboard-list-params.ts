@@ -1,5 +1,5 @@
 import type { MotherboardFilter, MotherboardListParams } from "../motherboards";
-import { hasCompleteRange } from "../../paging";
+import { hasCompleteRange, type RangeFilter } from "../../paging";
 import { toInteger, emptyToUndefined, parseRange } from "../../helper";
 import type { DdrGeneration, MbFormFactor, RamFormFactor } from "../../enums";
 
@@ -27,38 +27,55 @@ export function motherboardListSearchFromParams(
   const search = new URLSearchParams();
   const filter = params.filter;
 
-  if (params.pageIndex > 0) search.set("page", String(params.pageIndex));
-  if (filter.name?.trim()) search.set("name", filter.name.trim());
-  if (filter.manufacturerId)
-    search.set("manufacturerId", filter.manufacturerId);
-  if (filter.socketId) search.set("socketId", filter.socketId);
-  if (filter.chipsetId) search.set("chipsetId", filter.chipsetId);
-  if (filter.ramSlots) search.set("ramSlots", String(filter.ramSlots));
-  if (filter.maxMemoryGb) search.set("maxMemoryGb", String(filter.maxMemoryGb));
-  if (filter.maxDimmSizeGb)
-    search.set("maxDimmSizeGb", String(filter.maxDimmSizeGb));
-  if (filter.sataPorts) search.set("sataPorts", String(filter.sataPorts));
-  if (filter.fanConnectors)
-    search.set("fanConnectors", String(filter.fanConnectors));
-  if (filter.epsConnectors)
-    search.set("epsConnectors", String(filter.epsConnectors));
-  if (hasCompleteRange(filter.widthMm)) {
-    search.set("widthMmMin", String(filter.widthMm!.min));
-    search.set("widthMmMax", String(filter.widthMm!.max));
-  }
-  if (hasCompleteRange(filter.heightMm)) {
-    search.set("heightMmMin", String(filter.heightMm!.min));
-    search.set("heightMmMax", String(filter.heightMm!.max));
-  }
-  if (filter.ddrGeneration) search.set("ddrGeneration", filter.ddrGeneration);
-  if (filter.ramFormFactor) search.set("ramFormFactor", filter.ramFormFactor);
-  if (filter.formFactor) search.set("formFactor", filter.formFactor);
-  if (filter.wifiEnabled != null)
-    search.set("wifiEnabled", String(filter.wifiEnabled));
-  if (filter.bluetoothEnabled != null)
-    search.set("bluetoothEnabled", String(filter.bluetoothEnabled));
+  setSearchValue(search, "page", params.pageIndex > 0 ? params.pageIndex : undefined);
+  setSearchValue(search, "name", filter.name?.trim());
+  setSearchValue(search, "manufacturerId", filter.manufacturerId);
+  setSearchValue(search, "socketId", filter.socketId);
+  setSearchValue(search, "chipsetId", filter.chipsetId);
+  setSearchValue(search, "ramSlots", filter.ramSlots);
+  setSearchValue(search, "maxMemoryGb", filter.maxMemoryGb);
+  setSearchValue(search, "maxDimmSizeGb", filter.maxDimmSizeGb);
+  setSearchValue(search, "sataPorts", filter.sataPorts);
+  setSearchValue(search, "fanConnectors", filter.fanConnectors);
+  setSearchValue(search, "epsConnectors", filter.epsConnectors);
+  setSearchRange(search, filter.widthMm, "widthMmMin", "widthMmMax");
+  setSearchRange(search, filter.heightMm, "heightMmMin", "heightMmMax");
+  setSearchValue(search, "ddrGeneration", filter.ddrGeneration);
+  setSearchValue(search, "ramFormFactor", filter.ramFormFactor);
+  setSearchValue(search, "formFactor", filter.formFactor);
+  setSearchFlag(search, "wifiEnabled", filter.wifiEnabled);
+  setSearchFlag(search, "bluetoothEnabled", filter.bluetoothEnabled);
 
   return search;
+}
+
+function setSearchValue(
+  search: URLSearchParams,
+  key: string,
+  value: string | number | undefined,
+) {
+  if (!value) return;
+  search.set(key, String(value));
+}
+
+function setSearchFlag(
+  search: URLSearchParams,
+  key: string,
+  value: boolean | undefined,
+) {
+  if (value == null) return;
+  search.set(key, String(value));
+}
+
+function setSearchRange(
+  search: URLSearchParams,
+  range: RangeFilter | undefined,
+  minKey: string,
+  maxKey: string,
+) {
+  if (!hasCompleteRange(range)) return;
+  search.set(minKey, String(range.min));
+  search.set(maxKey, String(range.max));
 }
 
 function filterFromSearch(search: URLSearchParams): MotherboardFilter {

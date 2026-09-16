@@ -11,6 +11,8 @@ vi.mock('@/api/client.ts', () => ({
 import {
   listChipsets,
   listCpuSeries,
+  listGpuSeries,
+  listGpus,
   listManufacturers,
   listManufacturersByProductType,
   listSockets,
@@ -98,5 +100,51 @@ describe('master-data API', () => {
     ])
     expect(get).toHaveBeenCalledWith('/master-data/chipset')
     expect(masterDataKeys.chipsets).toEqual(['master-data', 'chipsets'])
+  })
+
+  it('lists GPUs and GPU series', async () => {
+    get.mockResolvedValueOnce({
+      data: [
+        {
+          id: '4070',
+          name: 'RTX 4070',
+          manufacturerId: 'nvidia',
+          manufacturerName: 'NVIDIA',
+          gpuSeriesId: 'rtx40',
+          gpuSeriesName: 'GeForce RTX 40',
+        },
+      ],
+    })
+    await expect(listGpus()).resolves.toEqual([
+      {
+        id: '4070',
+        name: 'RTX 4070',
+        manufacturerId: 'nvidia',
+        manufacturerName: 'NVIDIA',
+        gpuSeriesId: 'rtx40',
+        gpuSeriesName: 'GeForce RTX 40',
+      },
+    ])
+    expect(get).toHaveBeenCalledWith('/master-data/gpu')
+
+    get.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'rtx40',
+          name: 'GeForce RTX 40',
+          manufacturerId: 'nvidia',
+          manufacturerName: 'NVIDIA',
+        },
+      ],
+    })
+    await expect(listGpuSeries()).resolves.toEqual([
+      {
+        id: 'rtx40',
+        name: 'GeForce RTX 40',
+        manufacturerId: 'nvidia',
+        manufacturerName: 'NVIDIA',
+      },
+    ])
+    expect(get).toHaveBeenCalledWith('/master-data/gpu-series')
   })
 })
