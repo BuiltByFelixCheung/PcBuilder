@@ -79,11 +79,11 @@ function renderBuilder(
 ) {
   return renderWithQuery(
     <AuthContext.Provider value={auth}>
-      <Link to="/build/current">Current draft</Link>
+      <Link to="/builds/current">Current draft</Link>
       <Routes>
-        <Route path="/build/current" element={<BuilderPage />} />
-        <Route path="/build/:buildId/edit" element={<BuilderPage />} />
-        <Route path="/build/:buildId" element={<BuilderPage />} />
+        <Route path="/builds/current" element={<BuilderPage />} />
+        <Route path="/builds/:buildId/edit" element={<BuilderPage />} />
+        <Route path="/builds/:buildId" element={<BuilderPage />} />
       </Routes>
     </AuthContext.Provider>,
     { route, initialBuild },
@@ -105,7 +105,7 @@ describe("BuilderPage", () => {
   });
 
   it("lists every component slot with choose actions", async () => {
-    renderWithQuery(<BuilderPage />, { route: "/build/current" });
+    renderWithQuery(<BuilderPage />, { route: "/builds/current" });
     expect(
       await screen.findByRole("heading", { name: "New build" }),
     ).toBeInTheDocument();
@@ -138,7 +138,7 @@ describe("BuilderPage", () => {
     });
     const user = userEvent.setup();
     renderWithQuery(<BuilderPage />, {
-      route: "/build/current",
+      route: "/builds/current",
       initialBuild: { chassisId: "case-1" },
     });
     expect(
@@ -160,7 +160,7 @@ describe("BuilderPage", () => {
     });
     const user = userEvent.setup();
     renderWithQuery(<BuilderPage />, {
-      route: "/build/current",
+      route: "/builds/current",
       initialBuild: {
         storageDevices: [
           { type: "StorageDrive", partId: "ssd-1", quantity: 1 },
@@ -177,8 +177,8 @@ describe("BuilderPage", () => {
     expect(await screen.findByText("Qty 2")).toBeInTheDocument();
   });
 
-  it("does not fetch a saved build on /build/current", async () => {
-    renderBuilder("/build/current");
+  it("does not fetch a saved build on /builds/current", async () => {
+    renderBuilder("/builds/current");
     expect(
       await screen.findByRole("heading", { name: "New build" }),
     ).toBeInTheDocument();
@@ -186,7 +186,7 @@ describe("BuilderPage", () => {
   });
 
   it("does not check compatibility when no parts are chosen", async () => {
-    renderWithQuery(<BuilderPage />, { route: "/build/current" });
+    renderWithQuery(<BuilderPage />, { route: "/builds/current" });
     expect(
       await screen.findByRole("heading", { name: "New build" }),
     ).toBeInTheDocument();
@@ -203,7 +203,7 @@ describe("BuilderPage", () => {
       manufacturerName: "Lian Li",
     });
     renderWithQuery(<BuilderPage />, {
-      route: "/build/current",
+      route: "/builds/current",
       initialBuild: { chassisId: "case-1" },
     });
     expect(
@@ -232,21 +232,21 @@ describe("BuilderPage", () => {
       ],
     });
     renderWithQuery(<BuilderPage />, {
-      route: "/build/current",
+      route: "/builds/current",
       initialBuild: { cpuId: "cpu-1", motherboardId: "mb-1" },
     });
     expect(await screen.findByText("Incompatible")).toBeInTheDocument();
     expect(await screen.findByText("Socket Mismatch")).toBeInTheDocument();
   });
 
-  it("shows a saved build as read-only on /build/:id", async () => {
+  it("shows a saved build as read-only on /builds/:id", async () => {
     getBuildById.mockResolvedValue(savedBuild);
     getChassisById.mockResolvedValue({
       id: "case-1",
       name: "Lian Li O11",
       manufacturerName: "Lian Li",
     });
-    renderBuilder("/build/build-1");
+    renderBuilder("/builds/build-1");
     expect(
       await screen.findByRole("heading", { name: "Office box" }),
     ).toBeInTheDocument();
@@ -268,14 +268,14 @@ describe("BuilderPage", () => {
     expect(screen.getAllByText("None").length).toBeGreaterThan(0);
   });
 
-  it("lets the owner edit a saved build on /build/:id/edit", async () => {
+  it("lets the owner edit a saved build on /builds/:id/edit", async () => {
     getBuildById.mockResolvedValue(savedBuild);
     getChassisById.mockResolvedValue({
       id: "case-1",
       name: "Lian Li O11",
       manufacturerName: "Lian Li",
     });
-    renderBuilder("/build/build-1/edit", undefined, ownerAuth);
+    renderBuilder("/builds/build-1/edit", undefined, ownerAuth);
     expect(
       await screen.findByRole("heading", { name: "Office box" }),
     ).toBeInTheDocument();
@@ -287,7 +287,7 @@ describe("BuilderPage", () => {
 
   it("sends a non-owner from /edit to the view page", async () => {
     getBuildById.mockResolvedValue(savedBuild);
-    renderBuilder("/build/build-1/edit");
+    renderBuilder("/builds/build-1/edit");
     expect(
       await screen.findByRole("heading", { name: "Office box" }),
     ).toBeInTheDocument();
@@ -298,15 +298,15 @@ describe("BuilderPage", () => {
 
   it("lets the owner open the editor from the view page", async () => {
     getBuildById.mockResolvedValue(savedBuild);
-    renderBuilder("/build/build-1", undefined, ownerAuth);
+    renderBuilder("/builds/build-1", undefined, ownerAuth);
     expect(
       await screen.findByRole("link", { name: "Edit this build" }),
-    ).toHaveAttribute("href", "/build/build-1/edit");
+    ).toHaveAttribute("href", "/builds/build-1/edit");
   });
 
   it("shows an error when the saved build cannot be loaded", async () => {
     getBuildById.mockRejectedValue(new Error("fail"));
-    renderBuilder("/build/build-1");
+    renderBuilder("/builds/build-1");
     expect(
       await screen.findByText("Something went wrong. Try again."),
     ).toBeInTheDocument();
@@ -322,7 +322,7 @@ describe("BuilderPage", () => {
 
   it("keeps save disabled until required parts are chosen", async () => {
     renderWithQuery(<BuilderPage />, {
-      route: "/build/current",
+      route: "/builds/current",
       initialBuild: { chassisId: "case-1" },
     });
     expect(
@@ -340,7 +340,7 @@ describe("BuilderPage", () => {
       ...completeDraft,
     });
     const user = userEvent.setup();
-    renderBuilder("/build/current", completeDraft);
+    renderBuilder("/builds/current", completeDraft);
     expect(
       await screen.findByRole("heading", { name: "Compatibility" }),
     ).toBeInTheDocument();
@@ -388,7 +388,7 @@ describe("BuilderPage", () => {
       description: "Revised",
     });
     const user = userEvent.setup();
-    renderBuilder("/build/build-1/edit", undefined, ownerAuth);
+    renderBuilder("/builds/build-1/edit", undefined, ownerAuth);
     expect(
       await screen.findByRole("heading", { name: "Office box" }),
     ).toBeInTheDocument();
@@ -425,7 +425,7 @@ describe("BuilderPage", () => {
     getBuildById.mockResolvedValue(savedBuild);
     updatePcBuild.mockRejectedValue(error);
     const user = userEvent.setup();
-    renderBuilder("/build/build-1/edit", undefined, ownerAuth);
+    renderBuilder("/builds/build-1/edit", undefined, ownerAuth);
     expect(
       await screen.findByRole("heading", { name: "Office box" }),
     ).toBeInTheDocument();

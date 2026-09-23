@@ -29,7 +29,7 @@ vi.mock("@/api/master-data.ts", async () => {
   };
 });
 
-import { CpuListPage } from "@/pages/catalog/CpuListPage.tsx";
+import { CpuListPage } from "@/pages/catalog/cpus/CpuListPage.tsx";
 import { renderWithQuery } from "../helpers/query.tsx";
 
 const cpu: CpuListItem = {

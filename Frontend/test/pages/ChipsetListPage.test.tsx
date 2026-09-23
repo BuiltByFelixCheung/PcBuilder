@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ChipsetOption } from "@/api/master-data";
 
 const listChipsets = vi.fn();
-const listManufacturers = vi.fn();
+const listManufacturersByProductType = vi.fn();
 const listSockets = vi.fn();
 const updateChipset = vi.fn();
 const createChipset = vi.fn();
@@ -17,7 +17,8 @@ vi.mock("@/api/master-data", async () => {
   return {
     ...actual,
     listChipsets: () => listChipsets(),
-    listManufacturers: () => listManufacturers(),
+    listManufacturersByProductType: (...args: unknown[]) =>
+      listManufacturersByProductType(...args),
     listSockets: () => listSockets(),
     updateChipset: (...args: unknown[]) => updateChipset(...args),
     createChipset: (...args: unknown[]) => createChipset(...args),
@@ -39,7 +40,7 @@ const chipset: ChipsetOption = {
 describe("ChipsetListPage", () => {
   beforeEach(() => {
     listChipsets.mockReset().mockResolvedValue([chipset]);
-    listManufacturers
+    listManufacturersByProductType
       .mockReset()
       .mockResolvedValue([{ id: "amd", name: "AMD" }]);
     listSockets.mockReset().mockResolvedValue([

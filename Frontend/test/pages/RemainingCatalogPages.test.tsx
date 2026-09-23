@@ -412,9 +412,9 @@ describe("remaining catalog pages", () => {
           path="/catalog/storage/:storageId"
           element={<StorageDetailPage />}
         />
-        <Route path="/build/current" element={<BuilderPage />} />
-        <Route path="/build/:buildId/edit" element={<BuilderPage />} />
-        <Route path="/build/:buildId" element={<BuilderPage />} />
+        <Route path="/builds/current" element={<BuilderPage />} />
+        <Route path="/builds/:buildId/edit" element={<BuilderPage />} />
+        <Route path="/builds/:buildId" element={<BuilderPage />} />
       </Routes>,
       { route: "/catalog/storage/ssd-1" },
     );

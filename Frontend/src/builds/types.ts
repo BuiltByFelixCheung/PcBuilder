@@ -29,11 +29,11 @@ export type PcBuildContextValue = PcBuildWorkspace & {
 };
 
 export function builderHref(sourceId: string | null | undefined): string {
-  return sourceId ? `/build/${sourceId}/edit` : "/build/current";
+  return sourceId ? `/builds/${sourceId}/edit` : "/builds/current";
 }
 
 export function builderViewHref(id: string): string {
-  return `/build/${id}`;
+  return `/builds/${id}`;
 }
 
 export type CatalogProductType = Exclude<
