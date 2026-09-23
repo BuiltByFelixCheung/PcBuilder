@@ -15,6 +15,15 @@ public class PagedRequestTests
         PropertyNameCaseInsensitive = true,
     };
 
+    private static readonly JsonSerializerOptions WebJsonOptions = CreateWebJsonOptions();
+
+    private static JsonSerializerOptions CreateWebJsonOptions()
+    {
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        options.Converters.Add(new JsonStringEnumConverter());
+        return options;
+    }
+
     [Fact]
     public void Json_body_without_filter_deserializes_filter_as_null()
     {
@@ -41,12 +50,9 @@ public class PagedRequestTests
     [Fact]
     public void Http_json_binds_max_supported_mb_form_factor()
     {
-        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        options.Converters.Add(new JsonStringEnumConverter());
-
         var request = JsonSerializer.Deserialize<PagedRequest<ChassisFilter>>(
             """{"pageIndex":0,"pageSize":10,"sortBy":"name","sortDirection":"asc","filter":{"maxSupportedMbFormFactor":"Mitx"}}""",
-            options);
+            WebJsonOptions);
 
         request.Should().NotBeNull();
         request!.Filter.Should().NotBeNull();

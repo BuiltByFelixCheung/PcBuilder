@@ -2,7 +2,7 @@ using PcBuilderBackend.Domain.Enums;
 
 namespace PcBuilderBackend.Domain.ValueObjects;
 
-public sealed class RamSpecs
+public record RamSpecs
 {
     public string Color { get; init; } = string.Empty;
     public DdrGeneration DdrGeneration { get; init; }

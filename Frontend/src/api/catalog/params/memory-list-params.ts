@@ -2,8 +2,7 @@ import type { MemoryFilter, MemoryListParams } from "../memories";
 import { hasCompleteRange } from "../../paging";
 import { toInteger, emptyToUndefined, parseRange } from "../../helper";
 import type { DdrGeneration, RamRank, RamFormFactor } from "../../enums";
-
-const PAGE_SIZE = 10;
+import { catalogPagingFromSearch } from "./list-search";
 
 export const emptyMemoryFilter: MemoryFilter = {
   name: undefined,
@@ -13,10 +12,7 @@ export function memoryListParamsFromSearch(
   search: URLSearchParams,
 ): MemoryListParams {
   return {
-    pageIndex: Math.max(0, toInteger(search.get("page")) ?? 0),
-    pageSize: PAGE_SIZE,
-    sortBy: "name",
-    sortDirection: "asc",
+    ...catalogPagingFromSearch(search),
     filter: filterFromSearch(search),
   };
 }

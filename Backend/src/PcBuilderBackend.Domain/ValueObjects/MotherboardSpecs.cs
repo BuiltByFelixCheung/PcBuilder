@@ -2,7 +2,7 @@ using PcBuilderBackend.Domain.Enums;
 
 namespace PcBuilderBackend.Domain.ValueObjects;
 
-public sealed class MotherboardSpecs
+public record MotherboardMeasureSpecs
 {
     public Guid SocketId { get; init; }
     public Guid ChipsetId { get; init; }
@@ -16,6 +16,10 @@ public sealed class MotherboardSpecs
     public decimal HeightMm { get; init; }
     public DdrGeneration DdrGeneration { get; init; }
     public RamFormFactor RamFormFactor { get; init; }
+}
+
+public sealed record MotherboardSpecs : MotherboardMeasureSpecs
+{
     public MbFormFactor MbFormFactor { get; init; }
     public bool WifiEnabled { get; init; }
     public bool BluetoothEnabled { get; init; }

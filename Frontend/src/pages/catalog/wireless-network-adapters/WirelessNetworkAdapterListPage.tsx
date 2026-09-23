@@ -1,21 +1,16 @@
-import { useMemo, useState, type ReactNode, type SyntheticEvent } from "react";
+import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { parseApiError } from "@/api/errors.ts";
 import {
   isWirelessNetworkAdapterFilterActive,
   type WirelessNetworkAdapter,
   type WirelessNetworkAdapterFilter,
 } from "@/api/catalog/wireless-network-adapters";
-import { PageStatus } from "@/components/PageStatus.tsx";
-import { Button } from "@/components/ui/button";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { FieldGroup } from "@/components/ui/field";
 import {
   createColumnHelper,
   type CellContext,
   type RowSelectionState,
 } from "@tanstack/react-table";
-import { DataTable } from "@/components/ui/data-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useAuth } from "@/auth/useAuth";
@@ -38,21 +33,14 @@ import {
   formatBluetoothVersion,
   formatM2FormFactor,
   formatWifiStandard,
-  type BluetoothVersion,
-  type M2FormFactor,
-  type M2Key,
-  type PcieSlotType,
-  type UsbType,
-  type UsbVersion,
-  type WifiStandard,
-  type WirelessHostInterface,
 } from "@/api/enums";
-import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
 import {
   CatalogCompatibleCheckbox,
   CatalogRangeField,
 } from "@/pages/catalog/catalog-filter-fields.tsx";
 import { usePcBuild } from "@/builds/usePcBuild";
+import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
+import { CatalogFilterActions, CatalogNameField, CatalogEnumField, CatalogIdSelectField } from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: WirelessNetworkAdapter[] = [];
 const columnHelper = createColumnHelper<
@@ -171,111 +159,51 @@ export function WirelessNetworkAdapterListPage() {
               checked={showOnlyCompatible}
               onCheckedChange={applyCompatibleFilter}
             />
-            <Field>
-              <FieldLabel htmlFor="wireless-name">Name</FieldLabel>
-              <Input
-                id="wireless-name"
-                value={draft.name ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    name: event.target.value,
-                  }))
-                }
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="wireless-manufacturer">
-                Manufacturer
-              </FieldLabel>
-              <select
-                id="wireless-manufacturer"
-                className={catalogSelectClassName}
-                value={draft.manufacturerId ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    manufacturerId: event.target.value || undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {manufacturers.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="wireless-wifi">Wi-Fi</FieldLabel>
-              <select
-                id="wireless-wifi"
-                className={catalogSelectClassName}
-                value={draft.wifiStandard ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    wifiStandard: (event.target.value || undefined) as
-                      | WifiStandard
-                      | undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {WIFI_STANDARDS.map((standard) => (
-                  <option key={standard} value={standard}>
-                    {formatWifiStandard(standard)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="wireless-interface">Host interface</FieldLabel>
-              <select
-                id="wireless-interface"
-                className={catalogSelectClassName}
-                value={draft.hostInterface ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    hostInterface: (event.target.value || undefined) as
-                      | WirelessHostInterface
-                      | undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {WIRELESS_HOST_INTERFACES.map((hostInterface) => (
-                  <option key={hostInterface} value={hostInterface}>
-                    {hostInterface}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="wireless-bluetooth">Bluetooth</FieldLabel>
-              <select
-                id="wireless-bluetooth"
-                className={catalogSelectClassName}
-                value={draft.bluetoothVersion ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    bluetoothVersion: (event.target.value || undefined) as
-                      | BluetoothVersion
-                      | undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {BLUETOOTH_VERSIONS.map((version) => (
-                  <option key={version} value={version}>
-                    {formatBluetoothVersion(version)}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <CatalogNameField
+              id="wireless-name"
+              value={draft.name}
+              onChange={(name) =>
+                setDraft((current) => ({ ...current, name }))
+              }
+            />
+            <CatalogIdSelectField
+              id="wireless-manufacturer"
+              label="Manufacturer"
+              value={draft.manufacturerId}
+              options={manufacturers}
+              onChange={(value) =>
+                setDraft((current) => ({ ...current, manufacturerId: value || undefined }))
+              }
+            />
+            <CatalogEnumField
+              id="wireless-wifi"
+              label="Wi-Fi"
+              value={draft.wifiStandard}
+              options={WIFI_STANDARDS}
+              formatOption={formatWifiStandard}
+              onChange={(wifiStandard) =>
+                setDraft((current) => ({ ...current, wifiStandard }))
+              }
+            />
+            <CatalogEnumField
+              id="wireless-interface"
+              label="Host interface"
+              value={draft.hostInterface}
+              options={WIRELESS_HOST_INTERFACES}
+              onChange={(hostInterface) =>
+                setDraft((current) => ({ ...current, hostInterface }))
+              }
+            />
+            <CatalogEnumField
+              id="wireless-bluetooth"
+              label="Bluetooth"
+              value={draft.bluetoothVersion}
+              options={BLUETOOTH_VERSIONS}
+              formatOption={formatBluetoothVersion}
+              onChange={(bluetoothVersion) =>
+                setDraft((current) => ({ ...current, bluetoothVersion }))
+              }
+            />
             <CatalogRangeField
               id="wireless-speed"
               label="Max speed (Mbps)"
@@ -303,195 +231,81 @@ export function WirelessNetworkAdapterListPage() {
                 setDraft((current) => ({ ...current, maxSpeedMbps6G }))
               }
             />
-            <Field>
-              <FieldLabel htmlFor="wireless-pcie-slot">PCIe slot</FieldLabel>
-              <select
-                id="wireless-pcie-slot"
-                className={catalogSelectClassName}
-                value={draft.pcieSlotType ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    pcieSlotType: (event.target.value || undefined) as
-                      | PcieSlotType
-                      | undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {PCIE_SLOT_TYPES.map((slot) => (
-                  <option key={slot} value={slot}>
-                    {slot}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="wireless-m2-key">M.2 key</FieldLabel>
-              <select
-                id="wireless-m2-key"
-                className={catalogSelectClassName}
-                value={draft.key ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    key: (event.target.value || undefined) as M2Key | undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {M2_KEYS.map((key) => (
-                  <option key={key} value={key}>
-                    {key}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="wireless-m2-form">M.2 form factor</FieldLabel>
-              <select
-                id="wireless-m2-form"
-                className={catalogSelectClassName}
-                value={draft.m2FormFactor ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    m2FormFactor: (event.target.value || undefined) as
-                      | M2FormFactor
-                      | undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {M2_FORM_FACTORS.map((formFactor) => (
-                  <option key={formFactor} value={formFactor}>
-                    {formatM2FormFactor(formFactor)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="wireless-usb-version">USB version</FieldLabel>
-              <select
-                id="wireless-usb-version"
-                className={catalogSelectClassName}
-                value={draft.usbVersion ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    usbVersion: (event.target.value || undefined) as
-                      | UsbVersion
-                      | undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {USB_VERSIONS.map((version) => (
-                  <option key={version} value={version}>
-                    {version}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="wireless-usb-type">USB type</FieldLabel>
-              <select
-                id="wireless-usb-type"
-                className={catalogSelectClassName}
-                value={draft.usbType ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    usbType: (event.target.value || undefined) as
-                      | UsbType
-                      | undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {USB_TYPES.map((usbType) => (
-                  <option key={usbType} value={usbType}>
-                    {usbType}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <CatalogEnumField
+              id="wireless-pcie-slot"
+              label="PCIe slot"
+              value={draft.pcieSlotType}
+              options={PCIE_SLOT_TYPES}
+              onChange={(pcieSlotType) =>
+                setDraft((current) => ({ ...current, pcieSlotType }))
+              }
+            />
+            <CatalogEnumField
+              id="wireless-m2-key"
+              label="M.2 key"
+              value={draft.key}
+              options={M2_KEYS}
+              onChange={(key) =>
+                setDraft((current) => ({ ...current, key }))
+              }
+            />
+            <CatalogEnumField
+              id="wireless-m2-form"
+              label="M.2 form factor"
+              value={draft.m2FormFactor}
+              options={M2_FORM_FACTORS}
+              formatOption={formatM2FormFactor}
+              onChange={(m2FormFactor) =>
+                setDraft((current) => ({ ...current, m2FormFactor }))
+              }
+            />
+            <CatalogEnumField
+              id="wireless-usb-version"
+              label="USB version"
+              value={draft.usbVersion}
+              options={USB_VERSIONS}
+              onChange={(usbVersion) =>
+                setDraft((current) => ({ ...current, usbVersion }))
+              }
+            />
+            <CatalogEnumField
+              id="wireless-usb-type"
+              label="USB type"
+              value={draft.usbType}
+              options={USB_TYPES}
+              onChange={(usbType) =>
+                setDraft((current) => ({ ...current, usbType }))
+              }
+            />
           </FieldGroup>
-          <div className="catalog-filter-actions">
-            <Button type="submit">Apply filters</Button>
-            <Button type="button" variant="outline" onClick={clearFilters}>
-              Clear
-            </Button>
-          </div>
+          <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">{renderCatalog()}</div>
+        <div className="catalog-results">
+          <CatalogPagedResults
+            isInitialLoading={query.isPending && !query.data}
+            isError={query.isError}
+            error={query.error}
+            items={items}
+            filtering={filtering}
+            loadingMessage="Loading wireless network adapters…"
+            emptyFilteredMessage="No wireless network adapters match these filters."
+            emptyMessage="No wireless network adapters in the catalog yet."
+            isAdmin={isAdmin}
+            newItemLabel="New Wireless Network Adapter"
+            columns={columns}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            pageIndex={pageIndex}
+            pageCount={pageCount}
+            totalCount={totalCount}
+            countLabel="adapters"
+            onPageChange={goToPage}
+          />
+        </div>
       </div>
     </section>
   );
 
-  function renderCatalog(): ReactNode {
-    if (query.isPending && !query.data) {
-      return <PageStatus>Loading wireless network adapters…</PageStatus>;
-    }
-    if (query.isError) {
-      return <PageStatus>{parseApiError(query.error).message}</PageStatus>;
-    }
-    if (items.length === 0) {
-      return (
-        <PageStatus>
-          {filtering
-            ? "No wireless network adapters match these filters."
-            : "No wireless network adapters in the catalog yet."}
-        </PageStatus>
-      );
-    }
-
-    return (
-      <>
-        {isAdmin && (
-          <div className="catalog-results-actions">
-            <Button disabled={!Object.values(rowSelection).some(Boolean)}>
-              Edit Selected
-            </Button>
-            <Button disabled={!Object.values(rowSelection).some(Boolean)}>
-              Delete Selected
-            </Button>
-            <Button>New Wireless Network Adapter</Button>
-            <Button>Import</Button>
-          </div>
-        )}
-        <DataTable
-          data={items}
-          columns={columns}
-          rowSelection={rowSelection}
-          onRowSelectionChange={setRowSelection}
-        />
-        <div className="catalog-pagination">
-          <p>
-            Page {pageIndex + 1} of {pageCount} ({totalCount} adapters)
-          </p>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pageIndex === 0}
-              onClick={() => goToPage(pageIndex - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pageIndex + 1 >= pageCount}
-              onClick={() => goToPage(pageIndex + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      </>
-    );
-  }
 }
 
 function nameCell(

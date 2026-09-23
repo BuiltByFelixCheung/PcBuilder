@@ -1,6 +1,5 @@
-import { useMemo, useState, type ReactNode, type SyntheticEvent } from "react";
+import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { parseApiError } from "@/api/errors.ts";
 import {
   listManufacturers,
   masterDataKeys,
@@ -11,18 +10,17 @@ import {
   manufacturerEditPath,
   newMasterDataEditValue,
 } from "@/pages/master-data/master-data-edit";
-import { PageStatus } from "@/components/PageStatus";
-import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   createColumnHelper,
   type RowSelectionState,
 } from "@tanstack/react-table";
-import { DataTable } from "@/components/ui/data-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useQuery } from "@tanstack/react-query";
+import { MasterDataResults } from "@/pages/catalog/catalog-results";
+import { CatalogFilterActions } from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: NamedMasterData[] = [];
 const columnHelper = createColumnHelper<
@@ -106,14 +104,27 @@ export function ManufacturerListPage() {
               />
             </Field>
           </FieldGroup>
-          <div className="catalog-filter-actions">
-            <Button type="submit">Apply filters</Button>
-            <Button type="button" variant="outline" onClick={clearFilters}>
-              Clear
-            </Button>
-          </div>
+          <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">{renderCatalog()}</div>
+        <div className="catalog-results">
+          <MasterDataResults
+            isInitialLoading={query.isPending && !query.data}
+            isError={query.isError}
+            error={query.error}
+            items={visibleItems}
+            filtering={filtering}
+            loadingMessage="Loading Manufacturers…"
+            emptyFilteredMessage="No Manufacturers match these filters."
+            emptyMessage="No Manufacturers found."
+            columns={columns}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            newItemTo={manufacturerEditPath(newMasterDataEditValue)}
+            newItemLabel="New Manufacturer"
+            showImport={false}
+            keepTableWhenEmpty
+          />
+        </div>
         {editingId ? (
             <ManufacturerFormDialog
                 key={editingId}
@@ -127,40 +138,4 @@ export function ManufacturerListPage() {
     </section>
   );
 
-  function renderCatalog(): ReactNode {
-    if (query.isPending && !query.data) {
-      return <PageStatus>Loading Manufacturers…</PageStatus>;
-    }
-
-    if (query.isError) {
-      return <PageStatus>{parseApiError(query.error).message}</PageStatus>;
-    }
-
-    const hasSelection = Object.values(rowSelection).some(Boolean);
-
-    return (
-      <>
-        <div className="catalog-results-actions">
-          <Button disabled={!hasSelection}>Edit Selected</Button>
-          <Button disabled={!hasSelection}>Delete Selected</Button>
-          <Button asChild>
-            <Link
-              style={{ textDecoration: "none", color: "black" }}
-              to={manufacturerEditPath(newMasterDataEditValue)}
-            >
-              New Manufacturer
-            </Link>
-          </Button>
-        </div>
-        {visibleItems.length === 0 ? (
-          <PageStatus>
-            {filtering
-              ? "No Manufacturers match these filters."
-              : "No Manufacturers found."}
-          </PageStatus>
-        ) : null}
-        <DataTable data={visibleItems} columns={columns} rowSelection={rowSelection} onRowSelectionChange={setRowSelection} />
-      </>
-    );
-  }
 }

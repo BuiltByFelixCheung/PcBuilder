@@ -1,8 +1,7 @@
 import type { CpuFilter, CpuListParams } from "@/api/catalog/cpus";
 import { hasCompleteRange } from "@/api/paging.ts";
-import { toInteger, emptyToUndefined, parseRange } from "../../helper";
-
-const PAGE_SIZE = 10;
+import { emptyToUndefined, parseRange } from "../../helper";
+import { catalogPagingFromSearch } from "./list-search";
 
 export const emptyCpuFilter: CpuFilter = {
   name: "",
@@ -12,10 +11,7 @@ export function cpuListParamsFromSearch(
   search: URLSearchParams,
 ): CpuListParams {
   return {
-    pageIndex: Math.max(0, toInteger(search.get("page")) ?? 0),
-    pageSize: PAGE_SIZE,
-    sortBy: "name",
-    sortDirection: "asc",
+    ...catalogPagingFromSearch(search),
     filter: filterFromSearch(search),
   };
 }

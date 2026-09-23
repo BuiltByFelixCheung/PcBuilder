@@ -1,21 +1,16 @@
-import { useMemo, useState, type ReactNode, type SyntheticEvent } from "react";
+import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { parseApiError } from "@/api/errors.ts";
 import {
   isPsuFilterActive,
   type PsuFilter,
   type PsuListItem,
 } from "@/api/catalog/psus";
-import { PageStatus } from "@/components/PageStatus.tsx";
-import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import {
   createColumnHelper,
   type CellContext,
   type RowSelectionState,
 } from "@tanstack/react-table";
-import { DataTable } from "@/components/ui/data-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useAuth } from "@/auth/useAuth";
@@ -26,7 +21,6 @@ import {
   psuListParamsFromSearch,
   psuListSearchFromParams,
 } from "@/api/catalog/params/psu-list-params";
-import { toOptionalNumber } from "@/api/helper";
 import {
   PSU_FORM_FACTORS,
   PSU_MODULARITIES,
@@ -39,6 +33,8 @@ import {
   CatalogRangeField,
 } from "@/pages/catalog/catalog-filter-fields.tsx";
 import { usePcBuild } from "@/builds/usePcBuild";
+import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
+import { CatalogFilterActions, CatalogNameField, CatalogIdSelectField } from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: PsuListItem[] = [];
 const columnHelper = createColumnHelper<typeof dataTableFeatures, PsuListItem>();
@@ -148,40 +144,22 @@ export function PsuListPage() {
               checked={showOnlyCompatible}
               onCheckedChange={applyCompatibleFilter}
             />
-            <Field>
-              <FieldLabel htmlFor="psu-name">Name</FieldLabel>
-              <Input
-                id="psu-name"
-                value={draft.name ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    name: event.target.value,
-                  }))
-                }
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="psu-manufacturer">Manufacturer</FieldLabel>
-              <select
-                id="psu-manufacturer"
-                className={catalogSelectClassName}
-                value={draft.manufacturerId ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    manufacturerId: event.target.value || undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {manufacturers.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <CatalogNameField
+              id="psu-name"
+              value={draft.name}
+              onChange={(name) =>
+                setDraft((current) => ({ ...current, name }))
+              }
+            />
+            <CatalogIdSelectField
+              id="psu-manufacturer"
+              label="Manufacturer"
+              value={draft.manufacturerId}
+              options={manufacturers}
+              onChange={(value) =>
+                setDraft((current) => ({ ...current, manufacturerId: value || undefined }))
+              }
+            />
             <Field>
               <FieldLabel htmlFor="psu-modularity">Modularity</FieldLabel>
               <select
@@ -226,44 +204,15 @@ export function PsuListPage() {
                 ))}
               </select>
             </Field>
-            <Field>
-              <FieldLabel htmlFor="psu-wattage-min">Wattage</FieldLabel>
-              <div className="flex gap-2">
-                <Input
-                  id="psu-wattage-min"
-                  type="number"
-                  min={0}
-                  placeholder="Min"
-                  value={draft.wattage?.min ?? ""}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      wattage: {
-                        min: toOptionalNumber(event.target.value),
-                        max: current.wattage?.max ?? null,
-                      },
-                    }))
-                  }
-                />
-                <Input
-                  id="psu-wattage-max"
-                  type="number"
-                  min={0}
-                  placeholder="Max"
-                  aria-label="Wattage max"
-                  value={draft.wattage?.max ?? ""}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      wattage: {
-                        min: current.wattage?.min ?? null,
-                        max: toOptionalNumber(event.target.value),
-                      },
-                    }))
-                  }
-                />
-              </div>
-            </Field>
+            <CatalogRangeField
+              id="psu-wattage"
+              label="Wattage"
+              maxAriaLabel="Wattage max"
+              range={draft.wattage}
+              onChange={(wattage) =>
+                setDraft((current) => ({ ...current, wattage }))
+              }
+            />
             <CatalogRangeField
               id="psu-length"
               label="Length (mm)"
@@ -292,81 +241,34 @@ export function PsuListPage() {
               }
             />
           </FieldGroup>
-          <div className="catalog-filter-actions">
-            <Button type="submit">Apply filters</Button>
-            <Button type="button" variant="outline" onClick={clearFilters}>
-              Clear
-            </Button>
-          </div>
+          <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">{renderCatalog()}</div>
+        <div className="catalog-results">
+          <CatalogPagedResults
+            isInitialLoading={query.isPending && !query.data}
+            isError={query.isError}
+            error={query.error}
+            items={items}
+            filtering={filtering}
+            loadingMessage="Loading PSUs…"
+            emptyFilteredMessage="No PSUs match these filters."
+            emptyMessage="No PSUs in the catalog yet."
+            isAdmin={isAdmin}
+            newItemLabel="New PSU"
+            columns={columns}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            pageIndex={pageIndex}
+            pageCount={pageCount}
+            totalCount={totalCount}
+            countLabel="PSUs"
+            onPageChange={goToPage}
+          />
+        </div>
       </div>
     </section>
   );
 
-  function renderCatalog(): ReactNode {
-    if (query.isPending && !query.data) {
-      return <PageStatus>Loading PSUs…</PageStatus>;
-    }
-    if (query.isError) {
-      return <PageStatus>{parseApiError(query.error).message}</PageStatus>;
-    }
-    if (items.length === 0) {
-      return (
-        <PageStatus>
-          {filtering
-            ? "No PSUs match these filters."
-            : "No PSUs in the catalog yet."}
-        </PageStatus>
-      );
-    }
-
-    return (
-      <>
-        {isAdmin && (
-          <div className="catalog-results-actions">
-            <Button disabled={!Object.values(rowSelection).some(Boolean)}>
-              Edit Selected
-            </Button>
-            <Button disabled={!Object.values(rowSelection).some(Boolean)}>
-              Delete Selected
-            </Button>
-            <Button>New PSU</Button>
-            <Button>Import</Button>
-          </div>
-        )}
-        <DataTable
-          data={items}
-          columns={columns}
-          rowSelection={rowSelection}
-          onRowSelectionChange={setRowSelection}
-        />
-        <div className="catalog-pagination">
-          <p>
-            Page {pageIndex + 1} of {pageCount} ({totalCount} PSUs)
-          </p>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pageIndex === 0}
-              onClick={() => goToPage(pageIndex - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pageIndex + 1 >= pageCount}
-              onClick={() => goToPage(pageIndex + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      </>
-    );
-  }
 }
 
 function nameCell(

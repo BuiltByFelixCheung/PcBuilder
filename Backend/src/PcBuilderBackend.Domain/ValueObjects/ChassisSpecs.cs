@@ -1,6 +1,6 @@
 namespace PcBuilderBackend.Domain.ValueObjects;
 
-public sealed class ChassisSpecs
+public record ChassisSpecs
 {
     public decimal LengthMm { get; init; }
     public decimal WidthMm { get; init; }

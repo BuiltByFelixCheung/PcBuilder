@@ -2,7 +2,7 @@ using PcBuilderBackend.Domain.Enums;
 
 namespace PcBuilderBackend.Domain.ValueObjects;
 
-public sealed class GraphicsCardSpecs
+public record GraphicsCardSpecs
 {
     public Guid GpuId { get; init; }
     public int VideoMemoryGb { get; init; }

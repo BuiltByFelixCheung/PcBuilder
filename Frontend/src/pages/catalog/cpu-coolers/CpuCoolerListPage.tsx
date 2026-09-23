@@ -1,13 +1,10 @@
-import { useMemo, useState, type ReactNode, type SyntheticEvent } from "react";
+import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { parseApiError } from "@/api/errors.ts";
 import {
   isCpuCoolerFilterActive,
   type CpuCoolerFilter,
   type CpuCoolerListItem,
 } from "@/api/catalog/cpu-coolers";
-import { PageStatus } from "@/components/PageStatus.tsx";
-import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,7 +12,6 @@ import {
   type CellContext,
   type RowSelectionState,
 } from "@tanstack/react-table";
-import { DataTable } from "@/components/ui/data-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useAuth } from "@/auth/useAuth";
@@ -34,12 +30,17 @@ import {
   CPU_COOLER_TYPES,
   RADIATOR_LENGTHS,
   formatRadiatorLength,
-  type CpuCoolerType,
-  type RadiatorLength,
 } from "@/api/enums";
-import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
 import { usePcBuild } from "@/builds/usePcBuild";
 import type { RangeFilter } from "@/api/paging";
+import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
+import {
+  CatalogFilterActions,
+  CatalogNameField,
+  CatalogCompatibleCheckbox,
+  CatalogEnumField,
+  CatalogIdSelectField,
+} from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: CpuCoolerListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -185,119 +186,54 @@ export function CpuCoolerListPage() {
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <FieldGroup className="catalog-filter-grid">
-            <Field orientation="horizontal">
-              <input
-                id="show-only-compatible"
-                type="checkbox"
-                className="size-4 shrink-0"
-                checked={showOnlyCompatible}
-                onChange={(event) => applyCompatibleFilter(event.target.checked)}
-              />
-              <FieldLabel htmlFor="show-only-compatible">
-                Show only compatible
-              </FieldLabel>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="cooler-name">Name</FieldLabel>
-              <Input
-                id="cooler-name"
-                value={draft.name ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    name: event.target.value,
-                  }))
-                }
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="cooler-manufacturer">Manufacturer</FieldLabel>
-              <select
-                id="cooler-manufacturer"
-                className={catalogSelectClassName}
-                value={draft.manufacturerId ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    manufacturerId: event.target.value || undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {manufacturers.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="cooler-type">Type</FieldLabel>
-              <select
-                id="cooler-type"
-                className={catalogSelectClassName}
-                value={draft.type ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    type: (event.target.value || undefined) as
-                      | CpuCoolerType
-                      | undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {CPU_COOLER_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="cooler-socket">Socket</FieldLabel>
-              <select
-                id="cooler-socket"
-                className={catalogSelectClassName}
-                value={draft.socketId ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    socketId: event.target.value || undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {sockets.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="cooler-radiator">Radiator</FieldLabel>
-              <select
-                id="cooler-radiator"
-                className={catalogSelectClassName}
-                value={draft.radiatorLength ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    radiatorLength: (event.target.value || undefined) as
-                      | RadiatorLength
-                      | undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {RADIATOR_LENGTHS.map((length) => (
-                  <option key={length} value={length}>
-                    {formatRadiatorLength(length)}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <CatalogCompatibleCheckbox
+              checked={showOnlyCompatible}
+              onCheckedChange={applyCompatibleFilter}
+            />
+            <CatalogNameField
+              id="cooler-name"
+              value={draft.name}
+              onChange={(name) =>
+                setDraft((current) => ({ ...current, name }))
+              }
+            />
+            <CatalogIdSelectField
+              id="cooler-manufacturer"
+              label="Manufacturer"
+              value={draft.manufacturerId}
+              options={manufacturers}
+              onChange={(value) =>
+                setDraft((current) => ({ ...current, manufacturerId: value || undefined }))
+              }
+            />
+            <CatalogEnumField
+              id="cooler-type"
+              label="Type"
+              value={draft.type}
+              options={CPU_COOLER_TYPES}
+              onChange={(type) =>
+                setDraft((current) => ({ ...current, type }))
+              }
+            />
+            <CatalogIdSelectField
+              id="cooler-socket"
+              label="Socket"
+              value={draft.socketId}
+              options={sockets}
+              onChange={(value) =>
+                setDraft((current) => ({ ...current, socketId: value || undefined }))
+              }
+            />
+            <CatalogEnumField
+              id="cooler-radiator"
+              label="Radiator"
+              value={draft.radiatorLength}
+              options={RADIATOR_LENGTHS}
+              formatOption={formatRadiatorLength}
+              onChange={(radiatorLength) =>
+                setDraft((current) => ({ ...current, radiatorLength }))
+              }
+            />
             <Field>
               <FieldLabel htmlFor="cooler-tdp-min">Max TDP (W)</FieldLabel>
               <div className="flex gap-2">
@@ -395,81 +331,34 @@ export function CpuCoolerListPage() {
               </div>
             </Field>
           </FieldGroup>
-          <div className="catalog-filter-actions">
-            <Button type="submit">Apply filters</Button>
-            <Button type="button" variant="outline" onClick={clearFilters}>
-              Clear
-            </Button>
-          </div>
+          <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">{renderCatalog()}</div>
+        <div className="catalog-results">
+          <CatalogPagedResults
+            isInitialLoading={query.isPending && !query.data}
+            isError={query.isError}
+            error={query.error}
+            items={items}
+            filtering={filtering}
+            loadingMessage="Loading CPU coolers…"
+            emptyFilteredMessage="No CPU coolers match these filters."
+            emptyMessage="No CPU coolers in the catalog yet."
+            isAdmin={isAdmin}
+            newItemLabel="New CPU Cooler"
+            columns={columns}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            pageIndex={pageIndex}
+            pageCount={pageCount}
+            totalCount={totalCount}
+            countLabel="CPU coolers"
+            onPageChange={goToPage}
+          />
+        </div>
       </div>
     </section>
   );
 
-  function renderCatalog(): ReactNode {
-    if (query.isPending && !query.data) {
-      return <PageStatus>Loading CPU coolers…</PageStatus>;
-    }
-    if (query.isError) {
-      return <PageStatus>{parseApiError(query.error).message}</PageStatus>;
-    }
-    if (items.length === 0) {
-      return (
-        <PageStatus>
-          {filtering
-            ? "No CPU coolers match these filters."
-            : "No CPU coolers in the catalog yet."}
-        </PageStatus>
-      );
-    }
-
-    return (
-      <>
-        {isAdmin && (
-          <div className="catalog-results-actions">
-            <Button disabled={!Object.values(rowSelection).some(Boolean)}>
-              Edit Selected
-            </Button>
-            <Button disabled={!Object.values(rowSelection).some(Boolean)}>
-              Delete Selected
-            </Button>
-            <Button>New CPU Cooler</Button>
-            <Button>Import</Button>
-          </div>
-        )}
-        <DataTable
-          data={items}
-          columns={columns}
-          rowSelection={rowSelection}
-          onRowSelectionChange={setRowSelection}
-        />
-        <div className="catalog-pagination">
-          <p>
-            Page {pageIndex + 1} of {pageCount} ({totalCount} CPU coolers)
-          </p>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pageIndex === 0}
-              onClick={() => goToPage(pageIndex - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pageIndex + 1 >= pageCount}
-              onClick={() => goToPage(pageIndex + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      </>
-    );
-  }
 }
 
 function nameCell(

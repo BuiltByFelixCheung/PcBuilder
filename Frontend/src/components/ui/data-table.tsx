@@ -29,6 +29,8 @@ type DataTableColumns<TData extends RowData> = ReturnType<
   ColumnHelper<typeof dataTableFeatures, TData>["columns"]
 >;
 
+export type { DataTableColumns };
+
 type DataTableProps<TData extends RowData> = {
   data: TData[];
   columns: DataTableColumns<TData>;

@@ -1,9 +1,8 @@
 import type { ChassisFilter, ChassisListParams } from "../chassis";
 import { hasCompleteRange } from "../../paging";
-import { toInteger, emptyToUndefined, parseRange } from "../../helper";
+import { emptyToUndefined, parseRange } from "../../helper";
 import { MB_FORM_FACTORS, type MbFormFactor } from "../../enums";
-
-const PAGE_SIZE = 10;
+import { catalogPagingFromSearch } from "./list-search";
 
 export const emptyChassisFilter: ChassisFilter = {
   name: undefined,
@@ -13,10 +12,7 @@ export function chassisListParamsFromSearch(
   search: URLSearchParams,
 ): ChassisListParams {
   return {
-    pageIndex: Math.max(0, toInteger(search.get("page")) ?? 0),
-    pageSize: PAGE_SIZE,
-    sortBy: "name",
-    sortDirection: "asc",
+    ...catalogPagingFromSearch(search),
     filter: filterFromSearch(search),
   };
 }

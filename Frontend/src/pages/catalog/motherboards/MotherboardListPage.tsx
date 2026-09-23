@@ -1,13 +1,10 @@
-import { useMemo, useState, type ReactNode, type SyntheticEvent } from "react";
+import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { parseApiError } from "@/api/errors.ts";
 import {
   isMotherboardFilterActive,
   type MotherboardFilter,
   type MotherboardListItem,
 } from "@/api/catalog/motherboards";
-import { PageStatus } from "@/components/PageStatus.tsx";
-import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,7 +12,6 @@ import {
   type CellContext,
   type RowSelectionState,
 } from "@tanstack/react-table";
-import { DataTable } from "@/components/ui/data-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useAuth } from "@/auth/useAuth";
@@ -26,16 +22,23 @@ import {
   motherboardListParamsFromSearch,
   motherboardListSearchFromParams,
 } from "@/api/catalog/params/motherboard-list-params";
-import { toInteger, toOptionalNumber } from "@/api/helper";
+import { toInteger } from "@/api/helper";
 import {
   DDR_GENERATIONS,
   MB_FORM_FACTORS,
   RAM_FORM_FACTORS,
   type DdrGeneration,
-  type MbFormFactor,
-  type RamFormFactor,
 } from "@/api/enums";
 import { usePcBuild } from "@/builds";
+import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
+import {
+  CatalogFilterActions,
+  CatalogNameField,
+  CatalogCompatibleCheckbox,
+  CatalogEnumField,
+  CatalogIdSelectField,
+  CatalogRangeField,
+} from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: MotherboardListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -153,54 +156,26 @@ export function MotherboardListPage() {
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <FieldGroup className="catalog-filter-grid">
-            <Field orientation="horizontal">
-              <input
-                id="show-only-compatible"
-                type="checkbox"
-                className="size-4 shrink-0"
-                checked={showOnlyCompatible}
-                onChange={(event) => applyCompatibleFilter(event.target.checked)}
-              />
-              <FieldLabel htmlFor="show-only-compatible">
-                Show only compatible
-              </FieldLabel>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="motherboard-name">Name</FieldLabel>
-              <Input
-                id="motherboard-name"
-                value={draft.name ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    name: event.target.value,
-                  }))
-                }
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="motherboard-manufacturer">
-                Manufacturer
-              </FieldLabel>
-              <select
-                id="motherboard-manufacturer"
-                className={selectClassName}
-                value={draft.manufacturerId ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    manufacturerId: event.target.value || undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {manufacturers.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <CatalogCompatibleCheckbox
+              checked={showOnlyCompatible}
+              onCheckedChange={applyCompatibleFilter}
+            />
+            <CatalogNameField
+              id="motherboard-name"
+              value={draft.name}
+              onChange={(name) =>
+                setDraft((current) => ({ ...current, name }))
+              }
+            />
+            <CatalogIdSelectField
+              id="motherboard-manufacturer"
+              label="Manufacturer"
+              value={draft.manufacturerId}
+              options={manufacturers}
+              onChange={(value) =>
+                setDraft((current) => ({ ...current, manufacturerId: value || undefined }))
+              }
+            />
             <Field>
               <FieldLabel htmlFor="motherboard-socket">Socket</FieldLabel>
               <select
@@ -223,52 +198,24 @@ export function MotherboardListPage() {
                 ))}
               </select>
             </Field>
-            <Field>
-              <FieldLabel htmlFor="motherboard-chipset">Chipset</FieldLabel>
-              <select
-                id="motherboard-chipset"
-                className={selectClassName}
-                value={draft.chipsetId ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    chipsetId: event.target.value || undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {chipsetOptions.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="motherboard-form-factor">
-                Form factor
-              </FieldLabel>
-              <select
-                id="motherboard-form-factor"
-                className={selectClassName}
-                value={draft.formFactor ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    formFactor: (event.target.value || undefined) as
-                      | MbFormFactor
-                      | undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {MB_FORM_FACTORS.map((formFactor) => (
-                  <option key={formFactor} value={formFactor}>
-                    {formFactor}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <CatalogIdSelectField
+              id="motherboard-chipset"
+              label="Chipset"
+              value={draft.chipsetId}
+              options={chipsetOptions}
+              onChange={(value) =>
+                setDraft((current) => ({ ...current, chipsetId: value || undefined }))
+              }
+            />
+            <CatalogEnumField
+              id="motherboard-form-factor"
+              label="Form factor"
+              value={draft.formFactor}
+              options={MB_FORM_FACTORS}
+              onChange={(formFactor) =>
+                setDraft((current) => ({ ...current, formFactor }))
+              }
+            />
             <Field>
               <FieldLabel htmlFor="motherboard-ddr">DDR</FieldLabel>
               <select
@@ -292,31 +239,15 @@ export function MotherboardListPage() {
                 ))}
               </select>
             </Field>
-            <Field>
-              <FieldLabel htmlFor="motherboard-ram-form-factor">
-                RAM form factor
-              </FieldLabel>
-              <select
-                id="motherboard-ram-form-factor"
-                className={selectClassName}
-                value={draft.ramFormFactor ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    ramFormFactor: (event.target.value || undefined) as
-                      | RamFormFactor
-                      | undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {RAM_FORM_FACTORS.map((formFactor) => (
-                  <option key={formFactor} value={formFactor}>
-                    {formFactor}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <CatalogEnumField
+              id="motherboard-ram-form-factor"
+              label="RAM form factor"
+              value={draft.ramFormFactor}
+              options={RAM_FORM_FACTORS}
+              onChange={(ramFormFactor) =>
+                setDraft((current) => ({ ...current, ramFormFactor }))
+              }
+            />
             <Field>
               <FieldLabel htmlFor="motherboard-wifi">Wi-Fi</FieldLabel>
               <select
@@ -457,164 +388,53 @@ export function MotherboardListPage() {
                 }
               />
             </Field>
-            <Field>
-              <FieldLabel htmlFor="motherboard-width-min">
-                Width (mm)
-              </FieldLabel>
-              <div className="flex gap-2">
-                <Input
-                  id="motherboard-width-min"
-                  type="number"
-                  min={0}
-                  placeholder="Min"
-                  value={draft.widthMm?.min ?? ""}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      widthMm: {
-                        min: toOptionalNumber(event.target.value),
-                        max: current.widthMm?.max ?? null,
-                      },
-                    }))
-                  }
-                />
-                <Input
-                  id="motherboard-width-max"
-                  type="number"
-                  min={0}
-                  placeholder="Max"
-                  aria-label="Width max"
-                  value={draft.widthMm?.max ?? ""}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      widthMm: {
-                        min: current.widthMm?.min ?? null,
-                        max: toOptionalNumber(event.target.value),
-                      },
-                    }))
-                  }
-                />
-              </div>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="motherboard-height-min">
-                Height (mm)
-              </FieldLabel>
-              <div className="flex gap-2">
-                <Input
-                  id="motherboard-height-min"
-                  type="number"
-                  min={0}
-                  placeholder="Min"
-                  value={draft.heightMm?.min ?? ""}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      heightMm: {
-                        min: toOptionalNumber(event.target.value),
-                        max: current.heightMm?.max ?? null,
-                      },
-                    }))
-                  }
-                />
-                <Input
-                  id="motherboard-height-max"
-                  type="number"
-                  min={0}
-                  placeholder="Max"
-                  aria-label="Height max"
-                  value={draft.heightMm?.max ?? ""}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      heightMm: {
-                        min: current.heightMm?.min ?? null,
-                        max: toOptionalNumber(event.target.value),
-                      },
-                    }))
-                  }
-                />
-              </div>
-            </Field>
+            <CatalogRangeField
+              id="motherboard-width"
+              label="Width (mm)"
+              maxAriaLabel="Width max"
+              range={draft.widthMm}
+              onChange={(widthMm) =>
+                setDraft((current) => ({ ...current, widthMm }))
+              }
+            />
+            <CatalogRangeField
+              id="motherboard-height"
+              label="Height (mm)"
+              maxAriaLabel="Height max"
+              range={draft.heightMm}
+              onChange={(heightMm) =>
+                setDraft((current) => ({ ...current, heightMm }))
+              }
+            />
           </FieldGroup>
-          <div className="catalog-filter-actions">
-            <Button type="submit">Apply filters</Button>
-            <Button type="button" variant="outline" onClick={clearFilters}>
-              Clear
-            </Button>
-          </div>
+          <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">{renderCatalog()}</div>
+        <div className="catalog-results">
+          <CatalogPagedResults
+            isInitialLoading={query.isPending && !query.data}
+            isError={query.isError}
+            error={query.error}
+            items={items}
+            filtering={filtering}
+            loadingMessage="Loading motherboards…"
+            emptyFilteredMessage="No motherboards match these filters."
+            emptyMessage="No motherboards in the catalog yet."
+            isAdmin={isAdmin}
+            newItemLabel="New Motherboard"
+            columns={columns}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            pageIndex={pageIndex}
+            pageCount={pageCount}
+            totalCount={totalCount}
+            countLabel="motherboards"
+            onPageChange={goToPage}
+          />
+        </div>
       </div>
     </section>
   );
 
-  function renderCatalog(): ReactNode {
-    if (query.isPending && !query.data) {
-      return <PageStatus>Loading motherboards…</PageStatus>;
-    }
-
-    if (query.isError) {
-      return <PageStatus>{parseApiError(query.error).message}</PageStatus>;
-    }
-
-    if (items.length === 0) {
-      return (
-        <PageStatus>
-          {filtering
-            ? "No motherboards match these filters."
-            : "No motherboards in the catalog yet."}
-        </PageStatus>
-      );
-    }
-
-    return (
-      <>
-        {isAdmin && (
-          <div className="catalog-results-actions">
-            <Button disabled={!Object.values(rowSelection).some(Boolean)}>
-              Edit Selected
-            </Button>
-            <Button disabled={!Object.values(rowSelection).some(Boolean)}>
-              Delete Selected
-            </Button>
-            <Button>New Motherboard</Button>
-            <Button>Import</Button>
-          </div>
-        )}
-        <DataTable
-          data={items}
-          columns={columns}
-          rowSelection={rowSelection}
-          onRowSelectionChange={setRowSelection}
-        />
-        <div className="catalog-pagination">
-          <p>
-            Page {pageIndex + 1} of {pageCount} ({totalCount} motherboards)
-          </p>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pageIndex === 0}
-              onClick={() => goToPage(pageIndex - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pageIndex + 1 >= pageCount}
-              onClick={() => goToPage(pageIndex + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      </>
-    );
-  }
 }
 
 function nameCell(

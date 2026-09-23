@@ -1,13 +1,10 @@
-import { useMemo, useState, type ReactNode, type SyntheticEvent } from "react";
+import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { parseApiError } from "@/api/errors.ts";
 import {
   isMemoryFilterActive,
   type MemoryFilter,
   type MemoryDetail,
 } from "@/api/catalog/memories";
-import { PageStatus } from "@/components/PageStatus.tsx";
-import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,7 +12,6 @@ import {
   type CellContext,
   type RowSelectionState,
 } from "@tanstack/react-table";
-import { DataTable } from "@/components/ui/data-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useAuth } from "@/auth/useAuth";
@@ -47,6 +43,12 @@ import {
 } from "@/api/master-data";
 import { useQuery } from "@tanstack/react-query";
 import { usePcBuild } from "@/builds/usePcBuild";
+import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
+import {
+  CatalogFilterActions,
+  CatalogNameField,
+  CatalogCompatibleCheckbox,
+} from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: MemoryDetail[] = [];
 const columnHelper = createColumnHelper<typeof dataTableFeatures, MemoryDetail>();
@@ -202,33 +204,17 @@ export function RamListPage() {
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <FieldGroup className="catalog-filter-grid">
-            <Field orientation="horizontal">
-              <input
-                id="show-only-compatible"
-                type="checkbox"
-                className="size-4 shrink-0"
-                checked={showOnlyCompatible}
-                onChange={(event) =>
-                  applyCompatibleFilter(event.target.checked)
-                }
-              />
-              <FieldLabel htmlFor="show-only-compatible">
-                Show only compatible
-              </FieldLabel>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="memory-name">Name</FieldLabel>
-              <Input
-                id="memory-name"
-                value={draft.name ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    name: event.target.value,
-                  }))
-                }
-              />
-            </Field>
+            <CatalogCompatibleCheckbox
+              checked={showOnlyCompatible}
+              onCheckedChange={applyCompatibleFilter}
+            />
+            <CatalogNameField
+              id="memory-name"
+              value={draft.name}
+              onChange={(name) =>
+                setDraft((current) => ({ ...current, name }))
+              }
+            />
             <Field>
               <FieldLabel htmlFor="memory-manufacturer">
                 Manufacturer
@@ -448,84 +434,35 @@ export function RamListPage() {
               </div>
             </Field>
           </FieldGroup>
-          <div className="catalog-filter-actions">
-            <Button type="submit">Apply filters</Button>
-            <Button type="button" variant="outline" onClick={clearFilters}>
-              Clear
-            </Button>
-          </div>
+          <CatalogFilterActions onClear={clearFilters} />
         </form>
 
-        <div className="catalog-results">{renderCatalog()}</div>
+        <div className="catalog-results">
+          <CatalogPagedResults
+            isInitialLoading={query.isPending && !query.data}
+            isError={query.isError}
+            error={query.error}
+            items={items}
+            filtering={filtering}
+            loadingMessage="Loading memories…"
+            emptyFilteredMessage="No memories match these filters."
+            emptyMessage="No memories in the catalog yet."
+            isAdmin={isAdmin}
+            newItemLabel="New Memory"
+            columns={columns}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            pageIndex={pageIndex}
+            pageCount={pageCount}
+            totalCount={totalCount}
+            countLabel="CPUs"
+            onPageChange={goToPage}
+          />
+        </div>
       </div>
     </section>
   );
 
-  function renderCatalog(): ReactNode {
-    if (query.isPending && !query.data) {
-      return <PageStatus>Loading memories…</PageStatus>;
-    }
-
-    if (query.isError) {
-      return <PageStatus>{parseApiError(query.error).message}</PageStatus>;
-    }
-
-    if (items.length === 0) {
-      return (
-        <PageStatus>
-          {filtering
-            ? "No memories match these filters."
-            : "No memories in the catalog yet."}
-        </PageStatus>
-      );
-    }
-
-    return (
-      <>
-        {isAdmin && (
-          <div className="catalog-results-actions">
-            <Button disabled={!Object.values(rowSelection).some(Boolean)}>
-              Edit Selected
-            </Button>
-            <Button disabled={!Object.values(rowSelection).some(Boolean)}>
-              Delete Selected
-            </Button>
-            <Button>New Memory</Button>
-            <Button>Import</Button>
-          </div>
-        )}
-        <DataTable
-          data={items}
-          columns={columns}
-          rowSelection={rowSelection}
-          onRowSelectionChange={setRowSelection}
-        />
-        <div className="catalog-pagination">
-          <p>
-            Page {pageIndex + 1} of {pageCount} ({totalCount} CPUs)
-          </p>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pageIndex === 0}
-              onClick={() => goToPage(pageIndex - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pageIndex + 1 >= pageCount}
-              onClick={() => goToPage(pageIndex + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      </>
-    );
-  }
 }
 
 function nameCell(

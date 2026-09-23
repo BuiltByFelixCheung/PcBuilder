@@ -1,6 +1,5 @@
-import { useMemo, useState, type ReactNode, type SyntheticEvent } from "react";
+import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { parseApiError } from "@/api/errors.ts";
 import {
   listGpuSeries,
   masterDataKeys,
@@ -11,19 +10,17 @@ import {
   gpuSeriesEditPath,
   newMasterDataEditValue,
 } from "@/pages/master-data/master-data-edit";
-import { PageStatus } from "@/components/PageStatus";
-import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import {
   createColumnHelper,
   type RowSelectionState,
 } from "@tanstack/react-table";
-import { DataTable } from "@/components/ui/data-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useQuery } from "@tanstack/react-query";
 import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
+import { MasterDataResults } from "@/pages/catalog/catalog-results";
+import { CatalogFilterActions, CatalogNameField } from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: GpuSeriesOption[] = [];
 const columnHelper = createColumnHelper<
@@ -124,17 +121,12 @@ export function GpuSeriesListPage() {
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <FieldGroup className="catalog-filter-grid">
-            <Field>
-              <FieldLabel htmlFor="gpu-series-name">Name</FieldLabel>
-              <Input
-                id="gpu-series-name"
-                name="name"
-                value={draft.name ?? ""}
-                onChange={(event) =>
-                  setDraft({ ...draft, name: event.target.value })
-                }
-              />
-            </Field>
+            <CatalogNameField
+              id="gpu-series-name"
+              name="name"
+              value={draft.name}
+              onChange={(name) => setDraft({ ...draft, name })}
+            />
             <Field>
               <FieldLabel htmlFor="gpu-series-manufacturer">
                 Manufacturer
@@ -156,14 +148,25 @@ export function GpuSeriesListPage() {
               </select>
             </Field>
           </FieldGroup>
-          <div className="catalog-filter-actions">
-            <Button type="submit">Apply filters</Button>
-            <Button type="button" variant="outline" onClick={clearFilters}>
-              Clear
-            </Button>
-          </div>
+          <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">{renderCatalog()}</div>
+        <div className="catalog-results">
+          <MasterDataResults
+            isInitialLoading={query.isPending && !query.data}
+            isError={query.isError}
+            error={query.error}
+            items={visibleItems}
+            filtering={filtering}
+            loadingMessage="Loading GPU Series…"
+            emptyFilteredMessage="No GPU Series match these filters."
+            emptyMessage="No GPU Series found."
+            columns={columns}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            newItemTo={gpuSeriesEditPath(newMasterDataEditValue)}
+            newItemLabel="New GPU Series"
+          />
+        </div>
       </div>
       {editingId ? (
         <GpuSeriesFormDialog
@@ -177,47 +180,4 @@ export function GpuSeriesListPage() {
     </section>
   );
 
-  function renderCatalog(): ReactNode {
-    if (query.isPending && !query.data) {
-      return <PageStatus>Loading GPU Series…</PageStatus>;
-    }
-
-    if (query.isError) {
-      return <PageStatus>{parseApiError(query.error).message}</PageStatus>;
-    }
-
-    const hasSelection = Object.values(rowSelection).some(Boolean);
-
-    return (
-      <>
-        <div className="catalog-results-actions">
-          <Button disabled={!hasSelection}>Edit Selected</Button>
-          <Button disabled={!hasSelection}>Delete Selected</Button>
-          <Button asChild>
-            <Link
-              style={{ textDecoration: "none", color: "black" }}
-              to={gpuSeriesEditPath(newMasterDataEditValue)}
-            >
-              New GPU Series
-            </Link>
-          </Button>
-          <Button>Import</Button>
-        </div>
-        {visibleItems.length === 0 ? (
-          <PageStatus>
-            {filtering
-              ? "No GPU Series match these filters."
-              : "No GPU Series found."}
-          </PageStatus>
-        ) : (
-          <DataTable
-            data={visibleItems}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-          />
-        )}
-      </>
-    );
-  }
 }

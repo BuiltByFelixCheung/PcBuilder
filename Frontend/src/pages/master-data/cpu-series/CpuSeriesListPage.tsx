@@ -1,6 +1,5 @@
-import { useMemo, useState, type ReactNode, type SyntheticEvent } from "react";
+import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { parseApiError } from "@/api/errors.ts";
 import {
   listCpuSeries,
   masterDataKeys,
@@ -11,19 +10,16 @@ import {
   cpuSeriesEditPath,
   newMasterDataEditValue,
 } from "@/pages/master-data/master-data-edit";
-import { PageStatus } from "@/components/PageStatus";
-import { Button } from "@/components/ui/button";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { FieldGroup } from "@/components/ui/field";
 import {
   createColumnHelper,
   type RowSelectionState,
 } from "@tanstack/react-table";
-import { DataTable } from "@/components/ui/data-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useQuery } from "@tanstack/react-query";
-import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
+import { MasterDataResults } from "@/pages/catalog/catalog-results";
+import { CatalogFilterActions, CatalogNameField, CatalogIdSelectField } from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: CpuSeriesOption[] = [];
 const columnHelper = createColumnHelper<
@@ -140,72 +136,51 @@ export function CpuSeriesListPage() {
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <FieldGroup className="catalog-filter-grid">
-            <Field>
-              <FieldLabel htmlFor="cpu-series-name">Name</FieldLabel>
-              <Input
-                id="cpu-series-name"
-                value={draft.name ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    name: event.target.value,
-                  }))
-                }
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="cpu-series-manufacturer">
-                Manufacturer
-              </FieldLabel>
-              <select
-                id="cpu-series-manufacturer"
-                className={catalogSelectClassName}
-                value={draft.manufacturerId ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    manufacturerId: event.target.value,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {manufacturers.map((manufacturer) => (
-                  <option key={manufacturer.id} value={manufacturer.id}>
-                    {manufacturer.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="cpu-series-socket">Socket</FieldLabel>
-              <select
-                id="cpu-series-socket"
-                className={catalogSelectClassName}
-                value={draft.socketId ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    socketId: event.target.value,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {socketOptions.map((socket) => (
-                  <option key={socket.id} value={socket.id}>
-                    {socket.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <CatalogNameField
+              id="cpu-series-name"
+              value={draft.name}
+              onChange={(name) =>
+                setDraft((current) => ({ ...current, name }))
+              }
+            />
+            <CatalogIdSelectField
+              id="cpu-series-manufacturer"
+              label="Manufacturer"
+              value={draft.manufacturerId}
+              options={manufacturers}
+              onChange={(value) =>
+                setDraft((current) => ({ ...current, manufacturerId: value }))
+              }
+            />
+            <CatalogIdSelectField
+              id="cpu-series-socket"
+              label="Socket"
+              value={draft.socketId}
+              options={socketOptions}
+              onChange={(value) =>
+                setDraft((current) => ({ ...current, socketId: value }))
+              }
+            />
           </FieldGroup>
-          <div className="catalog-filter-actions">
-            <Button type="submit">Apply filters</Button>
-            <Button type="button" variant="outline" onClick={clearFilters}>
-              Clear
-            </Button>
-          </div>
+          <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">{renderCatalog()}</div>
+        <div className="catalog-results">
+          <MasterDataResults
+            isInitialLoading={query.isPending && !query.data}
+            isError={query.isError}
+            error={query.error}
+            items={visibleItems}
+            filtering={filtering}
+            loadingMessage="Loading CPU Series…"
+            emptyFilteredMessage="No CPU Series match these filters."
+            emptyMessage="No CPU Series yet."
+            columns={columns}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            newItemTo={cpuSeriesEditPath(newMasterDataEditValue)}
+            newItemLabel="New CPU Series"
+          />
+        </div>
       </div>
       {editingId ? (
         <CpuSeriesFormDialog
@@ -219,47 +194,4 @@ export function CpuSeriesListPage() {
     </section>
   );
 
-  function renderCatalog(): ReactNode {
-    if (query.isPending && !query.data) {
-      return <PageStatus>Loading CPU Series…</PageStatus>;
-    }
-
-    if (query.isError) {
-      return <PageStatus>{parseApiError(query.error).message}</PageStatus>;
-    }
-
-    const hasSelection = Object.values(rowSelection).some(Boolean);
-
-    return (
-      <>
-        <div className="catalog-results-actions">
-          <Button disabled={!hasSelection}>Edit Selected</Button>
-          <Button disabled={!hasSelection}>Delete Selected</Button>
-          <Button asChild>
-            <Link
-              style={{ textDecoration: "none", color: "black" }}
-              to={cpuSeriesEditPath(newMasterDataEditValue)}
-            >
-              New CPU Series
-            </Link>
-          </Button>
-          <Button>Import</Button>
-        </div>
-        {visibleItems.length === 0 ? (
-          <PageStatus>
-            {filtering
-              ? "No CPU Series match these filters."
-              : "No CPU Series yet."}
-          </PageStatus>
-        ) : (
-          <DataTable
-            data={visibleItems}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-          />
-        )}
-      </>
-    );
-  }
 }

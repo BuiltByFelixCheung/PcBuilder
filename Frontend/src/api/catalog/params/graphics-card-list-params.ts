@@ -11,8 +11,7 @@ import {
   setSearchFlag,
 } from "../../helper";
 import type { PcieGeneration } from "../../enums";
-
-const PAGE_SIZE = 10;
+import { catalogPagingFromSearch } from "./list-search";
 
 export const emptyGraphicsCardFilter: GraphicsCardFilter = {
   name: undefined,
@@ -22,10 +21,7 @@ export function graphicsCardListParamsFromSearch(
   search: URLSearchParams,
 ): GraphicsCardListParams {
   return {
-    pageIndex: Math.max(0, toInteger(search.get("page")) ?? 0),
-    pageSize: PAGE_SIZE,
-    sortBy: "name",
-    sortDirection: "asc",
+    ...catalogPagingFromSearch(search),
     filter: filterFromSearch(search),
   };
 }

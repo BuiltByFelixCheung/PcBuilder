@@ -2,8 +2,7 @@ import type { MotherboardFilter, MotherboardListParams } from "../motherboards";
 import { hasCompleteRange, type RangeFilter } from "../../paging";
 import { toInteger, emptyToUndefined, parseRange } from "../../helper";
 import type { DdrGeneration, MbFormFactor, RamFormFactor } from "../../enums";
-
-const PAGE_SIZE = 10;
+import { catalogPagingFromSearch } from "./list-search";
 
 export const emptyMotherboardFilter: MotherboardFilter = {
   name: "",
@@ -13,10 +12,7 @@ export function motherboardListParamsFromSearch(
   search: URLSearchParams,
 ): MotherboardListParams {
   return {
-    pageIndex: Math.max(0, toInteger(search.get("page")) ?? 0),
-    pageSize: PAGE_SIZE,
-    sortBy: "name",
-    sortDirection: "asc",
+    ...catalogPagingFromSearch(search),
     filter: filterFromSearch(search),
   };
 }

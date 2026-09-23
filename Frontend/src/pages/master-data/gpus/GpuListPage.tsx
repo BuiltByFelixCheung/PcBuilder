@@ -1,6 +1,5 @@
-import { useMemo, useState, type ReactNode, type SyntheticEvent } from "react";
+import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { parseApiError } from "@/api/errors.ts";
 import {
   listGpus,
   masterDataKeys,
@@ -11,19 +10,17 @@ import {
   gpuEditPath,
   newMasterDataEditValue,
 } from "@/pages/master-data/master-data-edit";
-import { PageStatus } from "@/components/PageStatus";
-import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import {
   createColumnHelper,
   type RowSelectionState,
 } from "@tanstack/react-table";
-import { DataTable } from "@/components/ui/data-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useQuery } from "@tanstack/react-query";
 import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
+import { MasterDataResults } from "@/pages/catalog/catalog-results";
+import { CatalogFilterActions, CatalogNameField } from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: GpuOption[] = [];
 const columnHelper = createColumnHelper<typeof dataTableFeatures, GpuOption>();
@@ -143,17 +140,12 @@ export function GpuListPage() {
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <FieldGroup className="catalog-filter-grid">
-            <Field>
-              <FieldLabel htmlFor="gpu-name">Name</FieldLabel>
-              <Input
-                id="gpu-name"
-                name="name"
-                value={draft.name ?? ""}
-                onChange={(event) =>
-                  setDraft({ ...draft, name: event.target.value })
-                }
-              />
-            </Field>
+            <CatalogNameField
+              id="gpu-name"
+              name="name"
+              value={draft.name}
+              onChange={(name) => setDraft({ ...draft, name })}
+            />
             <Field>
               <FieldLabel htmlFor="gpu-manufacturer">Manufacturer</FieldLabel>
               <select
@@ -193,14 +185,26 @@ export function GpuListPage() {
               </select>
             </Field>
           </FieldGroup>
-          <div className="catalog-filter-actions">
-            <Button type="submit">Apply filters</Button>
-            <Button type="button" variant="outline" onClick={clearFilters}>
-              Clear
-            </Button>
-          </div>
+          <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">{renderCatalog()}</div>
+        <div className="catalog-results">
+          <MasterDataResults
+            isInitialLoading={query.isPending && !query.data}
+            isError={query.isError}
+            error={query.error}
+            items={visibleItems}
+            filtering={filtering}
+            loadingMessage="Loading GPUs…"
+            emptyFilteredMessage="No GPUs match these filters."
+            emptyMessage="No GPUs found."
+            columns={columns}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            newItemTo={gpuEditPath(newMasterDataEditValue)}
+            newItemLabel="New GPU"
+            keepTableWhenEmpty
+          />
+        </div>
         {editingId ? (
           <GpuFormDialog
             key={editingId}
@@ -214,46 +218,4 @@ export function GpuListPage() {
     </section>
   );
 
-  function renderCatalog(): ReactNode {
-    if (query.isPending && !query.data) {
-      return <PageStatus>Loading GPUs…</PageStatus>;
-    }
-
-    if (query.isError) {
-      return <PageStatus>{parseApiError(query.error).message}</PageStatus>;
-    }
-
-    const hasSelection = Object.values(rowSelection).some(Boolean);
-
-    return (
-      <>
-        <div className="catalog-results-actions">
-          <Button disabled={!hasSelection}>Edit Selected</Button>
-          <Button disabled={!hasSelection}>Delete Selected</Button>
-          <Button asChild>
-            <Link
-              style={{ textDecoration: "none", color: "black" }}
-              to={gpuEditPath(newMasterDataEditValue)}
-            >
-              New GPU
-            </Link>
-          </Button>
-          <Button>Import</Button>
-        </div>
-        {visibleItems.length === 0 ? (
-          <PageStatus>
-            {filtering
-              ? "No GPUs match these filters."
-              : "No GPUs found."}
-          </PageStatus>
-        ) : null}
-        <DataTable
-          data={visibleItems}
-          columns={columns}
-          rowSelection={rowSelection}
-          onRowSelectionChange={setRowSelection}
-        />
-      </>
-    );
-  }
 }
