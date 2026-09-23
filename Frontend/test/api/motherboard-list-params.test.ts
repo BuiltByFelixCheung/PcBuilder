@@ -30,6 +30,7 @@ describe("motherboard list search params", () => {
         formFactor: undefined,
         wifiEnabled: undefined,
         bluetoothEnabled: undefined,
+        chassisId: undefined,
       },
     });
   });
@@ -81,6 +82,18 @@ describe("motherboard list search params", () => {
         filter: emptyMotherboardFilter,
       }).toString(),
     ).toBe("");
+  });
+
+  it("round-trips chassis compatibility", () => {
+    const search = motherboardListSearchFromParams({
+      pageIndex: 0,
+      pageSize: 10,
+      filter: { chassisId: "case-1" },
+    });
+    expect(search.get("chassisId")).toBe("case-1");
+    expect(motherboardListParamsFromSearch(search).filter.chassisId).toBe(
+      "case-1",
+    );
   });
 
   it("treats blank manufacturer ids as unset", () => {

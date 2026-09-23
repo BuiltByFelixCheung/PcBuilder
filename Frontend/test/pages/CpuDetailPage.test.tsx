@@ -12,7 +12,7 @@ vi.mock("@/api/catalog/cpus", async () => {
   return { ...actual, getCpuById: (...args: unknown[]) => getCpuById(...args) };
 });
 
-import { CpuDetailPage } from "@/pages/catalog/CpuDetailPage.tsx";
+import { CpuDetailPage } from "@/pages/catalog/cpus/CpuDetailPage.tsx";
 import { renderWithQuery } from "../helpers/query.tsx";
 import { Route, Routes } from "react-router-dom";
 
@@ -70,6 +70,7 @@ describe("CpuDetailPage", () => {
       "href",
       "/catalog/cpus",
     );
+    expect(screen.queryByLabelText("QTY")).not.toBeInTheDocument();
   });
 
   it("shows an API error", async () => {

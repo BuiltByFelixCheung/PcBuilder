@@ -52,7 +52,7 @@ describe("graphics card API", () => {
   it("treats blank filters as inactive", () => {
     expect(isGraphicsCardFilterActive({ name: "  " })).toBe(false);
     expect(isGraphicsCardFilterActive({ name: "4070" })).toBe(true);
-    expect(isGraphicsCardFilterActive({ isLowProfile: false })).toBe(false);
+    expect(isGraphicsCardFilterActive({ isLowProfile: false })).toBe(true);
     expect(isGraphicsCardFilterActive({ isLowProfile: true })).toBe(true);
   });
 

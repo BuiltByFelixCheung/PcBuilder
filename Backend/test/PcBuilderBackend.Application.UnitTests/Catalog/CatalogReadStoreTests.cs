@@ -147,10 +147,36 @@ public class CatalogReadStoreTests : IDisposable
                 MaxCpuCoolerHeightMm = null,
                 MaxGraphicsCardLengthMm = null,
                 MaxPsuLengthMm = null,
-                SupportedMbFormFactors = [MbFormFactor.Atx]
+                MaxSupportedMbFormFactor = MbFormFactor.Atx
             }),
             CancellationToken.None);
         filtered.Items.Should().ContainSingle();
+
+        var formFactorOnly = await store.FilterAsync(
+            new PagedRequest<ChassisFilter>(new ChassisFilter
+            {
+                MaxSupportedMbFormFactor = MbFormFactor.Atx
+            }),
+            CancellationToken.None);
+        formFactorOnly.Items.Should().ContainSingle(x => x.Name == "4000D");
+
+        SeedChassis("NR200", MbFormFactor.Mitx);
+        SeedChassis("O11D Evo", MbFormFactor.Atx, MbFormFactor.Eatx);
+        var mitxOnly = await store.FilterAsync(
+            new PagedRequest<ChassisFilter>(new ChassisFilter
+            {
+                MaxSupportedMbFormFactor = MbFormFactor.Mitx
+            }),
+            CancellationToken.None);
+        mitxOnly.Items.Should().ContainSingle(x => x.Name == "NR200");
+
+        var eatxOnly = await store.FilterAsync(
+            new PagedRequest<ChassisFilter>(new ChassisFilter
+            {
+                MaxSupportedMbFormFactor = MbFormFactor.Eatx
+            }),
+            CancellationToken.None);
+        eatxOnly.Items.Should().ContainSingle(x => x.Name == "O11D Evo");
 
         (await store.GetByIdAsync(chassis.Id, CancellationToken.None))!.MbFormFactors.Should()
             .Contain(MbFormFactor.Atx);
@@ -200,6 +226,15 @@ public class CatalogReadStoreTests : IDisposable
                 new PagedRequest<CpuFilter>(new CpuFilter(MotherboardId: Guid.NewGuid())),
                 CancellationToken.None)).TotalCount
             .Should().Be(0);
+        var board = SeedMotherboard("ROG Strix");
+        (await cpuStore.FilterAsync(
+                new PagedRequest<CpuFilter>(new CpuFilter(MotherboardId: board.Id)),
+                CancellationToken.None)).Items
+            .Should().ContainSingle(x =>
+                x.Name == "7800X3D"
+                && x.ManufacturerName == "ASUS"
+                && x.SeriesName == "Ryzen 7000"
+                && x.SocketName == "AM5");
 
         var psuStore = new PsuReadStore(_db, _mapper);
         (await psuStore.ListAsync(new PagedRequest(), CancellationToken.None)).Items
@@ -256,6 +291,15 @@ public class CatalogReadStoreTests : IDisposable
                 new PagedRequest<GraphicsCardFilter>(new GraphicsCardFilter { ChassisId = Guid.NewGuid() }),
                 CancellationToken.None)).TotalCount
             .Should().Be(0);
+        var gpuCase = SeedChassis("4000D-GPU");
+        (await gpuStore.FilterAsync(
+                new PagedRequest<GraphicsCardFilter>(new GraphicsCardFilter { ChassisId = gpuCase.Id }),
+                CancellationToken.None)).Items
+            .Should()
+            .ContainSingle(x =>
+                x.Name == "TUF 4070"
+                && x.ManufacturerName == "ASUS"
+                && x.GpuName == "RTX 4070");
 
         var driveStore = new StorageDriveReadStore(_db, _mapper);
         (await driveStore.ListAsync(new PagedRequest(), CancellationToken.None)).Items
@@ -269,6 +313,27 @@ public class CatalogReadStoreTests : IDisposable
                 CancellationToken.None)).Items
             .Should().ContainSingle();
         (await driveStore.GetByIdAsync(drive.Id, CancellationToken.None))!.CapacityGb.Should().Be(1000);
+        (await driveStore.GetByIdAsync(drive.Id, CancellationToken.None))!.M2FormFactor.Should().BeNull();
+
+        var nvme = new StorageDrive(
+            "990 PRO",
+            _manufacturer.Id,
+            new StorageDriveSpecs
+            {
+                Media = StorageMedia.Ssd,
+                Interface = StorageInterface.Nvme,
+                FormFactor = StorageFormFactor.M22280,
+                CapacityGb = 2000,
+                PcieGeneration = PcieGeneration.Gen4
+            });
+        _db.StorageDrives.Add(nvme);
+        _db.SaveChanges();
+        var listedNvme = (await driveStore.ListAsync(new PagedRequest(), CancellationToken.None)).Items
+            .Should()
+            .ContainSingle(x => x.Name == "990 PRO")
+            .Subject;
+        listedNvme.IsM2.Should().BeTrue();
+        listedNvme.M2FormFactor.Should().Be(M2FormFactor.M22280);
 
         var fanStore = new ChassisFanReadStore(_db, _mapper);
         (await fanStore.ListAsync(new PagedRequest(), CancellationToken.None)).Items
@@ -373,7 +438,7 @@ public class CatalogReadStoreTests : IDisposable
         return board;
     }
 
-    private Chassis SeedChassis(string name)
+    private Chassis SeedChassis(string name, params MbFormFactor[] mbFormFactors)
     {
         var chassis = new Chassis(
             name,
@@ -395,7 +460,8 @@ public class CatalogReadStoreTests : IDisposable
         chassis.AddFanMount(mount);
         chassis.AddPcieSlot(new ChassisPcieSlot(chassis.Id, false, 7, PcieOrientation.Horizontal));
         chassis.AddRadiator(new ChassisRadiator(chassis.Id, RadiatorLength.Mm360, RadiatorMountLocation.Top, 1));
-        chassis.AddMbFormFactor(new ChassisMbFormFactor(chassis.Id, MbFormFactor.Atx));
+        foreach (var formFactor in (mbFormFactors.Length > 0 ? mbFormFactors : [MbFormFactor.Atx]).Distinct())
+            chassis.AddMbFormFactor(new ChassisMbFormFactor(chassis.Id, formFactor));
         chassis.AddPsuFormFactor(new ChassisPsuFormFactor(chassis.Id, PsuFormFactor.Atx));
         _db.Chassis.Add(chassis);
         _db.SaveChanges();

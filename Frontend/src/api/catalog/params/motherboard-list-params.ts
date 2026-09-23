@@ -45,6 +45,7 @@ export function motherboardListSearchFromParams(
   setSearchValue(search, "formFactor", filter.formFactor);
   setSearchFlag(search, "wifiEnabled", filter.wifiEnabled);
   setSearchFlag(search, "bluetoothEnabled", filter.bluetoothEnabled);
+  setSearchValue(search, "chassisId", filter.chassisId);
 
   return search;
 }
@@ -103,6 +104,7 @@ function filterFromSearch(search: URLSearchParams): MotherboardFilter {
       | undefined,
     wifiEnabled: parseOptionalBoolean(search.get("wifiEnabled")),
     bluetoothEnabled: parseOptionalBoolean(search.get("bluetoothEnabled")),
+    chassisId: emptyToUndefined(search.get("chassisId")),
   };
 }
 

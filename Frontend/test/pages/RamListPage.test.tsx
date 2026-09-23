@@ -17,9 +17,10 @@ vi.mock("@/api/catalog/memories", async () => {
 });
 
 vi.mock("@/api/master-data", async () => {
-  const actual = await vi.importActual<typeof import("@/api/master-data")>(
-    "@/api/master-data",
-  );
+  const actual =
+    await vi.importActual<typeof import("@/api/master-data")>(
+      "@/api/master-data",
+    );
   return {
     ...actual,
     listManufacturersByProductType: (...args: unknown[]) =>
@@ -27,7 +28,7 @@ vi.mock("@/api/master-data", async () => {
   };
 });
 
-import { RamListPage } from "@/pages/catalog/RamListPage.tsx";
+import { RamListPage } from "@/pages/catalog/memories/RamListPage.tsx";
 import { renderWithQuery } from "../helpers/query.tsx";
 
 const ram: MemoryDetail = {

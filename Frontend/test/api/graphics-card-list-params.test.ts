@@ -18,8 +18,10 @@ describe("graphics card list search params", () => {
         gpuId: "4070",
         videoMemoryGb: 12,
         pcieGeneration: "Gen4" as const,
-        isLowProfile: true,
+        isLowProfile: false,
         lengthMm: { min: 200, max: 350 },
+        chassisId: "case-1",
+        motherboardId: "mb-1",
       },
     };
     expect(
@@ -31,8 +33,10 @@ describe("graphics card list search params", () => {
         gpuId: "4070",
         videoMemoryGb: 12,
         pcieGeneration: "Gen4",
-        isLowProfile: true,
+        isLowProfile: false,
         lengthMm: { min: 200, max: 350 },
+        chassisId: "case-1",
+        motherboardId: "mb-1",
       },
     });
   });

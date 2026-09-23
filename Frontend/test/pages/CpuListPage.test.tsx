@@ -222,4 +222,47 @@ describe("CpuListPage", () => {
       }),
     );
   });
+
+  it("filters CPUs by the motherboard in the current build", async () => {
+    listCpus.mockResolvedValue({
+      items: [cpu],
+      totalCount: 1,
+      pageIndex: 0,
+      pageSize: 10,
+    });
+    const user = userEvent.setup();
+    renderWithQuery(<CpuListPage />, {
+      route: "/catalog/cpus",
+      initialBuild: { motherboardId: "mb-1" },
+    });
+    await screen.findByRole("link", { name: "Ryzen 7 7800X3D" });
+    const checkbox = screen.getByLabelText("Show only compatible");
+    await user.click(checkbox);
+    expect(checkbox).toBeChecked();
+    expect(listCpus).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filter: expect.objectContaining({ motherboardId: "mb-1" }),
+      }),
+    );
+  });
+
+  it("keeps the compatibility checkbox checked without a motherboard in the build", async () => {
+    listCpus.mockResolvedValue({
+      items: [cpu],
+      totalCount: 1,
+      pageIndex: 0,
+      pageSize: 10,
+    });
+    const user = userEvent.setup();
+    renderWithQuery(<CpuListPage />, { route: "/catalog/cpus" });
+    await screen.findByRole("link", { name: "Ryzen 7 7800X3D" });
+    const checkbox = screen.getByLabelText("Show only compatible");
+    await user.click(checkbox);
+    expect(checkbox).toBeChecked();
+    expect(listCpus).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        filter: expect.objectContaining({ motherboardId: expect.anything() }),
+      }),
+    );
+  });
 });

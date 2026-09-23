@@ -125,3 +125,68 @@ export type UsbVersion = (typeof USB_VERSIONS)[number];
 
 export const USB_TYPES = ["TypeA", "TypeC"] as const;
 export type UsbType = (typeof USB_TYPES)[number];
+
+export const PSU_MODULARITIES = [
+  "NonModular",
+  "SemiModular",
+  "FullModular",
+] as const;
+export type PsuModularity = (typeof PSU_MODULARITIES)[number];
+
+export const CPU_COOLER_TYPES = ["Air", "Water"] as const;
+export type CpuCoolerType = (typeof CPU_COOLER_TYPES)[number];
+
+export const STORAGE_MEDIAS = ["Hdd", "Ssd"] as const;
+export type StorageMedia = (typeof STORAGE_MEDIAS)[number];
+
+export const STORAGE_INTERFACES = ["Sata", "Nvme"] as const;
+export type StorageInterface = (typeof STORAGE_INTERFACES)[number];
+
+export const STORAGE_FORM_FACTORS = [
+  "M22230",
+  "M22242",
+  "M22260",
+  "M22280",
+  "M222110",
+  "Sata25",
+  "Sata35",
+] as const;
+export type StorageFormFactor = (typeof STORAGE_FORM_FACTORS)[number];
+
+export function formatStorageFormFactor(formFactor: StorageFormFactor): string {
+  if (formFactor === "Sata25") return "2.5 in";
+  if (formFactor === "Sata35") return "3.5 in";
+  return formatM2FormFactor(formFactor as M2FormFactor);
+}
+
+export const WIRED_HOST_INTERFACES = ["Pcie", "Usb"] as const;
+export type WiredHostInterface = (typeof WIRED_HOST_INTERFACES)[number];
+
+export const WIRELESS_HOST_INTERFACES = ["M2", "Pcie", "Usb"] as const;
+export type WirelessHostInterface = (typeof WIRELESS_HOST_INTERFACES)[number];
+
+export const WIFI_STANDARDS = [
+  "Wifi4",
+  "Wifi5",
+  "Wifi6",
+  "Wifi6E",
+  "Wifi7",
+] as const;
+export type WifiStandard = (typeof WIFI_STANDARDS)[number];
+
+export function formatWifiStandard(standard: WifiStandard): string {
+  return standard.replace(/^Wifi/, "Wi-Fi ");
+}
+
+export const BLUETOOTH_VERSIONS = [
+  "V5Point0",
+  "V5Point1",
+  "V5Point2",
+  "V5Point3",
+  "V5Point4",
+] as const;
+export type BluetoothVersion = (typeof BLUETOOTH_VERSIONS)[number];
+
+export function formatBluetoothVersion(version: BluetoothVersion): string {
+  return version.replace(/^V/, "").replace("Point", ".");
+}

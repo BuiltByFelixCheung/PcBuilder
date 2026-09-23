@@ -63,11 +63,14 @@ api.interceptors.response.use(
 export async function refreshSession(): Promise<AuthTokens | null> {
   refreshPromise ??= (async () => {
     try {
-      const { data } = await axios.post<AuthTokens>(
+      const { data, status } = await axios.post<AuthTokens>(
         '/api/auth/refresh',
         {},
         { withCredentials: true },
       )
+      if (status === 204 || !data?.accessToken) {
+        return null
+      }
       bridge.applySession(data)
       return data
     } catch {

@@ -39,31 +39,31 @@ public class ChassisReadStore(PcBuilderDbContext db, IMapper mapper) : IChassisR
         CancellationToken cancellationToken)
     {
         var filter = request.Filter ?? new ChassisFilter();
-
-        return await db.Chassis
+        IQueryable<Domain.Entities.Chassis> query = db.Chassis
             .AsNoTracking()
-            .Include(x => x.MbFormFactors)
             .WhereIfHasText(filter.Name, name => x => x.Name.Contains(name))
             .WhereIf(filter.ManufacturerId.HasValue,
                 x => x.ManufacturerId == filter.ManufacturerId)
-            .WhereIf(filter.SupportedMbFormFactors.Count != 0,
-                x => x.MbFormFactors.Any(f => filter.SupportedMbFormFactors.Contains(f.MbFormFactor)))
-            .WhereIf(filter.HeightMm, range => x =>
-                x.HeightMm <= range.Max && x.HeightMm >= range.Min)
-            .WhereIf(filter.LengthMm, range => x =>
-                x.LengthMm <= range.Max && x.LengthMm >= range.Min)
-            .WhereIf(filter.WidthMm, range => x =>
-                x.WidthMm <= range.Max && x.WidthMm >= range.Min)
-            .WhereIf(filter.MotherboardMaxWidthMm, range => x =>
-                x.MotherboardMaxWidthMm <= range.Max && x.MotherboardMaxWidthMm >= range.Min)
-            .WhereIf(filter.MotherboardMaxHeightMm, range => x =>
-                x.MotherboardMaxHeightMm <= range.Max && x.MotherboardMaxHeightMm >= range.Min)
-            .WhereIf(filter.MaxCpuCoolerHeightMm, range => x =>
-                x.MaxCpuCoolerHeightMm <= range.Max && x.MaxCpuCoolerHeightMm >= range.Min)
-            .WhereIf(filter.MaxGraphicsCardLengthMm, range => x =>
-                x.MaxGraphicsCardLengthMm <= range.Max && x.MaxGraphicsCardLengthMm >= range.Min)
-            .WhereIf(filter.MaxPsuLengthMm, range => x =>
-                x.MaxPsuLengthMm <= range.Max && x.MaxPsuLengthMm >= range.Min)
+            .WhereIf(CompleteRange(filter.HeightMm), range => x =>
+                x.HeightMm >= range.Min && x.HeightMm <= range.Max)
+            .WhereIf(CompleteRange(filter.LengthMm), range => x =>
+                x.LengthMm >= range.Min && x.LengthMm <= range.Max)
+            .WhereIf(CompleteRange(filter.WidthMm), range => x =>
+                x.WidthMm >= range.Min && x.WidthMm <= range.Max)
+            .WhereIf(CompleteRange(filter.MotherboardMaxWidthMm), range => x =>
+                x.MotherboardMaxWidthMm >= range.Min && x.MotherboardMaxWidthMm <= range.Max)
+            .WhereIf(CompleteRange(filter.MotherboardMaxHeightMm), range => x =>
+                x.MotherboardMaxHeightMm >= range.Min && x.MotherboardMaxHeightMm <= range.Max)
+            .WhereIf(CompleteRange(filter.MaxCpuCoolerHeightMm), range => x =>
+                x.MaxCpuCoolerHeightMm >= range.Min && x.MaxCpuCoolerHeightMm <= range.Max)
+            .WhereIf(CompleteRange(filter.MaxGraphicsCardLengthMm), range => x =>
+                x.MaxGraphicsCardLengthMm >= range.Min && x.MaxGraphicsCardLengthMm <= range.Max)
+            .WhereIf(CompleteRange(filter.MaxPsuLengthMm), range => x =>
+                x.MaxPsuLengthMm >= range.Min && x.MaxPsuLengthMm <= range.Max);
+
+        query = WhereLargestSupportedMbFormFactor(query, filter.MaxSupportedMbFormFactor);
+
+        return await query
             .ApplySorting(request.SortFields, request.SortDirection)
             .ToPagedResultAsync<Domain.Entities.Chassis, ChassisListItemDto>(
                 request.PageIndex,
@@ -176,4 +176,31 @@ public class ChassisReadStore(PcBuilderDbContext db, IMapper mapper) : IChassisR
                 .ThenBy(x => x.Length)
                 .ToList());
     }
+
+    private static RangeFilter? CompleteRange(RangeFilter? range) =>
+        range is { Min: not null, Max: not null } ? range : null;
+
+    private static IQueryable<Domain.Entities.Chassis> WhereLargestSupportedMbFormFactor(
+        IQueryable<Domain.Entities.Chassis> query,
+        MbFormFactor? maxMb) =>
+        maxMb switch
+        {
+            MbFormFactor.Mitx => query.Where(x =>
+                x.MbFormFactors.Any(f => f.MbFormFactor == MbFormFactor.Mitx)
+                && !x.MbFormFactors.Any(f =>
+                    f.MbFormFactor == MbFormFactor.Matx
+                    || f.MbFormFactor == MbFormFactor.Atx
+                    || f.MbFormFactor == MbFormFactor.Eatx)),
+            MbFormFactor.Matx => query.Where(x =>
+                x.MbFormFactors.Any(f => f.MbFormFactor == MbFormFactor.Matx)
+                && !x.MbFormFactors.Any(f =>
+                    f.MbFormFactor == MbFormFactor.Atx
+                    || f.MbFormFactor == MbFormFactor.Eatx)),
+            MbFormFactor.Atx => query.Where(x =>
+                x.MbFormFactors.Any(f => f.MbFormFactor == MbFormFactor.Atx)
+                && x.MbFormFactors.All(f => f.MbFormFactor != MbFormFactor.Eatx)),
+            MbFormFactor.Eatx => query.Where(x =>
+                x.MbFormFactors.Any(f => f.MbFormFactor == MbFormFactor.Eatx)),
+            _ => query
+        };
 }

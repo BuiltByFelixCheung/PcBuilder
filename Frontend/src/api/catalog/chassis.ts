@@ -27,7 +27,7 @@ export type ChassisFilter = {
   maxCpuCoolerHeightMm?: RangeFilter;
   maxGraphicsCardLengthMm?: RangeFilter;
   maxPsuLengthMm?: RangeFilter;
-  supportedMbFormFactors?: MbFormFactor[];
+  maxSupportedMbFormFactor?: MbFormFactor;
 };
 
 export type ChassisListParams = PagedRequest & {
@@ -107,8 +107,7 @@ export function isChassisFilterActive(filter: ChassisFilter): boolean {
     hasCompleteRange(filter.maxCpuCoolerHeightMm) ||
     hasCompleteRange(filter.maxGraphicsCardLengthMm) ||
     hasCompleteRange(filter.maxPsuLengthMm) ||
-    (filter.supportedMbFormFactors &&
-      filter.supportedMbFormFactors?.length > 0),
+    Boolean(filter.maxSupportedMbFormFactor),
   );
 }
 
@@ -152,6 +151,6 @@ function toChassisFilterBody(filter: ChassisFilter): ChassisFilter {
     maxCpuCoolerHeightMm: hasCompleteRange(filter.maxCpuCoolerHeightMm) ? filter.maxCpuCoolerHeightMm : undefined,
     maxGraphicsCardLengthMm: hasCompleteRange(filter.maxGraphicsCardLengthMm) ? filter.maxGraphicsCardLengthMm : undefined,
     maxPsuLengthMm: hasCompleteRange(filter.maxPsuLengthMm) ? filter.maxPsuLengthMm : undefined,
-    supportedMbFormFactors: filter.supportedMbFormFactors,
+    maxSupportedMbFormFactor: filter.maxSupportedMbFormFactor,
   };
 }

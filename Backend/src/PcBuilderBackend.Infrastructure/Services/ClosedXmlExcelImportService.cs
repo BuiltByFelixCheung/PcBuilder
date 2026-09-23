@@ -1,3 +1,4 @@
+using System.Globalization;
 using ClosedXML.Excel;
 using PcBuilderBackend.Application.Catalog.Chassis.Dto;
 using PcBuilderBackend.Application.Catalog.ChassisFans.Dto;
@@ -711,15 +712,16 @@ public class ClosedXmlExcelImportService : IExcelImportService
                         ? manufacturerId
                         : Guid.Empty,
                     GpuId = Guid.TryParse(row.Cell(3).GetString(), out var gpuId) ? gpuId : Guid.Empty,
-                    VideoMemoryGb = (int)row.Cell(4).GetDouble(),
-                    PcieSlotsUsed = (int)row.Cell(5).GetDouble(),
+                    VideoMemoryGb = (int)GetNumber(row.Cell(4)),
+                    PcieSlotsUsed = (int)GetNumber(row.Cell(5)),
                     PcieGeneration = Enum.Parse<PcieGeneration>(row.Cell(6).GetString()),
-                    LengthMm = (decimal)row.Cell(7).GetDouble(),
-                    WidthMm = (decimal)row.Cell(8).GetDouble(),
-                    HeightMm = (decimal)row.Cell(9).GetDouble(),
-                    PowerConsumptionWatts = (int)row.Cell(10).GetDouble(),
-                    PowerConnectorType = Enum.Parse<PsuCableType>(row.Cell(11).GetString()),
-                    PowerConnectorCount = (int)row.Cell(12).GetDouble()
+                    IsLowProfile = GetFlag(row.Cell(7)),
+                    LengthMm = (decimal)GetNumber(row.Cell(8)),
+                    WidthMm = (decimal)GetNumber(row.Cell(9)),
+                    HeightMm = (decimal)GetNumber(row.Cell(10)),
+                    PowerConsumptionWatts = (int)GetNumber(row.Cell(11)),
+                    PowerConnectorType = Enum.Parse<PsuCableType>(row.Cell(12).GetString()),
+                    PowerConnectorCount = (int)GetNumber(row.Cell(13))
                 })
         ];
     }
@@ -873,6 +875,20 @@ public class ClosedXmlExcelImportService : IExcelImportService
     {
         return row.CellsUsed(XLCellsUsedOptions.Contents)
             .All(cell => string.IsNullOrWhiteSpace(cell.GetString()));
+    }
+
+    private static double GetNumber(IXLCell cell)
+    {
+        return cell.DataType == XLDataType.Number
+            ? cell.GetDouble()
+            : double.Parse(cell.GetString(), CultureInfo.InvariantCulture);
+    }
+
+    private static bool GetFlag(IXLCell cell)
+    {
+        return cell.DataType == XLDataType.Boolean
+            ? cell.GetBoolean()
+            : bool.Parse(cell.GetString());
     }
 
     private static decimal? ParseOptionalDecimal(IXLCell cell)

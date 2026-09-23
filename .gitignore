@@ -9,3 +9,5 @@ appsettings.json
 .vscode/settings.json
 !readme.md
 sonar-*.*
+_inspect_xlsx/
+_xlsx_tmp/

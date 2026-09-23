@@ -17,6 +17,8 @@ export type PagedResult<T> = {
   items: T[]
 }
 
-export function hasCompleteRange(range?: RangeFilter | null): boolean {
+export function hasCompleteRange(
+  range?: RangeFilter | null,
+): range is { min: number; max: number } {
   return range?.min != null && range?.max != null
 }

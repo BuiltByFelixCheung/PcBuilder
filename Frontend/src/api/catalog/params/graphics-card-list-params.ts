@@ -3,7 +3,13 @@ import type {
   GraphicsCardListParams,
 } from "../graphics-cards";
 import { hasCompleteRange } from "../../paging";
-import { toInteger, emptyToUndefined, parseRange } from "../../helper";
+import {
+  toInteger,
+  emptyToUndefined,
+  parseOptionalBoolean,
+  parseRange,
+  setSearchFlag,
+} from "../../helper";
 import type { PcieGeneration } from "../../enums";
 
 const PAGE_SIZE = 10;
@@ -41,8 +47,7 @@ export function graphicsCardListSearchFromParams(
     search.set("pcieSlotsUsed", String(filter.pcieSlotsUsed));
   if (filter.pcieGeneration)
     search.set("pcieGeneration", filter.pcieGeneration);
-  if (filter.isLowProfile)
-    search.set("isLowProfile", filter.isLowProfile.toString());
+  setSearchFlag(search, "isLowProfile", filter.isLowProfile);
   if (hasCompleteRange(filter.lengthMm)) {
     search.set("lengthMmMin", String(filter.lengthMm!.min));
     search.set("lengthMmMax", String(filter.lengthMm!.max));
@@ -81,7 +86,7 @@ function filterFromSearch(search: URLSearchParams): GraphicsCardFilter {
     pcieGeneration: emptyToUndefined(search.get("pcieGeneration")) as
       | PcieGeneration
       | undefined,
-    isLowProfile: search.get("isLowProfile") === "true",
+    isLowProfile: parseOptionalBoolean(search.get("isLowProfile")),
     lengthMm: parseRange(search.get("lengthMmMin"), search.get("lengthMmMax")),
     widthMm: parseRange(search.get("widthMmMin"), search.get("widthMmMax")),
     heightMm: parseRange(search.get("heightMmMin"), search.get("heightMmMax")),

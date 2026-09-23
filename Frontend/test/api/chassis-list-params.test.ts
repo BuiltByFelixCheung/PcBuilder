@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { ChassisListParams } from "@/api/catalog/chassis";
 import {
   chassisListParamsFromSearch,
   chassisListSearchFromParams,
@@ -7,27 +8,24 @@ import {
 
 describe("chassis list search params", () => {
   it("uses an empty filter by default", () => {
-    expect(chassisListParamsFromSearch(new URLSearchParams()).filter).toEqual(
-      expect.objectContaining({
-        name: undefined,
-        manufacturerId: undefined,
-        lengthMm: undefined,
-        supportedMbFormFactors: undefined,
-      }),
-    );
+    expect(
+      chassisListParamsFromSearch(
+        new URLSearchParams("maxSupportedMbFormFactor="),
+      ).filter.maxSupportedMbFormFactor,
+    ).toBeUndefined();
   });
 
   it("round-trips name, ranges, and form factors", () => {
-    const params = {
+    const params: ChassisListParams = {
       pageIndex: 1,
       pageSize: 10,
-      sortBy: "name" as const,
-      sortDirection: "asc" as const,
+      sortBy: "name",
+      sortDirection: "asc",
       filter: {
         name: "O11",
         manufacturerId: "lian-li",
         lengthMm: { min: 400, max: 500 },
-        supportedMbFormFactors: ["Atx", "Matx"] as const,
+        maxSupportedMbFormFactor: "Atx",
       },
     };
     expect(chassisListParamsFromSearch(chassisListSearchFromParams(params)))
@@ -37,7 +35,7 @@ describe("chassis list search params", () => {
           name: "O11",
           manufacturerId: "lian-li",
           lengthMm: { min: 400, max: 500 },
-          supportedMbFormFactors: ["Atx", "Matx"],
+          maxSupportedMbFormFactor: "Atx",
         },
       });
   });

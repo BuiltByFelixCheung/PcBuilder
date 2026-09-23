@@ -47,11 +47,13 @@ public static class AuthEndpoints
         group.MapPost("/refresh", Refresh)
             .AllowAnonymous()
             .Produces<AuthTokensDto>()
+            .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Rotate refresh token")
-            .WithDescription("\n    POST /api/auth/refresh");
+            .WithDescription(
+                "Missing cookie or body token returns 204 (guest). Invalid token returns 401.\n    POST /api/auth/refresh");
 
         group.MapPost("/logout", Logout)
             .AllowAnonymous()
@@ -131,7 +133,7 @@ public static class AuthEndpoints
         return TypedResults.Ok(result.Tokens);
     }
 
-    private static async Task<Results<Ok<AuthTokensDto>, UnauthorizedHttpResult>> Refresh(
+    private static async Task<Results<Ok<AuthTokensDto>, NoContent, UnauthorizedHttpResult>> Refresh(
         [FromBody] RefreshTokenRequest? body,
         [FromServices] ISender sender,
         [FromServices] JwtOptions jwt,
@@ -140,7 +142,7 @@ public static class AuthEndpoints
     {
         var refreshToken = FirstNonEmpty(body?.RefreshToken, RefreshTokenCookies.Read(context.Request));
         if (string.IsNullOrWhiteSpace(refreshToken))
-            return TypedResults.Unauthorized();
+            return TypedResults.NoContent();
 
         var tokens = await sender.Send(new RefreshTokenCommand(refreshToken), cancellationToken);
         if (tokens is null)

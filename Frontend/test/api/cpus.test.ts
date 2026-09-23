@@ -45,6 +45,7 @@ describe("cpu API", () => {
   it("treats blank filters as inactive", () => {
     expect(isCpuFilterActive({ name: "  " })).toBe(false);
     expect(isCpuFilterActive({ name: "Ryzen" })).toBe(true);
+    expect(isCpuFilterActive({ motherboardId: "mb-1" })).toBe(true);
   });
 
   it("lists with GET when no filter is set", async () => {
@@ -82,6 +83,19 @@ describe("cpu API", () => {
     });
     const body = post.mock.calls[0][1] as { filter: Record<string, unknown> };
     expect(body.filter).not.toHaveProperty("ddrGeneration");
+  });
+
+  it("posts motherboardId when filtering for compatibility", async () => {
+    post.mockResolvedValue({
+      data: { items: [item], totalCount: 1, pageIndex: 0, pageSize: 10 },
+    });
+    await listCpus({ ...paging, filter: { motherboardId: "mb-1" } });
+    expect(post).toHaveBeenCalledWith(
+      "/catalog/cpu/query",
+      expect.objectContaining({
+        filter: expect.objectContaining({ motherboardId: "mb-1" }),
+      }),
+    );
   });
 
   it("loads a CPU by id", async () => {

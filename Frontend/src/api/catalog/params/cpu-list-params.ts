@@ -32,6 +32,7 @@ export function cpuListSearchFromParams(
     search.set("manufacturerId", filter.manufacturerId);
   if (filter.socketId) search.set("socketId", filter.socketId);
   if (filter.seriesId) search.set("seriesId", filter.seriesId);
+  if (filter.motherboardId) search.set("motherboardId", filter.motherboardId);
   if (hasCompleteRange(filter.thermalDesignPower)) {
     search.set("tdpMin", String(filter.thermalDesignPower!.min));
     search.set("tdpMax", String(filter.thermalDesignPower!.max));
@@ -50,6 +51,7 @@ function filterFromSearch(search: URLSearchParams): CpuFilter {
     manufacturerId: emptyToUndefined(search.get("manufacturerId")),
     socketId: emptyToUndefined(search.get("socketId")),
     seriesId: emptyToUndefined(search.get("seriesId")),
+    motherboardId: emptyToUndefined(search.get("motherboardId")),
     thermalDesignPower: parseRange(search.get("tdpMin"), search.get("tdpMax")),
     powerConsumptionWatts: parseRange(
       search.get("powerMin"),

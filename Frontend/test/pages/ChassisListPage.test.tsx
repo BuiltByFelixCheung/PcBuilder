@@ -17,9 +17,10 @@ vi.mock("@/api/catalog/chassis", async () => {
 });
 
 vi.mock("@/api/master-data", async () => {
-  const actual = await vi.importActual<typeof import("@/api/master-data")>(
-    "@/api/master-data",
-  );
+  const actual =
+    await vi.importActual<typeof import("@/api/master-data")>(
+      "@/api/master-data",
+    );
   return {
     ...actual,
     listManufacturersByProductType: (...args: unknown[]) =>
@@ -27,7 +28,7 @@ vi.mock("@/api/master-data", async () => {
   };
 });
 
-import { ChassisListPage } from "@/pages/catalog/ChassisListPage.tsx";
+import { ChassisListPage } from "@/pages/catalog/chassis/ChassisListPage.tsx";
 import { renderWithQuery } from "../helpers/query.tsx";
 
 const chassis: ChassisListItem = {
@@ -89,7 +90,7 @@ describe("ChassisListPage", () => {
           name: "O11",
           manufacturerId: "lian-li",
           lengthMm: { min: 400, max: 500 },
-          supportedMbFormFactors: ["Atx"],
+          maxSupportedMbFormFactor: "Atx",
         }),
       }),
     );

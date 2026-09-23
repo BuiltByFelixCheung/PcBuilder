@@ -1,7 +1,7 @@
 import type { ChassisFilter, ChassisListParams } from "../chassis";
 import { hasCompleteRange } from "../../paging";
 import { toInteger, emptyToUndefined, parseRange } from "../../helper";
-import type { MbFormFactor } from "../../enums";
+import { MB_FORM_FACTORS, type MbFormFactor } from "../../enums";
 
 const PAGE_SIZE = 10;
 
@@ -87,11 +87,8 @@ export function chassisListSearchFromParams(
     search.set("maxPsuLengthMmMin", String(filter.maxPsuLengthMm!.min));
     search.set("maxPsuLengthMmMax", String(filter.maxPsuLengthMm!.max));
   }
-  if (filter.supportedMbFormFactors) {
-    search.set(
-      "supportedMbFormFactors",
-      filter.supportedMbFormFactors.join(","),
-    );
+  if (filter.maxSupportedMbFormFactor) {
+    search.set("maxSupportedMbFormFactor", filter.maxSupportedMbFormFactor);
   }
 
   return search;
@@ -124,10 +121,15 @@ function filterFromSearch(search: URLSearchParams): ChassisFilter {
       search.get("maxPsuLengthMmMin"),
       search.get("maxPsuLengthMmMax"),
     ),
-    supportedMbFormFactors:
-      search
-        .get("supportedMbFormFactors")
-        ?.split(",")
-        .map((mbFormFactor) => mbFormFactor as MbFormFactor) || undefined,
+    maxSupportedMbFormFactor: parseMbFormFactor(
+      search.get("maxSupportedMbFormFactor"),
+    ),
   };
+}
+
+function parseMbFormFactor(value: string | null): MbFormFactor | undefined {
+  if (!value?.trim()) return undefined;
+  return (MB_FORM_FACTORS as readonly string[]).includes(value)
+    ? (value as MbFormFactor)
+    : undefined;
 }

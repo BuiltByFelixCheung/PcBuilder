@@ -85,6 +85,9 @@ public sealed class CpuReadStore(PcBuilderDbContext db, IMapper mapper) : ICpuRe
         }
 
         var cpus = await cpuQuery
+            .Include(x => x.Manufacturer)
+            .Include(x => x.Socket)
+            .Include(x => x.Series)
             .Include(x => x.SupportedChipsets)
             .ToListAsync(cancellationToken);
 

@@ -5,16 +5,16 @@ import type { MotherboardDetail } from "@/api/catalog/motherboards";
 const getMotherboardById = vi.fn();
 
 vi.mock("@/api/catalog/motherboards", async () => {
-  const actual = await vi.importActual<typeof import("@/api/catalog/motherboards")>(
-    "@/api/catalog/motherboards",
-  );
+  const actual = await vi.importActual<
+    typeof import("@/api/catalog/motherboards")
+  >("@/api/catalog/motherboards");
   return {
     ...actual,
     getMotherboardById: (...args: unknown[]) => getMotherboardById(...args),
   };
 });
 
-import { MotherboardDetailPage } from "@/pages/catalog/MotherboardDetailPage.tsx";
+import { MotherboardDetailPage } from "@/pages/catalog/motherboards/MotherboardDetailPage.tsx";
 import { renderWithQuery } from "../helpers/query.tsx";
 import { Route, Routes } from "react-router-dom";
 
@@ -112,9 +112,7 @@ describe("MotherboardDetailPage", () => {
   it("shows a loading state", async () => {
     getMotherboardById.mockReturnValue(new Promise(() => {}));
     renderDetail();
-    expect(
-      await screen.findByText("Loading motherboard…"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Loading motherboard…")).toBeInTheDocument();
   });
 
   it("shows empty collection messages", async () => {

@@ -40,6 +40,7 @@ public class GraphicsCardReadStore(PcBuilderDbContext db, IMapper mapper) : IGra
         var filter = request.Filter ?? new GraphicsCardFilter();
 
         var queryable = db.GraphicsCards.AsNoTracking()
+            .Include(x => x.Manufacturer)
             .Include(x => x.Gpu)
             .ThenInclude(x => x.Series)
             .WhereIfHasText(filter.Name, name => x => x.Name.Contains(name))

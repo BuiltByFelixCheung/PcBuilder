@@ -9,10 +9,9 @@ const listGpus = vi.fn();
 const listGpuSeries = vi.fn();
 
 vi.mock("@/api/catalog/graphics-cards", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/api/catalog/graphics-cards")>(
-      "@/api/catalog/graphics-cards",
-    );
+  const actual = await vi.importActual<
+    typeof import("@/api/catalog/graphics-cards")
+  >("@/api/catalog/graphics-cards");
   return {
     ...actual,
     listGraphicsCards: (...args: unknown[]) => listGraphicsCards(...args),
@@ -32,7 +31,7 @@ vi.mock("@/api/master-data.ts", async () => {
   };
 });
 
-import { GraphicsCardListPage } from "@/pages/catalog/GraphicsCardListPage.tsx";
+import { GraphicsCardListPage } from "@/pages/catalog/graphics-cards/GraphicsCardListPage.tsx";
 import { renderWithQuery } from "../helpers/query.tsx";
 
 const card: GraphicsCardListItem = {
@@ -57,14 +56,14 @@ const card: GraphicsCardListItem = {
 describe("GraphicsCardListPage", () => {
   beforeEach(() => {
     listGraphicsCards.mockReset();
-    listManufacturersByProductType.mockReset().mockImplementation(
-      (productType: string) => {
+    listManufacturersByProductType
+      .mockReset()
+      .mockImplementation((productType: string) => {
         if (productType === "graphicscard") {
           return Promise.resolve([{ id: "asus", name: "ASUS" }]);
         }
         return Promise.resolve([{ id: "nvidia", name: "NVIDIA" }]);
-      },
-    );
+      });
     listGpuSeries.mockReset().mockResolvedValue([
       {
         id: "rtx40",
@@ -115,7 +114,10 @@ describe("GraphicsCardListPage", () => {
     await screen.findByRole("link", { name: "TUF RTX 4070" });
     await user.type(screen.getByLabelText("Name"), "4070");
     await user.selectOptions(screen.getByLabelText("Manufacturer"), "asus");
-    await user.selectOptions(screen.getByLabelText("GPU Manufacturer"), "nvidia");
+    await user.selectOptions(
+      screen.getByLabelText("GPU Manufacturer"),
+      "nvidia",
+    );
     await user.selectOptions(screen.getByLabelText("GPU Series"), "rtx40");
     await user.selectOptions(screen.getByLabelText("GPU"), "4070");
     await user.selectOptions(screen.getByLabelText("Video Memory"), "12");

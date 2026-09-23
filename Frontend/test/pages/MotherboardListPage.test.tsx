@@ -9,9 +9,9 @@ const listSockets = vi.fn();
 const listChipsets = vi.fn();
 
 vi.mock("@/api/catalog/motherboards", async () => {
-  const actual = await vi.importActual<typeof import("@/api/catalog/motherboards")>(
-    "@/api/catalog/motherboards",
-  );
+  const actual = await vi.importActual<
+    typeof import("@/api/catalog/motherboards")
+  >("@/api/catalog/motherboards");
   return {
     ...actual,
     listMotherboards: (...args: unknown[]) => listMotherboards(...args),
@@ -31,7 +31,7 @@ vi.mock("@/api/master-data.ts", async () => {
   };
 });
 
-import { MotherboardListPage } from "@/pages/catalog/MotherboardListPage.tsx";
+import { MotherboardListPage } from "@/pages/catalog/motherboards/MotherboardListPage.tsx";
 import { renderWithQuery } from "../helpers/query.tsx";
 
 const motherboard: MotherboardListItem = {
@@ -291,5 +291,44 @@ describe("MotherboardListPage", () => {
         }),
       }),
     );
+  });
+
+  it("filters motherboards by the chassis in the current build", async () => {
+    listMotherboards.mockResolvedValue({
+      items: [motherboard],
+      totalCount: 1,
+      pageIndex: 0,
+      pageSize: 10,
+    });
+    const user = userEvent.setup();
+    renderWithQuery(<MotherboardListPage />, {
+      route: "/catalog/motherboards",
+      initialBuild: { chassisId: "case-1" },
+    });
+    await screen.findByRole("link", { name: "ROG Strix X870-F" });
+    await user.click(screen.getByLabelText("Show only compatible"));
+    expect(screen.getByLabelText("Show only compatible")).toBeChecked();
+    expect(listMotherboards).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filter: expect.objectContaining({ chassisId: "case-1" }),
+      }),
+    );
+  });
+
+  it("keeps the compatibility checkbox checked without a chassis in the build", async () => {
+    listMotherboards.mockResolvedValue({
+      items: [motherboard],
+      totalCount: 1,
+      pageIndex: 0,
+      pageSize: 10,
+    });
+    const user = userEvent.setup();
+    renderWithQuery(<MotherboardListPage />, {
+      route: "/catalog/motherboards",
+    });
+    await screen.findByRole("link", { name: "ROG Strix X870-F" });
+    const checkbox = screen.getByLabelText("Show only compatible");
+    await user.click(checkbox);
+    expect(checkbox).toBeChecked();
   });
 });

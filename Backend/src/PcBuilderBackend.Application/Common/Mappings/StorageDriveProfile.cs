@@ -26,12 +26,11 @@ public class StorageDriveProfile : Profile
                     ? s.Interface == StorageInterface.Sata ? M2Key.BM : M2Key.M
                     : (M2Key?)null))
             .ForMember(d => d.M2FormFactor, o => o.MapFrom(s =>
-                s.FormFactor == StorageFormFactor.M22230
-                || s.FormFactor == StorageFormFactor.M22242
-                || s.FormFactor == StorageFormFactor.M22260
-                || s.FormFactor == StorageFormFactor.M22280
-                || s.FormFactor == StorageFormFactor.M222110
-                    ? (M2FormFactor)(int)s.FormFactor
-                    : (M2FormFactor?)null));
+                s.FormFactor == StorageFormFactor.M22230 ? (M2FormFactor?)M2FormFactor.M22230
+                : s.FormFactor == StorageFormFactor.M22242 ? M2FormFactor.M22242
+                : s.FormFactor == StorageFormFactor.M22260 ? M2FormFactor.M22260
+                : s.FormFactor == StorageFormFactor.M22280 ? M2FormFactor.M22280
+                : s.FormFactor == StorageFormFactor.M222110 ? M2FormFactor.M222110
+                : null));
     }
 }

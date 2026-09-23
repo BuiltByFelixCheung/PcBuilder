@@ -48,8 +48,8 @@ describe("chassis API", () => {
   it("treats blank filters as inactive", () => {
     expect(isChassisFilterActive({ name: "  " })).toBe(false);
     expect(isChassisFilterActive({ name: "O11" })).toBe(true);
-    expect(isChassisFilterActive({ supportedMbFormFactors: [] })).toBe(false);
-    expect(isChassisFilterActive({ supportedMbFormFactors: ["Atx"] })).toBe(
+    expect(isChassisFilterActive({ maxSupportedMbFormFactor: undefined })).toBe(false);
+    expect(isChassisFilterActive({ maxSupportedMbFormFactor: "Atx" })).toBe(
       true,
     );
   });

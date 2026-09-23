@@ -10,6 +10,6 @@ public class UpdateCpuSeriesCommandValidator : AbstractValidator<UpdateCpuSeries
         RuleFor(x => x.CpuSeriesId).NotEmpty().WithMessage("CpuSeriesId cannot be empty.");
         Include(new CpuSeriesFieldsValidator<UpdateCpuSeriesCommand>());
         RuleFor(x => x.Name)
-            .Length(200).WithMessage("Name cannot be more than 200 characters.");
+            .MaximumLength(200).WithMessage("Name cannot be more than 200 characters.");
     }
 }

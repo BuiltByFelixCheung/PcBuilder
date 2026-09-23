@@ -25,8 +25,15 @@ public class StorageDrive : ProductEntity
         }
     }
 
-    public M2FormFactor? M2FormFactor =>
-        IsM2 ? (M2FormFactor)(int)FormFactor : null;
+    public M2FormFactor? M2FormFactor => FormFactor switch
+    {
+        StorageFormFactor.M22230 => PcBuilderBackend.Domain.Enums.M2FormFactor.M22230,
+        StorageFormFactor.M22242 => PcBuilderBackend.Domain.Enums.M2FormFactor.M22242,
+        StorageFormFactor.M22260 => PcBuilderBackend.Domain.Enums.M2FormFactor.M22260,
+        StorageFormFactor.M22280 => PcBuilderBackend.Domain.Enums.M2FormFactor.M22280,
+        StorageFormFactor.M222110 => PcBuilderBackend.Domain.Enums.M2FormFactor.M222110,
+        _ => null
+    };
     
     protected StorageDrive() {}
 

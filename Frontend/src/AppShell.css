@@ -115,6 +115,18 @@
   margin: 0 0 8px;
 }
 
+.add-to-build {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 24px;
+}
+
+.add-to-build-qty-input {
+  width: 4.75rem;
+}
+
 .catalog-lead {
   margin: 0 0 24px;
   color: var(--text);
@@ -188,11 +200,18 @@
 }
 
 .catalog-filter-actions,
-.catalog-pagination {
+.catalog-pagination,
+.catalog-results-actions {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-top: 16px;
+}
+
+.catalog-results-actions {
+  flex-wrap: wrap;
+  margin-top: 0;
+  margin-bottom: 16px;
 }
 
 .catalog-filter-actions {

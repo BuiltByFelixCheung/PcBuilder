@@ -72,7 +72,7 @@ export function isGraphicsCardFilterActive(
     filter.videoMemoryGb ||
     filter.pcieSlotsUsed ||
     filter.pcieGeneration ||
-    filter.isLowProfile ||
+    filter.isLowProfile != null ||
     hasCompleteRange(filter.lengthMm) ||
     hasCompleteRange(filter.widthMm) ||
     hasCompleteRange(filter.heightMm) ||

@@ -126,6 +126,20 @@ describe('api client', () => {
     await expect(api.get('/catalog/cpu')).rejects.toBeTruthy()
   })
 
+  it('treats an empty refresh as a guest session', async () => {
+    const applySession = vi.fn()
+    const clearSession = vi.fn()
+    bindAuthBridge({
+      getAccessToken: () => null,
+      applySession,
+      clearSession,
+    })
+    vi.spyOn(axios, 'post').mockResolvedValue({ data: '', status: 204 })
+    await expect(refreshSession()).resolves.toBeNull()
+    expect(applySession).not.toHaveBeenCalled()
+    expect(clearSession).not.toHaveBeenCalled()
+  })
+
   it('clears the session when refresh fails', async () => {
     const clearSession = vi.fn()
     bindAuthBridge({

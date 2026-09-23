@@ -1,7 +1,6 @@
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using PcBuilderBackend.Application.Build;
 using PcBuilderBackend.Application.Build.Dto;
 using PcBuilderBackend.Application.Common.Authorization;
 using PcBuilderBackend.Application.Common.Interfaces;
@@ -61,16 +60,16 @@ public class CreatePcBuildHandler(
                 PsuId = command.PsuId
             });
 
-        foreach (var chassisFan in command.ChassisFans ?? [])
+        foreach (var chassisFan in command.ChassisFans)
             pcBuild.AddChassisFan(chassisFan.PartId, chassisFan.Quantity);
 
-        foreach (var storageDevice in command.StorageDevices ?? [])
+        foreach (var storageDevice in command.StorageDevices)
             pcBuild.AddStorageDevice(storageDevice.PartId, storageDevice.Quantity);
 
-        foreach (var wiredNetworkAdapter in command.WiredNetworkAdapters ?? [])
+        foreach (var wiredNetworkAdapter in command.WiredNetworkAdapters)
             pcBuild.AddWiredNetworkAdapter(wiredNetworkAdapter.PartId, wiredNetworkAdapter.Quantity);
 
-        foreach (var wirelessNetworkAdapter in command.WirelessNetworkAdapters ?? [])
+        foreach (var wirelessNetworkAdapter in command.WirelessNetworkAdapters)
             pcBuild.AddWirelessNetworkAdapter(wirelessNetworkAdapter.PartId, wirelessNetworkAdapter.Quantity);
 
         pcBuilds.Add(pcBuild);

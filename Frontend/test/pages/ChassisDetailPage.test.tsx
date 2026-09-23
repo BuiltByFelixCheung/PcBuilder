@@ -5,17 +5,16 @@ import type { ChassisDetail } from "@/api/catalog/chassis.ts";
 const getChassisById = vi.fn();
 
 vi.mock("@/api/catalog/chassis", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/api/catalog/chassis")>(
-      "@/api/catalog/chassis",
-    );
+  const actual = await vi.importActual<typeof import("@/api/catalog/chassis")>(
+    "@/api/catalog/chassis",
+  );
   return {
     ...actual,
     getChassisById: (...args: unknown[]) => getChassisById(...args),
   };
 });
 
-import { ChassisDetailPage } from "@/pages/catalog/ChassisDetailPage.tsx";
+import { ChassisDetailPage } from "@/pages/catalog/chassis/ChassisDetailPage.tsx";
 import { renderWithQuery } from "../helpers/query.tsx";
 import { Route, Routes } from "react-router-dom";
 

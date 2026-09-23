@@ -59,6 +59,7 @@ describe("motherboard API", () => {
     expect(isMotherboardFilterActive({ name: "  " })).toBe(false);
     expect(isMotherboardFilterActive({ name: "X870" })).toBe(true);
     expect(isMotherboardFilterActive({ wifiEnabled: false })).toBe(true);
+    expect(isMotherboardFilterActive({ chassisId: "case-1" })).toBe(true);
     expect(
       isMotherboardFilterActive({ widthMm: { min: 200, max: null } }),
     ).toBe(false);
@@ -109,7 +110,23 @@ describe("motherboard API", () => {
     const body = post.mock.calls[0][1] as { filter: Record<string, unknown> };
     expect(body.filter.widthMm).toBeUndefined();
     expect(body.filter.heightMm).toEqual({ min: 200, max: 300 });
-    expect(body.filter).not.toHaveProperty("chassisId");
+    expect(body.filter.chassisId).toBeUndefined();
+  });
+
+  it("posts chassisId when filtering for compatibility", async () => {
+    post.mockResolvedValue({
+      data: { items: [item], totalCount: 1, pageIndex: 0, pageSize: 10 },
+    });
+    await listMotherboards({
+      ...paging,
+      filter: { chassisId: "case-1" },
+    });
+    expect(post).toHaveBeenCalledWith(
+      "/catalog/motherboard/query",
+      expect.objectContaining({
+        filter: expect.objectContaining({ chassisId: "case-1" }),
+      }),
+    );
   });
 
   it("loads a motherboard by id", async () => {

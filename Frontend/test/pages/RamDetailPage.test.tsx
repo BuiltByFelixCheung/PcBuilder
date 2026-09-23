@@ -15,7 +15,7 @@ vi.mock("@/api/catalog/memories", async () => {
   };
 });
 
-import { RamDetailPage } from "@/pages/catalog/RamDetailPage.tsx";
+import { RamDetailPage } from "@/pages/catalog/memories/RamDetailPage.tsx";
 import { renderWithQuery } from "../helpers/query.tsx";
 
 const ram: MemoryDetail = {
@@ -37,7 +37,7 @@ const ram: MemoryDetail = {
 function renderDetail(route = "/catalog/memories/ram-1") {
   return renderWithQuery(
     <Routes>
-      <Route path="/catalog/memories/:ramId" element={<RamDetailPage />} />
+      <Route path="/catalog/memories/:memoryId" element={<RamDetailPage />} />
     </Routes>,
     { route },
   );
@@ -56,9 +56,9 @@ describe("RamDetailPage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("G.Skill")).toBeInTheDocument();
     expect(screen.getByText("Ddr5")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Back to RAMs" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Back to RAM" })).toHaveAttribute(
       "href",
-      "/catalog/rams",
+      "/catalog/memories",
     );
   });
 

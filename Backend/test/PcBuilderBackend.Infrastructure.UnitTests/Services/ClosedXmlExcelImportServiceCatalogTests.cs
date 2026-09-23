@@ -190,6 +190,73 @@ public class ClosedXmlExcelImportServiceCatalogTests
     }
 
     [Fact]
+    public async Task Parse_graphics_cards_reads_is_low_profile()
+    {
+        await using var stream = Workbook(wb =>
+        {
+            var sheet = wb.Worksheets.Add("GraphicsCards");
+            Write(sheet, 1, [
+                "Name", "ManufacturerId", "GpuId", "VideoMemoryGb", "PcieSlotsUsed",
+                "PcieGeneration", "IsLowProfile", "LengthMm", "WidthMm", "HeightMm",
+                "PowerConsumptionWatts", "PowerConnectorType", "PowerConnectorCount"
+            ]);
+            Write(sheet, 2, [
+                "LP Card", _id.ToString(), _id.ToString(), 6, 2, "Gen4", true,
+                181, 69, 36, 70, "Pcie6Plus2Pin", 1
+            ]);
+            Write(sheet, 3, [
+                "Full Card", _id.ToString(), _id.ToString(), 8, 2, "Gen4", false,
+                240, 120, 50, 115, "Pcie6Plus2Pin", 1
+            ]);
+        });
+
+        var rows = await _sut.ParseGraphicsCardImportAsync(stream, CancellationToken.None);
+        rows.Should().HaveCount(2);
+        rows[0].Should().BeEquivalentTo(new
+        {
+            Name = "LP Card",
+            IsLowProfile = true,
+            LengthMm = 181m,
+            PowerConnectorCount = 1
+        });
+        rows[1].IsLowProfile.Should().BeFalse();
+        rows[1].LengthMm.Should().Be(240m);
+    }
+
+    [Fact]
+    public async Task Parse_graphics_cards_reads_numeric_text_and_boolean_text()
+    {
+        await using var stream = Workbook(wb =>
+        {
+            var sheet = wb.Worksheets.Add("GraphicsCards");
+            Write(sheet, 1, [
+                "Name", "ManufacturerId", "GpuId", "VideoMemoryGb", "PcieSlotsUsed",
+                "PcieGeneration", "IsLowProfile", "LengthMm", "WidthMm", "HeightMm",
+                "PowerConsumptionWatts", "PowerConnectorType", "PowerConnectorCount"
+            ]);
+            sheet.Cell(2, 1).Value = "LP Card";
+            sheet.Cell(2, 2).Value = _id.ToString();
+            sheet.Cell(2, 3).Value = _id.ToString();
+            sheet.Cell(2, 4).Value = "6";
+            sheet.Cell(2, 5).Value = "2";
+            sheet.Cell(2, 6).Value = "Gen4";
+            sheet.Cell(2, 7).Value = "TRUE";
+            sheet.Cell(2, 8).Value = "181.5";
+            sheet.Cell(2, 9).Value = "69";
+            sheet.Cell(2, 10).Value = "36";
+            sheet.Cell(2, 11).Value = "70";
+            sheet.Cell(2, 12).Value = "Pcie6Plus2Pin";
+            sheet.Cell(2, 13).Value = "1";
+        });
+
+        var rows = await _sut.ParseGraphicsCardImportAsync(stream, CancellationToken.None);
+        rows.Should().ContainSingle();
+        rows[0].VideoMemoryGb.Should().Be(6);
+        rows[0].IsLowProfile.Should().BeTrue();
+        rows[0].LengthMm.Should().Be(181.5m);
+    }
+
+    [Fact]
     public async Task Missing_required_sheet_throws()
     {
         await using var stream = Workbook(wb => wb.Worksheets.Add("Other"));

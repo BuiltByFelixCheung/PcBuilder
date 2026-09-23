@@ -1,14 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const get = vi.fn()
+const post = vi.fn()
+const put = vi.fn()
 
 vi.mock('@/api/client.ts', () => ({
   api: {
     get: (...args: unknown[]) => get(...args),
+    post: (...args: unknown[]) => post(...args),
+    put: (...args: unknown[]) => put(...args),
   },
 }))
 
 import {
+  createChipset,
   listChipsets,
   listCpuSeries,
   listGpuSeries,
@@ -17,11 +22,14 @@ import {
   listManufacturersByProductType,
   listSockets,
   masterDataKeys,
+  updateChipset,
 } from '@/api/master-data.ts'
 
 describe('master-data API', () => {
   beforeEach(() => {
     get.mockReset()
+    post.mockReset()
+    put.mockReset()
   })
 
   it('lists manufacturers by product type', async () => {
@@ -100,6 +108,29 @@ describe('master-data API', () => {
     ])
     expect(get).toHaveBeenCalledWith('/master-data/chipset')
     expect(masterDataKeys.chipsets).toEqual(['master-data', 'chipsets'])
+  })
+
+  it('creates and updates a chipset', async () => {
+    const chipset = {
+      id: 'x870',
+      name: 'X870',
+      manufacturerId: 'amd',
+      manufacturerName: 'AMD',
+      socketId: 'am5',
+      socketName: 'AM5',
+    }
+    const body = {
+      name: 'X870',
+      manufacturerId: 'amd',
+      socketId: 'am5',
+    }
+    post.mockResolvedValue({ data: chipset })
+    await expect(createChipset(body)).resolves.toEqual(chipset)
+    expect(post).toHaveBeenCalledWith('/master-data/chipset', body)
+
+    put.mockResolvedValue({ data: chipset })
+    await expect(updateChipset('x870', body)).resolves.toEqual(chipset)
+    expect(put).toHaveBeenCalledWith('/master-data/chipset', { id: 'x870', ...body })
   })
 
   it('lists GPUs and GPU series', async () => {

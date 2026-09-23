@@ -6,6 +6,7 @@ import { AuthProvider } from './auth/index.ts'
 import { createQueryClient } from './query/query-client.ts'
 import './index.css'
 import App from './App.tsx'
+import { PcBuildProvider } from './builds/index.ts'
 
 const queryClient = createQueryClient()
 
@@ -14,7 +15,9 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <App />
+          <PcBuildProvider>
+            <App />
+          </PcBuildProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

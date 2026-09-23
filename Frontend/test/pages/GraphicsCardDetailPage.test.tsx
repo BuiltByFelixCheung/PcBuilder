@@ -6,17 +6,16 @@ import { Route, Routes } from "react-router-dom";
 const getGraphicsCardById = vi.fn();
 
 vi.mock("@/api/catalog/graphics-cards", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/api/catalog/graphics-cards")>(
-      "@/api/catalog/graphics-cards",
-    );
+  const actual = await vi.importActual<
+    typeof import("@/api/catalog/graphics-cards")
+  >("@/api/catalog/graphics-cards");
   return {
     ...actual,
     getGraphicsCardById: (...args: unknown[]) => getGraphicsCardById(...args),
   };
 });
 
-import { GraphicsCardDetailPage } from "@/pages/catalog/GraphicsCardDetailPage.tsx";
+import { GraphicsCardDetailPage } from "@/pages/catalog/graphics-cards/GraphicsCardDetailPage.tsx";
 import { renderWithQuery } from "../helpers/query.tsx";
 
 const card: GraphicsCardDetail = {
@@ -65,7 +64,9 @@ describe("GraphicsCardDetailPage", () => {
     expect(
       await screen.findByRole("heading", { name: "TUF RTX 4070" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "RTX 4070" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "RTX 4070" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("NVIDIA")).toBeInTheDocument();
     expect(screen.getByText("GeForce RTX 40")).toBeInTheDocument();
     expect(screen.getByText("No")).toBeInTheDocument();

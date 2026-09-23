@@ -36,6 +36,7 @@ export type MotherboardFilter = {
   formFactor?: MbFormFactor;
   wifiEnabled?: boolean;
   bluetoothEnabled?: boolean;
+  chassisId?: string;
 };
 
 export type MotherboardListParams = PagedRequest & {
@@ -120,7 +121,8 @@ export function isMotherboardFilterActive(filter: MotherboardFilter): boolean {
     filter.ramFormFactor ||
     filter.formFactor ||
     filter.wifiEnabled != null ||
-    filter.bluetoothEnabled != null,
+    filter.bluetoothEnabled != null ||
+    filter.chassisId,
   );
 }
 
@@ -173,5 +175,6 @@ function toMotherboardFilterBody(filter: MotherboardFilter): MotherboardFilter {
     formFactor: filter.formFactor,
     wifiEnabled: filter.wifiEnabled,
     bluetoothEnabled: filter.bluetoothEnabled,
+    chassisId: filter.chassisId,
   };
 }

@@ -17,6 +17,7 @@ describe("cpu list search params", () => {
         manufacturerId: undefined,
         socketId: undefined,
         seriesId: undefined,
+        motherboardId: undefined,
         thermalDesignPower: undefined,
         powerConsumptionWatts: undefined,
       },
@@ -55,6 +56,16 @@ describe("cpu list search params", () => {
         filter: emptyCpuFilter,
       }).toString(),
     ).toBe("");
+  });
+
+  it("round-trips motherboard compatibility", () => {
+    const search = cpuListSearchFromParams({
+      pageIndex: 0,
+      pageSize: 10,
+      filter: { motherboardId: "mb-1" },
+    });
+    expect(search.get("motherboardId")).toBe("mb-1");
+    expect(cpuListParamsFromSearch(search).filter.motherboardId).toBe("mb-1");
   });
 
   it("treats blank manufacturer ids as unset", () => {
