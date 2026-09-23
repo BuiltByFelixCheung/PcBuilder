@@ -61,7 +61,8 @@ export const wirelessNetworkAdapterKeys = {
   list: (params: WirelessNetworkAdapterListParams) =>
     [...wirelessNetworkAdapterKeys.lists(), params] as const,
   details: () => [...wirelessNetworkAdapterKeys.all, "detail"] as const,
-  detail: (id: string) => [...wirelessNetworkAdapterKeys.details(), id] as const,
+  detail: (id: string) =>
+    [...wirelessNetworkAdapterKeys.details(), id] as const,
 };
 
 export function isWirelessNetworkAdapterFilterActive(
@@ -69,19 +70,19 @@ export function isWirelessNetworkAdapterFilterActive(
 ): boolean {
   return Boolean(
     filter.name?.trim() ||
-      filter.manufacturerId ||
-      filter.wifiStandard ||
-      filter.bluetoothVersion ||
-      filter.hostInterface ||
-      hasCompleteRange(filter.maxSpeedMbps) ||
-      hasCompleteRange(filter.maxSpeedMbps5G) ||
-      hasCompleteRange(filter.maxSpeedMbps6G) ||
-      filter.pcieSlotType ||
-      filter.key ||
-      filter.m2FormFactor ||
-      filter.usbVersion ||
-      filter.usbType ||
-      filter.motherboardId,
+    filter.manufacturerId ||
+    filter.wifiStandard ||
+    filter.bluetoothVersion ||
+    filter.hostInterface ||
+    hasCompleteRange(filter.maxSpeedMbps) ||
+    hasCompleteRange(filter.maxSpeedMbps5G) ||
+    hasCompleteRange(filter.maxSpeedMbps6G) ||
+    filter.pcieSlotType ||
+    filter.key ||
+    filter.m2FormFactor ||
+    filter.usbVersion ||
+    filter.usbType ||
+    filter.motherboardId,
   );
 }
 

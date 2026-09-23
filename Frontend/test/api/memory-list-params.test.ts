@@ -22,16 +22,17 @@ describe("memory list search params", () => {
         heightMm: { min: 30, max: 50 },
       },
     };
-    expect(memoryListParamsFromSearch(memoryListSearchFromParams(params)))
-      .toMatchObject({
-        pageIndex: 1,
-        filter: {
-          name: "Trident",
-          ddrGeneration: "Ddr5",
-          memorySizePerStickGb: 16,
-          heightMm: { min: 30, max: 50 },
-        },
-      });
+    expect(
+      memoryListParamsFromSearch(memoryListSearchFromParams(params)),
+    ).toMatchObject({
+      pageIndex: 1,
+      filter: {
+        name: "Trident",
+        ddrGeneration: "Ddr5",
+        memorySizePerStickGb: 16,
+        heightMm: { min: 30, max: 50 },
+      },
+    });
   });
 
   it("omits empty filter from the query string", () => {

@@ -1,9 +1,8 @@
-import type { StorageDriveFilter, StorageDriveListParams } from "../storage-drives";
-import {
-  emptyToUndefined,
-  parseRange,
-  setSearchValue,
-} from "../../helper";
+import type {
+  StorageDriveFilter,
+  StorageDriveListParams,
+} from "../storage-drives";
+import { emptyToUndefined, parseRange, setSearchValue } from "../../helper";
 import type {
   PcieGeneration,
   StorageFormFactor,
@@ -30,18 +29,15 @@ export function storageDriveListParamsFromSearch(
       manufacturerId: emptyToUndefined(search.get("manufacturerId")),
       media: emptyToUndefined(search.get("media")) as StorageMedia | undefined,
       interface: emptyToUndefined(search.get("interface")) as
-        | StorageInterface
-        | undefined,
+        StorageInterface | undefined,
       formFactor: emptyToUndefined(search.get("formFactor")) as
-        | StorageFormFactor
-        | undefined,
+        StorageFormFactor | undefined,
       capacityGb: parseRange(
         search.get("capacityGbMin"),
         search.get("capacityGbMax"),
       ),
       pcieGeneration: emptyToUndefined(search.get("pcieGeneration")) as
-        | PcieGeneration
-        | undefined,
+        PcieGeneration | undefined,
       rpm: parseRange(search.get("rpmMin"), search.get("rpmMax")),
       motherboardId: emptyToUndefined(search.get("motherboardId")),
       chassisId: emptyToUndefined(search.get("chassisId")),

@@ -23,7 +23,11 @@ export function motherboardListSearchFromParams(
   const search = new URLSearchParams();
   const filter = params.filter;
 
-  setSearchValue(search, "page", params.pageIndex > 0 ? params.pageIndex : undefined);
+  setSearchValue(
+    search,
+    "page",
+    params.pageIndex > 0 ? params.pageIndex : undefined,
+  );
   setSearchValue(search, "name", filter.name?.trim());
   setSearchValue(search, "manufacturerId", filter.manufacturerId);
   setSearchValue(search, "socketId", filter.socketId);
@@ -90,14 +94,11 @@ function filterFromSearch(search: URLSearchParams): MotherboardFilter {
     widthMm: parseRange(search.get("widthMmMin"), search.get("widthMmMax")),
     heightMm: parseRange(search.get("heightMmMin"), search.get("heightMmMax")),
     ddrGeneration: emptyToUndefined(search.get("ddrGeneration")) as
-      | DdrGeneration
-      | undefined,
+      DdrGeneration | undefined,
     ramFormFactor: emptyToUndefined(search.get("ramFormFactor")) as
-      | RamFormFactor
-      | undefined,
+      RamFormFactor | undefined,
     formFactor: emptyToUndefined(search.get("formFactor")) as
-      | MbFormFactor
-      | undefined,
+      MbFormFactor | undefined,
     wifiEnabled: parseOptionalBoolean(search.get("wifiEnabled")),
     bluetoothEnabled: parseOptionalBoolean(search.get("bluetoothEnabled")),
     chassisId: emptyToUndefined(search.get("chassisId")),

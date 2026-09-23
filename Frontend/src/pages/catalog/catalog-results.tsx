@@ -1,12 +1,13 @@
-import type { OnChangeFn, RowData, RowSelectionState } from "@tanstack/react-table";
+import type {
+  OnChangeFn,
+  RowData,
+  RowSelectionState,
+} from "@tanstack/react-table";
 import { Link } from "react-router-dom";
 import { parseApiError } from "@/api/errors.ts";
 import { PageStatus } from "@/components/PageStatus";
 import { Button } from "@/components/ui/button";
-import {
-  DataTable,
-  type DataTableColumns,
-} from "@/components/ui/data-table";
+import { DataTable, type DataTableColumns } from "@/components/ui/data-table";
 
 type CatalogResultsBase<TData extends RowData> = {
   isInitialLoading: boolean;
@@ -156,7 +157,10 @@ export function MasterDataResults<TData extends RowData>({
         <Button disabled={!hasSelection}>Edit Selected</Button>
         <Button disabled={!hasSelection}>Delete Selected</Button>
         <Button asChild>
-          <Link style={{ textDecoration: "none", color: "black" }} to={newItemTo}>
+          <Link
+            style={{ textDecoration: "none", color: "black" }}
+            to={newItemTo}
+          >
             {newItemLabel}
           </Link>
         </Button>
@@ -173,14 +177,14 @@ export function MasterDataResults<TData extends RowData>({
           />
         </>
       ) : (
-        emptyStatus ?? (
+        (emptyStatus ?? (
           <DataTable
             data={items}
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={onRowSelectionChange}
           />
-        )
+        ))
       )}
     </>
   );

@@ -16,8 +16,7 @@ export function chassisFanListParamsFromSearch(
       name: search.get("name") ?? "",
       manufacturerId: emptyToUndefined(search.get("manufacturerId")),
       diameterMm: emptyToUndefined(search.get("diameterMm")) as
-        | FanDiameterMm
-        | undefined,
+        FanDiameterMm | undefined,
       fansCountPerPack: toInteger(search.get("fansCountPerPack")),
       chassisId: emptyToUndefined(search.get("chassisId")),
     },

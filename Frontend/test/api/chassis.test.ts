@@ -48,7 +48,9 @@ describe("chassis API", () => {
   it("treats blank filters as inactive", () => {
     expect(isChassisFilterActive({ name: "  " })).toBe(false);
     expect(isChassisFilterActive({ name: "O11" })).toBe(true);
-    expect(isChassisFilterActive({ maxSupportedMbFormFactor: undefined })).toBe(false);
+    expect(isChassisFilterActive({ maxSupportedMbFormFactor: undefined })).toBe(
+      false,
+    );
     expect(isChassisFilterActive({ maxSupportedMbFormFactor: "Atx" })).toBe(
       true,
     );
@@ -58,9 +60,9 @@ describe("chassis API", () => {
     get.mockResolvedValue({
       data: { items: [item], totalCount: 1, pageIndex: 0, pageSize: 10 },
     });
-    await expect(
-      listChassis({ ...paging, filter: {} }),
-    ).resolves.toMatchObject({ items: [item] });
+    await expect(listChassis({ ...paging, filter: {} })).resolves.toMatchObject(
+      { items: [item] },
+    );
     expect(get).toHaveBeenCalledWith("/catalog/chassis", { params: paging });
     expect(post).not.toHaveBeenCalled();
   });

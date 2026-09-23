@@ -92,9 +92,9 @@ export function listGraphicsCards(params: GraphicsCardListParams) {
 
   if (!isGraphicsCardFilterActive(params.filter)) {
     return api
-      .get<
-        PagedResult<GraphicsCardListItem>
-      >("/catalog/graphics-card", { params: paging })
+      .get<PagedResult<GraphicsCardListItem>>("/catalog/graphics-card", {
+        params: paging,
+      })
       .then((response) => response.data);
   }
 

@@ -146,11 +146,21 @@ function toChassisFilterBody(filter: ChassisFilter): ChassisFilter {
     lengthMm: hasCompleteRange(filter.lengthMm) ? filter.lengthMm : undefined,
     widthMm: hasCompleteRange(filter.widthMm) ? filter.widthMm : undefined,
     heightMm: hasCompleteRange(filter.heightMm) ? filter.heightMm : undefined,
-    motherboardMaxWidthMm: hasCompleteRange(filter.motherboardMaxWidthMm) ? filter.motherboardMaxWidthMm : undefined,
-    motherboardMaxHeightMm: hasCompleteRange(filter.motherboardMaxHeightMm) ? filter.motherboardMaxHeightMm : undefined,
-    maxCpuCoolerHeightMm: hasCompleteRange(filter.maxCpuCoolerHeightMm) ? filter.maxCpuCoolerHeightMm : undefined,
-    maxGraphicsCardLengthMm: hasCompleteRange(filter.maxGraphicsCardLengthMm) ? filter.maxGraphicsCardLengthMm : undefined,
-    maxPsuLengthMm: hasCompleteRange(filter.maxPsuLengthMm) ? filter.maxPsuLengthMm : undefined,
+    motherboardMaxWidthMm: hasCompleteRange(filter.motherboardMaxWidthMm)
+      ? filter.motherboardMaxWidthMm
+      : undefined,
+    motherboardMaxHeightMm: hasCompleteRange(filter.motherboardMaxHeightMm)
+      ? filter.motherboardMaxHeightMm
+      : undefined,
+    maxCpuCoolerHeightMm: hasCompleteRange(filter.maxCpuCoolerHeightMm)
+      ? filter.maxCpuCoolerHeightMm
+      : undefined,
+    maxGraphicsCardLengthMm: hasCompleteRange(filter.maxGraphicsCardLengthMm)
+      ? filter.maxGraphicsCardLengthMm
+      : undefined,
+    maxPsuLengthMm: hasCompleteRange(filter.maxPsuLengthMm)
+      ? filter.maxPsuLengthMm
+      : undefined,
     maxSupportedMbFormFactor: filter.maxSupportedMbFormFactor,
   };
 }

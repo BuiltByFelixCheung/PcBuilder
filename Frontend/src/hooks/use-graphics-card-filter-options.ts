@@ -8,8 +8,8 @@ import {
 
 export function useGraphicsCardFilterOptions() {
   const manufacturers = useQuery({
-    queryKey: masterDataKeys.manufacturersByProductType('graphicscard'),
-    queryFn: () => listManufacturersByProductType('graphicscard'),
+    queryKey: masterDataKeys.manufacturersByProductType("graphicscard"),
+    queryFn: () => listManufacturersByProductType("graphicscard"),
   });
   const gpus = useQuery({
     queryKey: masterDataKeys.gpus,
@@ -20,8 +20,8 @@ export function useGraphicsCardFilterOptions() {
     queryFn: listGpuSeries,
   });
   const gpuManufacturers = useQuery({
-    queryKey: masterDataKeys.manufacturersByProductType('gpu'),
-    queryFn: () => listManufacturersByProductType('gpu'),
+    queryKey: masterDataKeys.manufacturersByProductType("gpu"),
+    queryFn: () => listManufacturersByProductType("gpu"),
   });
   return {
     manufacturers: manufacturers.data ?? [],

@@ -99,8 +99,8 @@ function GpuSeriesForm({
   onClose,
 }: Readonly<{ gpuSeries: GpuSeriesOption | undefined; onClose: () => void }>) {
   const manufacturers = useQuery({
-    queryKey: masterDataKeys.manufacturersByProductType('gpu'),
-    queryFn: () => listManufacturersByProductType('gpu'),
+    queryKey: masterDataKeys.manufacturersByProductType("gpu"),
+    queryFn: () => listManufacturersByProductType("gpu"),
   });
   const optionsError = manufacturers.error;
 

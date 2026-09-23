@@ -110,9 +110,9 @@ export function CpuCoolerListPage() {
   const [showOnlyCompatible, setShowOnlyCompatible] = useState(() =>
     Boolean(
       params.filter.cpuId ||
-        params.filter.chassisId ||
-        params.filter.ramId ||
-        params.filter.motherboardId,
+      params.filter.chassisId ||
+      params.filter.ramId ||
+      params.filter.motherboardId,
     ),
   );
 
@@ -193,9 +193,7 @@ export function CpuCoolerListPage() {
             <CatalogNameField
               id="cooler-name"
               value={draft.name}
-              onChange={(name) =>
-                setDraft((current) => ({ ...current, name }))
-              }
+              onChange={(name) => setDraft((current) => ({ ...current, name }))}
             />
             <CatalogIdSelectField
               id="cooler-manufacturer"
@@ -203,7 +201,10 @@ export function CpuCoolerListPage() {
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
-                setDraft((current) => ({ ...current, manufacturerId: value || undefined }))
+                setDraft((current) => ({
+                  ...current,
+                  manufacturerId: value || undefined,
+                }))
               }
             />
             <CatalogEnumField
@@ -211,9 +212,7 @@ export function CpuCoolerListPage() {
               label="Type"
               value={draft.type}
               options={CPU_COOLER_TYPES}
-              onChange={(type) =>
-                setDraft((current) => ({ ...current, type }))
-              }
+              onChange={(type) => setDraft((current) => ({ ...current, type }))}
             />
             <CatalogIdSelectField
               id="cooler-socket"
@@ -221,7 +220,10 @@ export function CpuCoolerListPage() {
               value={draft.socketId}
               options={sockets}
               onChange={(value) =>
-                setDraft((current) => ({ ...current, socketId: value || undefined }))
+                setDraft((current) => ({
+                  ...current,
+                  socketId: value || undefined,
+                }))
               }
             />
             <CatalogEnumField
@@ -244,7 +246,11 @@ export function CpuCoolerListPage() {
                   placeholder="Min"
                   value={draft.maxTdp?.min ?? ""}
                   onChange={(event) =>
-                    setRange("maxTdp", "min", toOptionalNumber(event.target.value))
+                    setRange(
+                      "maxTdp",
+                      "min",
+                      toOptionalNumber(event.target.value),
+                    )
                   }
                 />
                 <Input
@@ -255,7 +261,11 @@ export function CpuCoolerListPage() {
                   aria-label="Max TDP max"
                   value={draft.maxTdp?.max ?? ""}
                   onChange={(event) =>
-                    setRange("maxTdp", "max", toOptionalNumber(event.target.value))
+                    setRange(
+                      "maxTdp",
+                      "max",
+                      toOptionalNumber(event.target.value),
+                    )
                   }
                 />
               </div>
@@ -358,7 +368,6 @@ export function CpuCoolerListPage() {
       </div>
     </section>
   );
-
 }
 
 function nameCell(

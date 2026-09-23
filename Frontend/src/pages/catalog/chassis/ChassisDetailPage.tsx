@@ -84,13 +84,18 @@ export function ChassisDetailPage() {
       </p>
       <h1>{chassis.name}</h1>
       {!isAdmin && (
-      <Button onClick={() => {
-        if (!currentBuild.chassisId || currentBuild.chassisId !== chassis.id)
-          currentBuild.addToBuild("chassis", chassis.id);
-        navigate(builderHref(currentBuild.sourceId));
-      }}>
-        Add to Build
-      </Button>
+        <Button
+          onClick={() => {
+            if (
+              !currentBuild.chassisId ||
+              currentBuild.chassisId !== chassis.id
+            )
+              currentBuild.addToBuild("chassis", chassis.id);
+            navigate(builderHref(currentBuild.sourceId));
+          }}
+        >
+          Add to Build
+        </Button>
       )}
       <dl className="catalog-details">
         <div>
@@ -156,9 +161,7 @@ export function ChassisDetailPage() {
             {mounts.map((mount) => (
               <TableRow key={mount.key}>
                 <TableCell>{mount.location}</TableCell>
-                <TableCell>
-                  {mount.singleDiameterOnly ? "Yes" : "No"}
-                </TableCell>
+                <TableCell>{mount.singleDiameterOnly ? "Yes" : "No"}</TableCell>
                 <TableCell>
                   {mount.diameter != null
                     ? formatFanDiameterMm(mount.diameter)

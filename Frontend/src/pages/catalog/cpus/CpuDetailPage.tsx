@@ -34,7 +34,9 @@ export function CpuDetailPage() {
           <Link to="/catalog/cpus">Back to CPUs</Link>
         </p>
         <PageStatus>
-          {query.isError ? parseApiError(query.error).message : "CPU not found."}
+          {query.isError
+            ? parseApiError(query.error).message
+            : "CPU not found."}
         </PageStatus>
       </section>
     );
@@ -47,13 +49,15 @@ export function CpuDetailPage() {
       </p>
       <h1>{cpu.name}</h1>
       {!isAdmin && (
-      <Button onClick={() => {
-        if (!currentBuild.cpuId || currentBuild.cpuId !== cpu.id)
-          currentBuild.addToBuild("cpu", cpu.id);
-        navigate(builderHref(currentBuild.sourceId));
-      }}>
-        Add to Build
-      </Button>
+        <Button
+          onClick={() => {
+            if (!currentBuild.cpuId || currentBuild.cpuId !== cpu.id)
+              currentBuild.addToBuild("cpu", cpu.id);
+            navigate(builderHref(currentBuild.sourceId));
+          }}
+        >
+          Add to Build
+        </Button>
       )}
       <dl className="catalog-details">
         <div>
@@ -108,7 +112,9 @@ export function CpuDetailPage() {
               <TableRow
                 key={`${compat.ddrGeneration}-${compat.ramModuleCount}-${compat.ramRank}`}
               >
-                <TableCell>{compat.ddrGeneration.replace("Ddr", "DDR")}</TableCell>
+                <TableCell>
+                  {compat.ddrGeneration.replace("Ddr", "DDR")}
+                </TableCell>
                 <TableCell>{compat.ramModuleCount}</TableCell>
                 <TableCell>
                   {compat.ramRank === "DualRank" ? "Dual" : "Single"}

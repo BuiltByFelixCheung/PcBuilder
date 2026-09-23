@@ -1,10 +1,6 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import {
-  listGpus,
-  masterDataKeys,
-  type GpuOption,
-} from "@/api/master-data";
+import { listGpus, masterDataKeys, type GpuOption } from "@/api/master-data";
 import { GpuFormDialog } from "@/pages/master-data/gpus/GpuFormDialog";
 import {
   gpuEditPath,
@@ -20,7 +16,10 @@ import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useQuery } from "@tanstack/react-query";
 import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
 import { MasterDataResults } from "@/pages/catalog/catalog-results";
-import { CatalogFilterActions, CatalogNameField } from "@/pages/catalog/catalog-filter-fields";
+import {
+  CatalogFilterActions,
+  CatalogNameField,
+} from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: GpuOption[] = [];
 const columnHelper = createColumnHelper<typeof dataTableFeatures, GpuOption>();
@@ -29,9 +28,7 @@ const columns = columnHelper.columns([
   columnHelper.accessor("name", {
     header: "Name",
     cell: (info) => (
-      <Link to={gpuEditPath(info.row.original.id)}>
-        {info.getValue()}
-      </Link>
+      <Link to={gpuEditPath(info.row.original.id)}>{info.getValue()}</Link>
     ),
   }),
   columnHelper.accessor("manufacturerName", {
@@ -106,10 +103,7 @@ export function GpuListPage() {
         item.manufacturerId !== applied.manufacturerId
       )
         return false;
-      if (
-        applied.gpuSeriesId &&
-        item.gpuSeriesId !== applied.gpuSeriesId
-      )
+      if (applied.gpuSeriesId && item.gpuSeriesId !== applied.gpuSeriesId)
         return false;
       return true;
     });
@@ -217,5 +211,4 @@ export function GpuListPage() {
       </div>
     </section>
   );
-
 }

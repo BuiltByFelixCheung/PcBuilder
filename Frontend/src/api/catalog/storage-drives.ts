@@ -56,18 +56,20 @@ export const storageDriveKeys = {
   detail: (id: string) => [...storageDriveKeys.details(), id] as const,
 };
 
-export function isStorageDriveFilterActive(filter: StorageDriveFilter): boolean {
+export function isStorageDriveFilterActive(
+  filter: StorageDriveFilter,
+): boolean {
   return Boolean(
     filter.name?.trim() ||
-      filter.manufacturerId ||
-      filter.media ||
-      filter.interface ||
-      filter.formFactor ||
-      hasCompleteRange(filter.capacityGb) ||
-      filter.pcieGeneration ||
-      hasCompleteRange(filter.rpm) ||
-      filter.motherboardId ||
-      filter.chassisId,
+    filter.manufacturerId ||
+    filter.media ||
+    filter.interface ||
+    filter.formFactor ||
+    hasCompleteRange(filter.capacityGb) ||
+    filter.pcieGeneration ||
+    hasCompleteRange(filter.rpm) ||
+    filter.motherboardId ||
+    filter.chassisId,
   );
 }
 
@@ -81,7 +83,9 @@ export function listStorageDrives(params: StorageDriveListParams) {
 
   if (!isStorageDriveFilterActive(params.filter)) {
     return api
-      .get<PagedResult<StorageDrive>>("/catalog/storage-drive", { params: paging })
+      .get<PagedResult<StorageDrive>>("/catalog/storage-drive", {
+        params: paging,
+      })
       .then((response) => response.data);
   }
 
@@ -99,14 +103,18 @@ export function getStorageDriveById(id: string) {
     .then((response) => response.data);
 }
 
-function toStorageDriveFilterBody(filter: StorageDriveFilter): StorageDriveFilter {
+function toStorageDriveFilterBody(
+  filter: StorageDriveFilter,
+): StorageDriveFilter {
   return {
     name: filter.name?.trim() || undefined,
     manufacturerId: filter.manufacturerId,
     media: filter.media,
     interface: filter.interface,
     formFactor: filter.formFactor,
-    capacityGb: hasCompleteRange(filter.capacityGb) ? filter.capacityGb : undefined,
+    capacityGb: hasCompleteRange(filter.capacityGb)
+      ? filter.capacityGb
+      : undefined,
     pcieGeneration: filter.pcieGeneration,
     rpm: hasCompleteRange(filter.rpm) ? filter.rpm : undefined,
     motherboardId: filter.motherboardId,

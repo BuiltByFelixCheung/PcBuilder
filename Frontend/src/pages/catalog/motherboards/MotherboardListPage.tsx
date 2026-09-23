@@ -101,8 +101,8 @@ export function MotherboardListPage() {
     ? chipsets.filter((item) => item.socketId === draft.socketId)
     : chipsets;
   const currentBuild = usePcBuild();
-  const [showOnlyCompatible, setShowOnlyCompatible] = useState(
-    () => Boolean(params.filter.chassisId),
+  const [showOnlyCompatible, setShowOnlyCompatible] = useState(() =>
+    Boolean(params.filter.chassisId),
   );
 
   function applyCompatibleFilter(checked: boolean) {
@@ -163,9 +163,7 @@ export function MotherboardListPage() {
             <CatalogNameField
               id="motherboard-name"
               value={draft.name}
-              onChange={(name) =>
-                setDraft((current) => ({ ...current, name }))
-              }
+              onChange={(name) => setDraft((current) => ({ ...current, name }))}
             />
             <CatalogIdSelectField
               id="motherboard-manufacturer"
@@ -173,7 +171,10 @@ export function MotherboardListPage() {
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
-                setDraft((current) => ({ ...current, manufacturerId: value || undefined }))
+                setDraft((current) => ({
+                  ...current,
+                  manufacturerId: value || undefined,
+                }))
               }
             />
             <Field>
@@ -204,7 +205,10 @@ export function MotherboardListPage() {
               value={draft.chipsetId}
               options={chipsetOptions}
               onChange={(value) =>
-                setDraft((current) => ({ ...current, chipsetId: value || undefined }))
+                setDraft((current) => ({
+                  ...current,
+                  chipsetId: value || undefined,
+                }))
               }
             />
             <CatalogEnumField
@@ -226,8 +230,7 @@ export function MotherboardListPage() {
                   setDraft((current) => ({
                     ...current,
                     ddrGeneration: (event.target.value || undefined) as
-                      | DdrGeneration
-                      | undefined,
+                      DdrGeneration | undefined,
                   }))
                 }
               >
@@ -340,7 +343,9 @@ export function MotherboardListPage() {
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="motherboard-sata-ports">SATA ports</FieldLabel>
+              <FieldLabel htmlFor="motherboard-sata-ports">
+                SATA ports
+              </FieldLabel>
               <Input
                 id="motherboard-sata-ports"
                 type="number"
@@ -434,7 +439,6 @@ export function MotherboardListPage() {
       </div>
     </section>
   );
-
 }
 
 function nameCell(

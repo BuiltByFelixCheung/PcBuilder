@@ -51,7 +51,10 @@ import {
 } from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: MemoryDetail[] = [];
-const columnHelper = createColumnHelper<typeof dataTableFeatures, MemoryDetail>();
+const columnHelper = createColumnHelper<
+  typeof dataTableFeatures,
+  MemoryDetail
+>();
 const selectClassName =
   "h-10 w-full min-w-0 rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
@@ -211,9 +214,7 @@ export function RamListPage() {
             <CatalogNameField
               id="memory-name"
               value={draft.name}
-              onChange={(name) =>
-                setDraft((current) => ({ ...current, name }))
-              }
+              onChange={(name) => setDraft((current) => ({ ...current, name }))}
             />
             <Field>
               <FieldLabel htmlFor="memory-manufacturer">
@@ -462,7 +463,6 @@ export function RamListPage() {
       </div>
     </section>
   );
-
 }
 
 function nameCell(

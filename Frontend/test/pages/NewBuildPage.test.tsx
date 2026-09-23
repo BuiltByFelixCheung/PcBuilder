@@ -32,9 +32,8 @@ vi.mock("@/api/catalog/storage-drives", async () => {
 });
 
 vi.mock("@/api/builds", async () => {
-  const actual = await vi.importActual<typeof import("@/api/builds")>(
-    "@/api/builds",
-  );
+  const actual =
+    await vi.importActual<typeof import("@/api/builds")>("@/api/builds");
   return {
     ...actual,
     getBuildById: (...args: unknown[]) => getBuildById(...args),
@@ -355,10 +354,7 @@ describe("BuilderPage", () => {
     expect(createPcBuild).not.toHaveBeenCalled();
 
     await user.type(screen.getByLabelText("Name"), "Living room");
-    await user.type(
-      screen.getByLabelText("Description"),
-      "Quiet daily driver",
-    );
+    await user.type(screen.getByLabelText("Description"), "Quiet daily driver");
     await user.click(screen.getByRole("button", { name: "Save" }));
     expect(createPcBuild).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -32,14 +32,11 @@ export function wirelessNetworkAdapterListParamsFromSearch(
       name: search.get("name") ?? "",
       manufacturerId: emptyToUndefined(search.get("manufacturerId")),
       wifiStandard: emptyToUndefined(search.get("wifiStandard")) as
-        | WifiStandard
-        | undefined,
+        WifiStandard | undefined,
       bluetoothVersion: emptyToUndefined(search.get("bluetoothVersion")) as
-        | BluetoothVersion
-        | undefined,
+        BluetoothVersion | undefined,
       hostInterface: emptyToUndefined(search.get("hostInterface")) as
-        | WirelessHostInterface
-        | undefined,
+        WirelessHostInterface | undefined,
       maxSpeedMbps: parseRange(
         search.get("maxSpeedMbpsMin"),
         search.get("maxSpeedMbpsMax"),
@@ -53,15 +50,12 @@ export function wirelessNetworkAdapterListParamsFromSearch(
         search.get("maxSpeedMbps6GMax"),
       ),
       pcieSlotType: emptyToUndefined(search.get("pcieSlotType")) as
-        | PcieSlotType
-        | undefined,
+        PcieSlotType | undefined,
       key: emptyToUndefined(search.get("key")) as M2Key | undefined,
       m2FormFactor: emptyToUndefined(search.get("m2FormFactor")) as
-        | M2FormFactor
-        | undefined,
+        M2FormFactor | undefined,
       usbVersion: emptyToUndefined(search.get("usbVersion")) as
-        | UsbVersion
-        | undefined,
+        UsbVersion | undefined,
       usbType: emptyToUndefined(search.get("usbType")) as UsbType | undefined,
       motherboardId: emptyToUndefined(search.get("motherboardId")),
     },

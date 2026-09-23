@@ -74,7 +74,9 @@ describe("motherboard API", () => {
     ).resolves.toMatchObject({
       items: [item],
     });
-    expect(get).toHaveBeenCalledWith("/catalog/motherboard", { params: paging });
+    expect(get).toHaveBeenCalledWith("/catalog/motherboard", {
+      params: paging,
+    });
     expect(post).not.toHaveBeenCalled();
     expect(motherboardKeys.detail("mb-1")).toEqual([
       "motherboards",

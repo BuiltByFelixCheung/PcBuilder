@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import {
   Table,
   TableBody,
@@ -9,10 +9,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table.tsx'
+} from "@/components/ui/table.tsx";
 
-describe('Table', () => {
-  it('renders a basic data table', () => {
+describe("Table", () => {
+  it("renders a basic data table", () => {
     render(
       <Table>
         <TableCaption>CPUs</TableCaption>
@@ -32,8 +32,8 @@ describe('Table', () => {
           </TableRow>
         </TableFooter>
       </Table>,
-    )
-    expect(screen.getByText('CPUs')).toBeInTheDocument()
-    expect(screen.getByText('Ryzen')).toBeInTheDocument()
-  })
-})
+    );
+    expect(screen.getByText("CPUs")).toBeInTheDocument();
+    expect(screen.getByText("Ryzen")).toBeInTheDocument();
+  });
+});

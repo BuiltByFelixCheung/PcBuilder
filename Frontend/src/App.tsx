@@ -129,7 +129,10 @@ export default function App() {
             element={<GpuSeriesListPage />}
           />
           <Route path="master-data/gpus" element={<GpuListPage />} />
-          <Route path="master-data/manufacturers" element={<ManufacturerListPage />} />
+          <Route
+            path="master-data/manufacturers"
+            element={<ManufacturerListPage />}
+          />
         </Route>
       </Route>
     </Routes>

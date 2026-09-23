@@ -1,102 +1,102 @@
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
-import type { AuthTokens } from '../auth/types'
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
+import type { AuthTokens } from "../auth/types";
 
 type AuthBridge = {
-  getAccessToken: () => string | null
-  applySession: (tokens: AuthTokens) => void
-  clearSession: () => void
-}
+  getAccessToken: () => string | null;
+  applySession: (tokens: AuthTokens) => void;
+  clearSession: () => void;
+};
 
 const anonymousAuthPath =
-  /\/auth\/(login|register|refresh|logout|forgot-password|reset-password)(?:\?|$)/
+  /\/auth\/(login|register|refresh|logout|forgot-password|reset-password)(?:\?|$)/;
 
 let bridge: AuthBridge = {
   getAccessToken: () => null,
   applySession: () => {},
   clearSession: () => {},
-}
+};
 
-let refreshPromise: Promise<AuthTokens | null> | null = null
-const retriedRequests = new WeakSet<InternalAxiosRequestConfig>()
+let refreshPromise: Promise<AuthTokens | null> | null = null;
+const retriedRequests = new WeakSet<InternalAxiosRequestConfig>();
 
 export function bindAuthBridge(next: AuthBridge) {
-  bridge = next
+  bridge = next;
 }
 
 export const api = axios.create({
-  baseURL: '/api',
+  baseURL: "/api",
   withCredentials: true,
-})
+});
 
 api.interceptors.request.use((config) => {
-  const token = bridge.getAccessToken()
+  const token = bridge.getAccessToken();
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+    config.headers.Authorization = `Bearer ${token}`;
   }
-  return config
-})
+  return config;
+});
 
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const original = error.config
+    const original = error.config;
     if (!original || error.response?.status !== 401) {
-      throw error
+      throw error;
     }
 
     if (shouldSkipRefresh(original) || retriedRequests.has(original)) {
-      throw error
+      throw error;
     }
 
-    retriedRequests.add(original)
+    retriedRequests.add(original);
 
-    const tokens = await refreshSession()
+    const tokens = await refreshSession();
     if (!tokens) {
-      throw error
+      throw error;
     }
 
-    original.headers.Authorization = `Bearer ${tokens.accessToken}`
-    return api(original)
+    original.headers.Authorization = `Bearer ${tokens.accessToken}`;
+    return api(original);
   },
-)
+);
 
 export async function refreshSession(): Promise<AuthTokens | null> {
   refreshPromise ??= (async () => {
     try {
       const { data, status } = await axios.post<AuthTokens>(
-        '/api/auth/refresh',
+        "/api/auth/refresh",
         {},
         { withCredentials: true },
-      )
+      );
       if (status === 204 || !data?.accessToken) {
-        return null
+        return null;
       }
-      bridge.applySession(data)
-      return data
+      bridge.applySession(data);
+      return data;
     } catch {
-      bridge.clearSession()
-      return null
+      bridge.clearSession();
+      return null;
     }
   })().finally(() => {
-    refreshPromise = null
-  })
+    refreshPromise = null;
+  });
 
-  return refreshPromise
+  return refreshPromise;
 }
 
 function shouldSkipRefresh(config: InternalAxiosRequestConfig): boolean {
-  return anonymousAuthPath.test(requestPath(config))
+  return anonymousAuthPath.test(requestPath(config));
 }
 
 function requestPath(config: InternalAxiosRequestConfig): string {
-  const url = config.url ?? ''
-  if (url.startsWith('http://') || url.startsWith('https://')) {
+  const url = config.url ?? "";
+  if (url.startsWith("http://") || url.startsWith("https://")) {
     try {
-      return new URL(url).pathname
+      return new URL(url).pathname;
     } catch {
-      return url
+      return url;
     }
   }
 
-  return `${config.baseURL ?? ''}${url}`
+  return `${config.baseURL ?? ""}${url}`;
 }

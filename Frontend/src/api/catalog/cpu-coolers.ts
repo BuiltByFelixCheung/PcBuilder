@@ -59,17 +59,17 @@ export const cpuCoolerKeys = {
 export function isCpuCoolerFilterActive(filter: CpuCoolerFilter): boolean {
   return Boolean(
     filter.name?.trim() ||
-      filter.manufacturerId ||
-      filter.type ||
-      hasCompleteRange(filter.maxTdp) ||
-      hasCompleteRange(filter.coolerHeightMm) ||
-      hasCompleteRange(filter.maxRamHeightMm) ||
-      filter.radiatorLength ||
-      filter.socketId ||
-      filter.cpuId ||
-      filter.chassisId ||
-      filter.ramId ||
-      filter.motherboardId,
+    filter.manufacturerId ||
+    filter.type ||
+    hasCompleteRange(filter.maxTdp) ||
+    hasCompleteRange(filter.coolerHeightMm) ||
+    hasCompleteRange(filter.maxRamHeightMm) ||
+    filter.radiatorLength ||
+    filter.socketId ||
+    filter.cpuId ||
+    filter.chassisId ||
+    filter.ramId ||
+    filter.motherboardId,
   );
 }
 
@@ -83,7 +83,9 @@ export function listCpuCoolers(params: CpuCoolerListParams) {
 
   if (!isCpuCoolerFilterActive(params.filter)) {
     return api
-      .get<PagedResult<CpuCoolerListItem>>("/catalog/cpu-cooler", { params: paging })
+      .get<PagedResult<CpuCoolerListItem>>("/catalog/cpu-cooler", {
+        params: paging,
+      })
       .then((response) => response.data);
   }
 

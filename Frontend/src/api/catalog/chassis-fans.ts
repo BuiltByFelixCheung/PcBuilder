@@ -35,10 +35,10 @@ export const chassisFanKeys = {
 export function isChassisFanFilterActive(filter: ChassisFanFilter): boolean {
   return Boolean(
     filter.name?.trim() ||
-      filter.manufacturerId ||
-      filter.diameterMm ||
-      filter.fansCountPerPack ||
-      filter.chassisId,
+    filter.manufacturerId ||
+    filter.diameterMm ||
+    filter.fansCountPerPack ||
+    filter.chassisId,
   );
 }
 

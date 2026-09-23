@@ -32,7 +32,10 @@ import {
 } from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: CpuListItem[] = [];
-const columnHelper = createColumnHelper<typeof dataTableFeatures, CpuListItem>();
+const columnHelper = createColumnHelper<
+  typeof dataTableFeatures,
+  CpuListItem
+>();
 const selectClassName =
   "h-10 w-full min-w-0 rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
@@ -95,14 +98,12 @@ export function CpuListPage() {
     return true;
   });
   const currentBuild = usePcBuild();
-  const [showOnlyCompatible, setShowOnlyCompatible] = useState(
-    () => Boolean(params.filter.motherboardId),
+  const [showOnlyCompatible, setShowOnlyCompatible] = useState(() =>
+    Boolean(params.filter.motherboardId),
   );
 
   function applyCompatibleFilter(checked: boolean) {
-    const motherboardId = checked
-      ? currentBuild.motherboardId
-      : undefined;
+    const motherboardId = checked ? currentBuild.motherboardId : undefined;
     setShowOnlyCompatible(checked);
     setDraft((current) => ({ ...current, motherboardId }));
     setSearchParams(
@@ -147,129 +148,127 @@ export function CpuListPage() {
       </p>
 
       <div className="catalog-layout">
-      <form className="catalog-filters" onSubmit={applyFilters}>
-        <FieldGroup className="catalog-filter-grid">
-          <CatalogCompatibleCheckbox
-            checked={showOnlyCompatible}
-            onCheckedChange={applyCompatibleFilter}
-          />
-          <CatalogNameField
-            id="cpu-name"
-            value={draft.name}
-            onChange={(name) =>
-              setDraft((current) => ({ ...current, name }))
-            }
-          />
-          <Field>
-            <FieldLabel htmlFor="cpu-manufacturer">Manufacturer</FieldLabel>
-            <select
-              id="cpu-manufacturer"
-              className={selectClassName}
-              value={draft.manufacturerId ?? ""}
-              onChange={(event) =>
+        <form className="catalog-filters" onSubmit={applyFilters}>
+          <FieldGroup className="catalog-filter-grid">
+            <CatalogCompatibleCheckbox
+              checked={showOnlyCompatible}
+              onCheckedChange={applyCompatibleFilter}
+            />
+            <CatalogNameField
+              id="cpu-name"
+              value={draft.name}
+              onChange={(name) => setDraft((current) => ({ ...current, name }))}
+            />
+            <Field>
+              <FieldLabel htmlFor="cpu-manufacturer">Manufacturer</FieldLabel>
+              <select
+                id="cpu-manufacturer"
+                className={selectClassName}
+                value={draft.manufacturerId ?? ""}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    manufacturerId: event.target.value || undefined,
+                    socketId: undefined,
+                    seriesId: undefined,
+                  }))
+                }
+              >
+                <option value="">Any</option>
+                {manufacturers.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="cpu-socket">Socket</FieldLabel>
+              <select
+                id="cpu-socket"
+                className={selectClassName}
+                value={draft.socketId ?? ""}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    socketId: event.target.value || undefined,
+                    seriesId: undefined,
+                  }))
+                }
+              >
+                <option value="">Any</option>
+                {socketOptions.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <CatalogIdSelectField
+              id="cpu-series"
+              label="Series"
+              value={draft.seriesId}
+              options={seriesOptions}
+              onChange={(value) =>
                 setDraft((current) => ({
                   ...current,
-                  manufacturerId: event.target.value || undefined,
-                  socketId: undefined,
-                  seriesId: undefined,
+                  seriesId: value || undefined,
                 }))
               }
-            >
-              <option value="">Any</option>
-              {manufacturers.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="cpu-socket">Socket</FieldLabel>
-            <select
-              id="cpu-socket"
-              className={selectClassName}
-              value={draft.socketId ?? ""}
-              onChange={(event) =>
-                setDraft((current) => ({
-                  ...current,
-                  socketId: event.target.value || undefined,
-                  seriesId: undefined,
-                }))
+            />
+            <CatalogRangeField
+              id="cpu-tdp"
+              label="TDP (W)"
+              maxAriaLabel="TDP max"
+              range={draft.thermalDesignPower}
+              onChange={(thermalDesignPower) =>
+                setDraft((current) => ({ ...current, thermalDesignPower }))
               }
-            >
-              <option value="">Any</option>
-              {socketOptions.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <CatalogIdSelectField
-            id="cpu-series"
-            label="Series"
-            value={draft.seriesId}
-            options={seriesOptions}
-            onChange={(value) =>
-              setDraft((current) => ({ ...current, seriesId: value || undefined }))
-            }
-          />
-          <CatalogRangeField
-            id="cpu-tdp"
-            label="TDP (W)"
-            maxAriaLabel="TDP max"
-            range={draft.thermalDesignPower}
-            onChange={(thermalDesignPower) =>
-              setDraft((current) => ({ ...current, thermalDesignPower }))
-            }
-          />
-          <CatalogRangeField
-            id="cpu-power"
-            label="Power (W)"
-            maxAriaLabel="Power max"
-            range={draft.powerConsumptionWatts}
-            onChange={(powerConsumptionWatts) =>
-              setDraft((current) => ({ ...current, powerConsumptionWatts }))
-            }
-          />
-        </FieldGroup>
-        <CatalogFilterActions onClear={clearFilters} />
-      </form>
+            />
+            <CatalogRangeField
+              id="cpu-power"
+              label="Power (W)"
+              maxAriaLabel="Power max"
+              range={draft.powerConsumptionWatts}
+              onChange={(powerConsumptionWatts) =>
+                setDraft((current) => ({ ...current, powerConsumptionWatts }))
+              }
+            />
+          </FieldGroup>
+          <CatalogFilterActions onClear={clearFilters} />
+        </form>
 
-      <div className="catalog-results">
-        <CatalogPagedResults
-          isInitialLoading={query.isPending && !query.data}
-          isError={query.isError}
-          error={query.error}
-          items={items}
-          filtering={filtering}
-          loadingMessage="Loading CPUs…"
-          emptyFilteredMessage="No CPUs match these filters."
-          emptyMessage="No CPUs in the catalog yet."
-          isAdmin={isAdmin}
-          newItemLabel="New CPU"
-          columns={columns}
-          rowSelection={rowSelection}
-          onRowSelectionChange={setRowSelection}
-          pageIndex={pageIndex}
-          pageCount={pageCount}
-          totalCount={totalCount}
-          countLabel="CPUs"
-          onPageChange={goToPage}
-        />
-      </div>
+        <div className="catalog-results">
+          <CatalogPagedResults
+            isInitialLoading={query.isPending && !query.data}
+            isError={query.isError}
+            error={query.error}
+            items={items}
+            filtering={filtering}
+            loadingMessage="Loading CPUs…"
+            emptyFilteredMessage="No CPUs match these filters."
+            emptyMessage="No CPUs in the catalog yet."
+            isAdmin={isAdmin}
+            newItemLabel="New CPU"
+            columns={columns}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            pageIndex={pageIndex}
+            pageCount={pageCount}
+            totalCount={totalCount}
+            countLabel="CPUs"
+            onPageChange={goToPage}
+          />
+        </div>
       </div>
     </section>
   );
-
 }
 
 function nameCell(
   info: CellContext<typeof dataTableFeatures, CpuListItem, string>,
 ) {
   return (
-    <Link to={`/catalog/cpus/${info.row.original.id}`}>
-      {info.getValue()}
-    </Link>
+    <Link to={`/catalog/cpus/${info.row.original.id}`}>{info.getValue()}</Link>
   );
 }

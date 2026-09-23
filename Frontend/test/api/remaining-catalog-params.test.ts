@@ -75,7 +75,9 @@ describe("remaining catalog search params", () => {
         chassisId: "case-1",
       },
     });
-    expect(storageDriveListParamsFromSearch(storageSearch).filter).toMatchObject({
+    expect(
+      storageDriveListParamsFromSearch(storageSearch).filter,
+    ).toMatchObject({
       name: "990",
       media: "Ssd",
       interface: "Nvme",

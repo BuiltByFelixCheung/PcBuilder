@@ -5,10 +5,7 @@ import {
   type PcBuildDraft,
 } from "@/api/builds";
 
-export function usePcBuildCompatibility(
-  draft: PcBuildDraft,
-  enabled: boolean,
-) {
+export function usePcBuildCompatibility(draft: PcBuildDraft, enabled: boolean) {
   return useQuery({
     queryKey: pcBuildKeys.compatibility(draft),
     queryFn: () => checkPcBuildCompatibility(draft),

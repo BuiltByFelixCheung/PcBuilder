@@ -20,7 +20,11 @@ import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useQuery } from "@tanstack/react-query";
 import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
 import { MasterDataResults } from "@/pages/catalog/catalog-results";
-import { CatalogFilterActions, CatalogNameField, CatalogIdSelectField } from "@/pages/catalog/catalog-filter-fields";
+import {
+  CatalogFilterActions,
+  CatalogNameField,
+  CatalogIdSelectField,
+} from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: ChipsetOption[] = [];
 const columnHelper = createColumnHelper<
@@ -138,9 +142,7 @@ export function ChipsetListPage() {
             <CatalogNameField
               id="chipset-name"
               value={draft.name}
-              onChange={(name) =>
-                setDraft((current) => ({ ...current, name }))
-              }
+              onChange={(name) => setDraft((current) => ({ ...current, name }))}
             />
             <Field>
               <FieldLabel htmlFor="chipset-manufacturer">
@@ -172,7 +174,10 @@ export function ChipsetListPage() {
               value={draft.socketId}
               options={socketOptions}
               onChange={(value) =>
-                setDraft((current) => ({ ...current, socketId: value || undefined }))
+                setDraft((current) => ({
+                  ...current,
+                  socketId: value || undefined,
+                }))
               }
             />
           </FieldGroup>
@@ -207,5 +212,4 @@ export function ChipsetListPage() {
       ) : null}
     </section>
   );
-
 }

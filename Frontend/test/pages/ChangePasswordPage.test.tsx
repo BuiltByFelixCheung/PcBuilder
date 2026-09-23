@@ -33,7 +33,9 @@ describe("ChangePasswordPage", () => {
     const user = userEvent.setup();
     renderPage();
     await user.click(screen.getByRole("button", { name: "Change Password" }));
-    expect(await screen.findByText("Current password is required.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Current password is required."),
+    ).toBeInTheDocument();
     expect(screen.getByText("New password is required.")).toBeInTheDocument();
     expect(screen.getByText("Confirm your new password.")).toBeInTheDocument();
   });
@@ -43,9 +45,14 @@ describe("ChangePasswordPage", () => {
     renderPage();
     await user.type(screen.getByLabelText("Current Password"), "OldPassword1!");
     await user.type(screen.getByLabelText("New Password"), "Password1!");
-    await user.type(screen.getByLabelText("Confirm New Password"), "Password2!");
+    await user.type(
+      screen.getByLabelText("Confirm New Password"),
+      "Password2!",
+    );
     await user.click(screen.getByRole("button", { name: "Change Password" }));
-    expect(await screen.findByText("Passwords do not match.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Passwords do not match."),
+    ).toBeInTheDocument();
     expect(auth.changePassword).not.toHaveBeenCalled();
   });
 
@@ -54,7 +61,10 @@ describe("ChangePasswordPage", () => {
     renderPage();
     await user.type(screen.getByLabelText("Current Password"), "OldPassword1!");
     await user.type(screen.getByLabelText("New Password"), "Password1!");
-    await user.type(screen.getByLabelText("Confirm New Password"), "Password1!");
+    await user.type(
+      screen.getByLabelText("Confirm New Password"),
+      "Password1!",
+    );
     await user.click(screen.getByRole("button", { name: "Change Password" }));
     expect(auth.changePassword).toHaveBeenCalledWith({
       currentPassword: "OldPassword1!",
@@ -89,9 +99,14 @@ describe("ChangePasswordPage", () => {
     renderPage();
     await user.type(screen.getByLabelText("Current Password"), "OldPassword1!");
     await user.type(screen.getByLabelText("New Password"), "Password1!");
-    await user.type(screen.getByLabelText("Confirm New Password"), "Password1!");
+    await user.type(
+      screen.getByLabelText("Confirm New Password"),
+      "Password1!",
+    );
     await user.click(screen.getByRole("button", { name: "Change Password" }));
-    expect(await screen.findByText("Wrong current password.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Wrong current password."),
+    ).toBeInTheDocument();
     expect(screen.getByText("Too weak.")).toBeInTheDocument();
     expect(screen.getByText("Must match.")).toBeInTheDocument();
     expect(screen.getByText("Cannot reuse that password.")).toBeInTheDocument();
@@ -112,7 +127,10 @@ describe("ChangePasswordPage", () => {
     renderPage();
     await user.type(screen.getByLabelText("Current Password"), "OldPassword1!");
     await user.type(screen.getByLabelText("New Password"), "Password1!");
-    await user.type(screen.getByLabelText("Confirm New Password"), "Password1!");
+    await user.type(
+      screen.getByLabelText("Confirm New Password"),
+      "Password1!",
+    );
     await user.click(screen.getByRole("button", { name: "Change Password" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Cannot reach the server. Is the API running?",
@@ -134,8 +152,13 @@ describe("ChangePasswordPage", () => {
     renderPage();
     await user.type(screen.getByLabelText("Current Password"), "OldPassword1!");
     await user.type(screen.getByLabelText("New Password"), "Password1!");
-    await user.type(screen.getByLabelText("Confirm New Password"), "Password1!");
+    await user.type(
+      screen.getByLabelText("Confirm New Password"),
+      "Password1!",
+    );
     await user.click(screen.getByRole("button", { name: "Change Password" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("Password recently used.");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Password recently used.",
+    );
   });
 });

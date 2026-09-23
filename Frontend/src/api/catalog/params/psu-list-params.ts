@@ -1,9 +1,5 @@
 import type { PsuFilter, PsuListParams } from "../psus";
-import {
-  emptyToUndefined,
-  parseRange,
-  setSearchValue,
-} from "../../helper";
+import { emptyToUndefined, parseRange, setSearchValue } from "../../helper";
 import type { PsuFormFactor, PsuModularity } from "../../enums";
 import {
   catalogPagingFromSearch,
@@ -15,7 +11,9 @@ export const emptyPsuFilter: PsuFilter = {
   name: "",
 };
 
-export function psuListParamsFromSearch(search: URLSearchParams): PsuListParams {
+export function psuListParamsFromSearch(
+  search: URLSearchParams,
+): PsuListParams {
   return {
     ...catalogPagingFromSearch(search),
     filter: {
@@ -23,14 +21,18 @@ export function psuListParamsFromSearch(search: URLSearchParams): PsuListParams 
       manufacturerId: emptyToUndefined(search.get("manufacturerId")),
       wattage: parseRange(search.get("wattageMin"), search.get("wattageMax")),
       modularity: emptyToUndefined(search.get("modularity")) as
-        | PsuModularity
-        | undefined,
+        PsuModularity | undefined,
       formFactor: emptyToUndefined(search.get("formFactor")) as
-        | PsuFormFactor
-        | undefined,
-      lengthMm: parseRange(search.get("lengthMmMin"), search.get("lengthMmMax")),
+        PsuFormFactor | undefined,
+      lengthMm: parseRange(
+        search.get("lengthMmMin"),
+        search.get("lengthMmMax"),
+      ),
       widthMm: parseRange(search.get("widthMmMin"), search.get("widthMmMax")),
-      heightMm: parseRange(search.get("heightMmMin"), search.get("heightMmMax")),
+      heightMm: parseRange(
+        search.get("heightMmMin"),
+        search.get("heightMmMax"),
+      ),
       chassisId: emptyToUndefined(search.get("chassisId")),
       motherboardId: emptyToUndefined(search.get("motherboardId")),
       graphicsCardId: emptyToUndefined(search.get("graphicsCardId")),
@@ -39,7 +41,9 @@ export function psuListParamsFromSearch(search: URLSearchParams): PsuListParams 
   };
 }
 
-export function psuListSearchFromParams(params: PsuListParams): URLSearchParams {
+export function psuListSearchFromParams(
+  params: PsuListParams,
+): URLSearchParams {
   const search = new URLSearchParams();
   const filter = params.filter;
   setPageSearch(search, params.pageIndex);

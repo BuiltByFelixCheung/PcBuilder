@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { PcBuildContext } from "./pcbuild-context.ts";
 import {
   emptyBuildWorkspace,
@@ -218,7 +224,14 @@ export function PcBuildProvider({
       resetBuild,
       applyDetail,
     }),
-    [workspace, addToBuild, removeFromBuild, setQuantity, resetBuild, applyDetail],
+    [
+      workspace,
+      addToBuild,
+      removeFromBuild,
+      setQuantity,
+      resetBuild,
+      applyDetail,
+    ],
   );
 
   return (

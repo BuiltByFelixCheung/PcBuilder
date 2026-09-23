@@ -23,7 +23,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import {
   applyApiFieldErrors,
   applyApiFormError,
@@ -57,9 +62,7 @@ export function GpuFormDialog({
   onClose,
 }: Readonly<GpuFormDialogProps>) {
   const isNew = editingId === newMasterDataEditValue;
-  const gpu = isNew
-    ? undefined
-    : gpus.find((item) => item.id === editingId);
+  const gpu = isNew ? undefined : gpus.find((item) => item.id === editingId);
   const missing = !isNew && gpusSettled && !gpu;
   const loading = !isNew && !gpusSettled;
 
@@ -68,7 +71,8 @@ export function GpuFormDialog({
       open
       onOpenChange={(open) => {
         if (!open) onClose();
-      }}>
+      }}
+    >
       <DialogContent className="sm:max-w-md">
         {loading ? (
           <>
@@ -116,7 +120,7 @@ function GpuForm({
     queryFn: () => listGpuSeries(),
   });
   const optionsError = manufacturers.error ?? series.error;
-  
+
   if (manufacturers.isPending || series.isPending) {
     return (
       <>
@@ -161,11 +165,11 @@ function GpuFields({
   manufacturers,
   series,
   onClose,
-}: Readonly<{ 
-    gpu: GpuOption | undefined; 
-    manufacturers: { id: string, name: string }[]; 
-    series: GpuSeriesOption[]; 
-    onClose: () => void 
+}: Readonly<{
+  gpu: GpuOption | undefined;
+  manufacturers: { id: string; name: string }[];
+  series: GpuSeriesOption[];
+  onClose: () => void;
 }>) {
   const queryClient = useQueryClient();
   const form = useForm<GpuFormValues>({
@@ -200,7 +204,11 @@ function GpuFields({
       onClose();
     } catch (error) {
       const parsed = parseApiError(error);
-      applyApiFieldErrors(setError, parsed.fieldErrors, ["name", "manufacturerId", "gpuSeriesId"]);
+      applyApiFieldErrors(setError, parsed.fieldErrors, [
+        "name",
+        "manufacturerId",
+        "gpuSeriesId",
+      ]);
       applyApiFormError(setError, parsed);
     }
   }
@@ -210,7 +218,9 @@ function GpuFields({
       <DialogHeader>
         <DialogTitle>{gpu ? "Edit GPU" : "New GPU"}</DialogTitle>
         <DialogDescription>
-            {gpu ? "Update the name, manufacturer, and series." : "Add a GPU to master data."}
+          {gpu
+            ? "Update the name, manufacturer, and series."
+            : "Add a GPU to master data."}
         </DialogDescription>
       </DialogHeader>
       {errors.root?.message ? (

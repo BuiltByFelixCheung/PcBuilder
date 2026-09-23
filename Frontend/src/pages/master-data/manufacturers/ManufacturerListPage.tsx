@@ -57,8 +57,12 @@ export function ManufacturerListPage() {
   const items = query.data ?? EMPTY_ITEMS;
   const [searchParams, setSearchParams] = useSearchParams();
   const editingId = searchParams.get("edit");
-  const [draft, setDraft] = useState<ManufacturerFilter>(emptyManufacturerFilter);
-  const [applied, setApplied] = useState<ManufacturerFilter>(emptyManufacturerFilter);
+  const [draft, setDraft] = useState<ManufacturerFilter>(
+    emptyManufacturerFilter,
+  );
+  const [applied, setApplied] = useState<ManufacturerFilter>(
+    emptyManufacturerFilter,
+  );
   const filtering = isManufacturerFilterActive(applied);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const visibleItems = useMemo(() => {
@@ -100,7 +104,9 @@ export function ManufacturerListPage() {
                 id="manufacturer-name"
                 name="name"
                 value={draft.name ?? ""}
-                onChange={(event) => setDraft({ ...draft, name: event.target.value })}
+                onChange={(event) =>
+                  setDraft({ ...draft, name: event.target.value })
+                }
               />
             </Field>
           </FieldGroup>
@@ -126,16 +132,15 @@ export function ManufacturerListPage() {
           />
         </div>
         {editingId ? (
-            <ManufacturerFormDialog
-                key={editingId}
-                editingId={editingId}
-                manufacturers={items}
-                manufacturersSettled={query.isSuccess || query.isError}
-                onClose={closeEditor}
-            />
+          <ManufacturerFormDialog
+            key={editingId}
+            editingId={editingId}
+            manufacturers={items}
+            manufacturersSettled={query.isSuccess || query.isError}
+            onClose={closeEditor}
+          />
         ) : null}
       </div>
     </section>
   );
-
 }

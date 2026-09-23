@@ -11,7 +11,7 @@ export function StorageDetailPage() {
   const query = useStorageDrive(storageId);
   const drive = query.data;
   const { isAdmin } = useAuth();
-  
+
   if (query.isPending) {
     return <PageStatus>Loading storage…</PageStatus>;
   }
@@ -37,7 +37,9 @@ export function StorageDetailPage() {
         <Link to="/catalog/storage">Back to Storage</Link>
       </p>
       <h1>{drive.name}</h1>
-      {!isAdmin && <AddToBuildButton productType="storagedrive" partId={drive.id} />}
+      {!isAdmin && (
+        <AddToBuildButton productType="storagedrive" partId={drive.id} />
+      )}
       <dl className="catalog-details">
         <div>
           <dt>Manufacturer</dt>

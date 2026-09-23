@@ -7,7 +7,13 @@ import {
   type ReactNode,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, Navigate, useMatch, useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  Navigate,
+  useMatch,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { parseApiError } from "@/api/errors.ts";
 import { AuthContext } from "@/auth/auth-context.ts";
 import { usePcBuild } from "@/builds";
@@ -46,7 +52,12 @@ import { useStorageDrive } from "@/hooks/use-storage-drives";
 import { useWiredNetworkAdapter } from "@/hooks/use-wired-network-adapters";
 import { useWirelessNetworkAdapter } from "@/hooks/use-wireless-network-adapters";
 import { Button } from "@/components/ui/button";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -76,7 +87,8 @@ type CompatibilityQuery = {
   error: unknown;
 };
 
-type DisplayedBuild = PcBuildDraft & Pick<PcBuildDetail, "name" | "description">;
+type DisplayedBuild = PcBuildDraft &
+  Pick<PcBuildDetail, "name" | "description">;
 
 function formatCompatibilityLabel(value: string): string {
   return value.replace(/([a-z])([A-Z])/g, "$1 $2");
@@ -201,9 +213,7 @@ function SaveBuildDialog({
                 onChange={(event) => onDescriptionChange(event.target.value)}
               />
               <FieldError
-                errors={
-                  descriptionError ? [{ message: descriptionError }] : []
-                }
+                errors={descriptionError ? [{ message: descriptionError }] : []}
               />
             </Field>
             <div className="flex flex-wrap gap-2">
@@ -244,7 +254,10 @@ function draftHasParts(draft: PcBuildDraft): boolean {
   return selected || extras > 0;
 }
 
-function isViewRoute(buildId: string | undefined, isEditingSaved: boolean): boolean {
+function isViewRoute(
+  buildId: string | undefined,
+  isEditingSaved: boolean,
+): boolean {
   return Boolean(buildId) && !isEditingSaved;
 }
 
@@ -258,7 +271,10 @@ function viewedSavedBuild(
   return data;
 }
 
-function shouldCheckCompatibility(hasParts: boolean, draftReady: boolean): boolean {
+function shouldCheckCompatibility(
+  hasParts: boolean,
+  draftReady: boolean,
+): boolean {
   return hasParts && draftReady;
 }
 
@@ -515,12 +531,7 @@ export function BuilderPage() {
     build.applyDetail,
     skipHydrateRef,
   );
-  const draftReady = isDraftReady(
-    isViewing,
-    viewed,
-    buildId,
-    build.sourceId,
-  );
+  const draftReady = isDraftReady(isViewing, viewed, buildId, build.sourceId);
   const draft = compatibilityDraft(viewed, build);
   const compatibility = usePcBuildCompatibility(
     draft,
@@ -645,9 +656,7 @@ function BuilderWorkspace({
           onClear={onClear}
         />
       </div>
-      {hasParts ? (
-        <CompatibilityStatus query={compatibility} />
-      ) : null}
+      {hasParts ? <CompatibilityStatus query={compatibility} /> : null}
       <Table>
         <TableHeader>
           <TableRow>

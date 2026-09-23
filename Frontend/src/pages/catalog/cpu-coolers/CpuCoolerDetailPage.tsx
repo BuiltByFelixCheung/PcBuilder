@@ -22,7 +22,7 @@ export function CpuCoolerDetailPage() {
   const currentBuild = usePcBuild();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
-  
+
   if (query.isPending) {
     return <PageStatus>Loading CPU cooler…</PageStatus>;
   }
@@ -49,12 +49,15 @@ export function CpuCoolerDetailPage() {
       </p>
       <h1>{cooler.name}</h1>
       {!isAdmin && (
-      <Button
-        onClick={() => {
-          if (!currentBuild.cpuCoolerId || currentBuild.cpuCoolerId !== cooler.id)
-            currentBuild.addToBuild("cpucooler", cooler.id);
-          navigate(builderHref(currentBuild.sourceId));
-        }}
+        <Button
+          onClick={() => {
+            if (
+              !currentBuild.cpuCoolerId ||
+              currentBuild.cpuCoolerId !== cooler.id
+            )
+              currentBuild.addToBuild("cpucooler", cooler.id);
+            navigate(builderHref(currentBuild.sourceId));
+          }}
         >
           Add to Build
         </Button>

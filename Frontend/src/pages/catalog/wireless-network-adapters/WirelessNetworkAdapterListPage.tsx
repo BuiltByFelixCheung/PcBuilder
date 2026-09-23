@@ -40,7 +40,12 @@ import {
 } from "@/pages/catalog/catalog-filter-fields.tsx";
 import { usePcBuild } from "@/builds/usePcBuild";
 import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
-import { CatalogFilterActions, CatalogNameField, CatalogEnumField, CatalogIdSelectField } from "@/pages/catalog/catalog-filter-fields";
+import {
+  CatalogFilterActions,
+  CatalogNameField,
+  CatalogEnumField,
+  CatalogIdSelectField,
+} from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: WirelessNetworkAdapter[] = [];
 const columnHelper = createColumnHelper<
@@ -162,9 +167,7 @@ export function WirelessNetworkAdapterListPage() {
             <CatalogNameField
               id="wireless-name"
               value={draft.name}
-              onChange={(name) =>
-                setDraft((current) => ({ ...current, name }))
-              }
+              onChange={(name) => setDraft((current) => ({ ...current, name }))}
             />
             <CatalogIdSelectField
               id="wireless-manufacturer"
@@ -172,7 +175,10 @@ export function WirelessNetworkAdapterListPage() {
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
-                setDraft((current) => ({ ...current, manufacturerId: value || undefined }))
+                setDraft((current) => ({
+                  ...current,
+                  manufacturerId: value || undefined,
+                }))
               }
             />
             <CatalogEnumField
@@ -245,9 +251,7 @@ export function WirelessNetworkAdapterListPage() {
               label="M.2 key"
               value={draft.key}
               options={M2_KEYS}
-              onChange={(key) =>
-                setDraft((current) => ({ ...current, key }))
-              }
+              onChange={(key) => setDraft((current) => ({ ...current, key }))}
             />
             <CatalogEnumField
               id="wireless-m2-form"
@@ -305,7 +309,6 @@ export function WirelessNetworkAdapterListPage() {
       </div>
     </section>
   );
-
 }
 
 function nameCell(

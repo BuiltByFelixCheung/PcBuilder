@@ -20,7 +20,10 @@ import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useQuery } from "@tanstack/react-query";
 import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
 import { MasterDataResults } from "@/pages/catalog/catalog-results";
-import { CatalogFilterActions, CatalogNameField } from "@/pages/catalog/catalog-filter-fields";
+import {
+  CatalogFilterActions,
+  CatalogNameField,
+} from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: GpuSeriesOption[] = [];
 const columnHelper = createColumnHelper<
@@ -179,5 +182,4 @@ export function GpuSeriesListPage() {
       ) : null}
     </section>
   );
-
 }

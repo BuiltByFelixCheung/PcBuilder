@@ -54,16 +54,14 @@ describe("CpuListPage", () => {
     listManufacturersByProductType
       .mockReset()
       .mockResolvedValue([{ id: "amd", name: "AMD" }]);
-    listSockets
-      .mockReset()
-      .mockResolvedValue([
-        {
-          id: "am5",
-          name: "AM5",
-          manufacturerId: "amd",
-          manufacturerName: "AMD",
-        },
-      ]);
+    listSockets.mockReset().mockResolvedValue([
+      {
+        id: "am5",
+        name: "AM5",
+        manufacturerId: "amd",
+        manufacturerName: "AMD",
+      },
+    ]);
     listCpuSeries.mockReset().mockResolvedValue([
       {
         id: "r7",

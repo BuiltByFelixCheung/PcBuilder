@@ -56,9 +56,9 @@ describe("memory API", () => {
     get.mockResolvedValue({
       data: { items: [item], totalCount: 1, pageIndex: 0, pageSize: 10 },
     });
-    await expect(listMemories({ ...paging, filter: {} })).resolves.toMatchObject(
-      { items: [item] },
-    );
+    await expect(
+      listMemories({ ...paging, filter: {} }),
+    ).resolves.toMatchObject({ items: [item] });
     expect(get).toHaveBeenCalledWith("/catalog/ram", { params: paging });
   });
 
@@ -87,7 +87,9 @@ describe("memory API", () => {
 
   it("loads memory by id", async () => {
     get.mockResolvedValue({ data: item });
-    await expect(getMemoryById("ram-1")).resolves.toMatchObject({ id: "ram-1" });
+    await expect(getMemoryById("ram-1")).resolves.toMatchObject({
+      id: "ram-1",
+    });
     expect(get).toHaveBeenCalledWith("/catalog/ram/ram-1");
   });
 });

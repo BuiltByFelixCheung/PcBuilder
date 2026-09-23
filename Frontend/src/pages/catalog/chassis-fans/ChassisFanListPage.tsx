@@ -22,15 +22,17 @@ import {
   emptyChassisFanFilter,
 } from "@/api/catalog/params/chassis-fan-list-params";
 import { toInteger } from "@/api/helper";
-import {
-  FAN_DIAMETERS_MM,
-  formatFanDiameterMm,
-} from "@/api/enums";
+import { FAN_DIAMETERS_MM, formatFanDiameterMm } from "@/api/enums";
 import { CatalogCompatibleCheckbox } from "@/pages/catalog/catalog-filter-fields.tsx";
 import { usePcBuild } from "@/builds/usePcBuild";
 import { useAuth } from "@/auth/useAuth";
 import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
-import { CatalogFilterActions, CatalogNameField, CatalogEnumField, CatalogIdSelectField } from "@/pages/catalog/catalog-filter-fields";
+import {
+  CatalogFilterActions,
+  CatalogNameField,
+  CatalogEnumField,
+  CatalogIdSelectField,
+} from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: ChassisFan[] = [];
 const columnHelper = createColumnHelper<typeof dataTableFeatures, ChassisFan>();
@@ -138,9 +140,7 @@ export function ChassisFanListPage() {
             <CatalogNameField
               id="fan-name"
               value={draft.name}
-              onChange={(name) =>
-                setDraft((current) => ({ ...current, name }))
-              }
+              onChange={(name) => setDraft((current) => ({ ...current, name }))}
             />
             <CatalogIdSelectField
               id="fan-manufacturer"
@@ -148,7 +148,10 @@ export function ChassisFanListPage() {
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
-                setDraft((current) => ({ ...current, manufacturerId: value || undefined }))
+                setDraft((current) => ({
+                  ...current,
+                  manufacturerId: value || undefined,
+                }))
               }
             />
             <CatalogEnumField
@@ -204,7 +207,6 @@ export function ChassisFanListPage() {
       </div>
     </section>
   );
-
 }
 
 function nameCell(

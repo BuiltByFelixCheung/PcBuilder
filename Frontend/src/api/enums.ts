@@ -43,7 +43,10 @@ export type Ddr5KitSizeGb = (typeof DDR5_KIT_SIZE_GB)[number];
 export const DDR4_SPEED_MT_S = [2133, 2400, 2666, 3200, 3600] as const;
 export type Ddr4SpeedMtS = (typeof DDR4_SPEED_MT_S)[number];
 
-export const DDR5_SPEED_MT_S = [4000, 4400, 4800, 5200, 5600, 6000, 6400, 6800, 7200, 7600, 8000, 8200, 8400, 8600] as const;
+export const DDR5_SPEED_MT_S = [
+  4000, 4400, 4800, 5200, 5600, 6000, 6400, 6800, 7200, 7600, 8000, 8200, 8400,
+  8600,
+] as const;
 export type Ddr5SpeedMtS = (typeof DDR5_SPEED_MT_S)[number];
 
 export const MODULES_COUNT = [1, 2, 4] as const;
@@ -52,7 +55,13 @@ export type ModulesCount = (typeof MODULES_COUNT)[number];
 export const MB_FORM_FACTORS = ["Mitx", "Matx", "Atx", "Eatx"] as const;
 export type MbFormFactor = (typeof MB_FORM_FACTORS)[number];
 
-export const FAN_MOUNT_LOCATIONS = ["Front", "Top", "Bottom", "Rear", "Sides"] as const;
+export const FAN_MOUNT_LOCATIONS = [
+  "Front",
+  "Top",
+  "Bottom",
+  "Rear",
+  "Sides",
+] as const;
 export type FanMountLocation = (typeof FAN_MOUNT_LOCATIONS)[number];
 
 export const FAN_DIAMETERS_MM = [
@@ -92,10 +101,22 @@ function stripMmPrefix(value: string): string {
   return value.replace(/^Mm/, "");
 }
 
-export const RADIATOR_MOUNT_LOCATIONS = ["Front", "Top", "Bottom", "Rear", "Sides"] as const;
+export const RADIATOR_MOUNT_LOCATIONS = [
+  "Front",
+  "Top",
+  "Bottom",
+  "Rear",
+  "Sides",
+] as const;
 export type RadiatorMountLocation = (typeof RADIATOR_MOUNT_LOCATIONS)[number];
 
-export const PSU_FORM_FACTORS = ["FlexAtx", "Tfx", "Sfx", "SfxL", "Atx"] as const;
+export const PSU_FORM_FACTORS = [
+  "FlexAtx",
+  "Tfx",
+  "Sfx",
+  "SfxL",
+  "Atx",
+] as const;
 export type PsuFormFactor = (typeof PSU_FORM_FACTORS)[number];
 
 export const PCIE_SLOT_TYPES = ["X1", "X4", "X8", "X16"] as const;
@@ -120,7 +141,12 @@ export function formatM2FormFactor(formFactor: M2FormFactor): string {
   return formFactor.replace(/^M2/, "");
 }
 
-export const USB_VERSIONS = ["Usb20", "Usb32Gen1", "Usb32Gen2", "Usb4"] as const;
+export const USB_VERSIONS = [
+  "Usb20",
+  "Usb32Gen1",
+  "Usb32Gen2",
+  "Usb4",
+] as const;
 export type UsbVersion = (typeof USB_VERSIONS)[number];
 
 export const USB_TYPES = ["TypeA", "TypeC"] as const;

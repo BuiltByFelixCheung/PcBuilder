@@ -28,16 +28,17 @@ describe("chassis list search params", () => {
         maxSupportedMbFormFactor: "Atx",
       },
     };
-    expect(chassisListParamsFromSearch(chassisListSearchFromParams(params)))
-      .toMatchObject({
-        pageIndex: 1,
-        filter: {
-          name: "O11",
-          manufacturerId: "lian-li",
-          lengthMm: { min: 400, max: 500 },
-          maxSupportedMbFormFactor: "Atx",
-        },
-      });
+    expect(
+      chassisListParamsFromSearch(chassisListSearchFromParams(params)),
+    ).toMatchObject({
+      pageIndex: 1,
+      filter: {
+        name: "O11",
+        manufacturerId: "lian-li",
+        lengthMm: { min: 400, max: 500 },
+        maxSupportedMbFormFactor: "Atx",
+      },
+    });
   });
 
   it("omits empty filter from the query string", () => {

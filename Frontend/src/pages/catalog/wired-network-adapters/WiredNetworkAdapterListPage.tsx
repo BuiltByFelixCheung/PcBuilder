@@ -30,7 +30,13 @@ import {
 import { CatalogCompatibleCheckbox } from "@/pages/catalog/catalog-filter-fields.tsx";
 import { usePcBuild } from "@/builds/usePcBuild";
 import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
-import { CatalogFilterActions, CatalogNameField, CatalogEnumField, CatalogIdSelectField, CatalogRangeField } from "@/pages/catalog/catalog-filter-fields";
+import {
+  CatalogFilterActions,
+  CatalogNameField,
+  CatalogEnumField,
+  CatalogIdSelectField,
+  CatalogRangeField,
+} from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: WiredNetworkAdapter[] = [];
 const columnHelper = createColumnHelper<
@@ -148,9 +154,7 @@ export function WiredNetworkAdapterListPage() {
             <CatalogNameField
               id="wired-name"
               value={draft.name}
-              onChange={(name) =>
-                setDraft((current) => ({ ...current, name }))
-              }
+              onChange={(name) => setDraft((current) => ({ ...current, name }))}
             />
             <CatalogIdSelectField
               id="wired-manufacturer"
@@ -158,7 +162,10 @@ export function WiredNetworkAdapterListPage() {
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
-                setDraft((current) => ({ ...current, manufacturerId: value || undefined }))
+                setDraft((current) => ({
+                  ...current,
+                  manufacturerId: value || undefined,
+                }))
               }
             />
             <CatalogEnumField
@@ -234,7 +241,6 @@ export function WiredNetworkAdapterListPage() {
       </div>
     </section>
   );
-
 }
 
 function nameCell(

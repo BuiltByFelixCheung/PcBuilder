@@ -2,11 +2,7 @@ import type {
   WiredNetworkAdapterFilter,
   WiredNetworkAdapterListParams,
 } from "../wired-network-adapters";
-import {
-  emptyToUndefined,
-  parseRange,
-  setSearchValue,
-} from "../../helper";
+import { emptyToUndefined, parseRange, setSearchValue } from "../../helper";
 import type {
   PcieSlotType,
   UsbType,
@@ -32,19 +28,16 @@ export function wiredNetworkAdapterListParamsFromSearch(
       name: search.get("name") ?? "",
       manufacturerId: emptyToUndefined(search.get("manufacturerId")),
       hostInterface: emptyToUndefined(search.get("hostInterface")) as
-        | WiredHostInterface
-        | undefined,
+        WiredHostInterface | undefined,
       maxSpeedMbps: parseRange(
         search.get("maxSpeedMbpsMin"),
         search.get("maxSpeedMbpsMax"),
       ),
       usbVersion: emptyToUndefined(search.get("usbVersion")) as
-        | UsbVersion
-        | undefined,
+        UsbVersion | undefined,
       usbType: emptyToUndefined(search.get("usbType")) as UsbType | undefined,
       pcieSlotType: emptyToUndefined(search.get("pcieSlotType")) as
-        | PcieSlotType
-        | undefined,
+        PcieSlotType | undefined,
       motherboardId: emptyToUndefined(search.get("motherboardId")),
     },
   };

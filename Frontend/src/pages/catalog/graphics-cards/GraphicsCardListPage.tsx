@@ -35,7 +35,11 @@ import {
 } from "@/pages/catalog/catalog-filter-fields.tsx";
 import { usePcBuild } from "@/builds/usePcBuild";
 import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
-import { CatalogFilterActions, CatalogNameField, CatalogIdSelectField } from "@/pages/catalog/catalog-filter-fields";
+import {
+  CatalogFilterActions,
+  CatalogNameField,
+  CatalogIdSelectField,
+} from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: GraphicsCardListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -100,7 +104,9 @@ export function GraphicsCardListPage() {
           header: "Power Consumption",
           cell: (info) => `${info.getValue()} W`,
         }),
-        columnHelper.accessor("powerConnectorType", { header: "Power Connector Type" }),
+        columnHelper.accessor("powerConnectorType", {
+          header: "Power Connector Type",
+        }),
         columnHelper.accessor("powerConnectorCount", {
           header: "Power Connector Count",
         }),
@@ -191,9 +197,7 @@ export function GraphicsCardListPage() {
             <CatalogNameField
               id="graphics-card-name"
               value={draft.name}
-              onChange={(name) =>
-                setDraft((current) => ({ ...current, name }))
-              }
+              onChange={(name) => setDraft((current) => ({ ...current, name }))}
             />
             <CatalogIdSelectField
               id="graphics-card-manufacturer"
@@ -201,7 +205,10 @@ export function GraphicsCardListPage() {
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
-                setDraft((current) => ({ ...current, manufacturerId: value || undefined }))
+                setDraft((current) => ({
+                  ...current,
+                  manufacturerId: value || undefined,
+                }))
               }
             />
             <Field>
@@ -253,7 +260,10 @@ export function GraphicsCardListPage() {
               value={draft.gpuId}
               options={gpuOptions}
               onChange={(value) =>
-                setDraft((current) => ({ ...current, gpuId: value || undefined }))
+                setDraft((current) => ({
+                  ...current,
+                  gpuId: value || undefined,
+                }))
               }
             />
             <Field>
@@ -314,8 +324,7 @@ export function GraphicsCardListPage() {
                   setDraft((current) => ({
                     ...current,
                     pcieGeneration: (event.target.value || undefined) as
-                      | PcieGeneration
-                      | undefined,
+                      PcieGeneration | undefined,
                   }))
                 }
               >
@@ -400,7 +409,6 @@ export function GraphicsCardListPage() {
       </div>
     </section>
   );
-
 }
 
 function nameCell(

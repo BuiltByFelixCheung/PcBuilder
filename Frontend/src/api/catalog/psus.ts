@@ -60,17 +60,17 @@ export const psuKeys = {
 export function isPsuFilterActive(filter: PsuFilter): boolean {
   return Boolean(
     filter.name?.trim() ||
-      filter.manufacturerId ||
-      hasCompleteRange(filter.wattage) ||
-      filter.modularity ||
-      filter.formFactor ||
-      hasCompleteRange(filter.lengthMm) ||
-      hasCompleteRange(filter.widthMm) ||
-      hasCompleteRange(filter.heightMm) ||
-      filter.chassisId ||
-      filter.motherboardId ||
-      filter.graphicsCardId ||
-      filter.cpuId,
+    filter.manufacturerId ||
+    hasCompleteRange(filter.wattage) ||
+    filter.modularity ||
+    filter.formFactor ||
+    hasCompleteRange(filter.lengthMm) ||
+    hasCompleteRange(filter.widthMm) ||
+    hasCompleteRange(filter.heightMm) ||
+    filter.chassisId ||
+    filter.motherboardId ||
+    filter.graphicsCardId ||
+    filter.cpuId,
   );
 }
 
@@ -97,7 +97,9 @@ export function listPsus(params: PsuListParams) {
 }
 
 export function getPsuById(id: string) {
-  return api.get<PsuDetail>(`/catalog/psu/${id}`).then((response) => response.data);
+  return api
+    .get<PsuDetail>(`/catalog/psu/${id}`)
+    .then((response) => response.data);
 }
 
 function toPsuFilterBody(filter: PsuFilter): PsuFilter {

@@ -156,19 +156,25 @@ describe("remaining catalog APIs", () => {
     await listStorageDrives({ ...paging, filter: { name: "990" } });
     expect(post).toHaveBeenCalledWith(
       "/catalog/storage-drive/query",
-      expect.objectContaining({ filter: expect.objectContaining({ name: "990" }) }),
+      expect.objectContaining({
+        filter: expect.objectContaining({ name: "990" }),
+      }),
     );
 
     await listCpuCoolers({ ...paging, filter: { name: "NH" } });
     expect(post).toHaveBeenCalledWith(
       "/catalog/cpu-cooler/query",
-      expect.objectContaining({ filter: expect.objectContaining({ name: "NH" }) }),
+      expect.objectContaining({
+        filter: expect.objectContaining({ name: "NH" }),
+      }),
     );
 
     await listChassisFans({ ...paging, filter: { name: "AF" } });
     expect(post).toHaveBeenCalledWith(
       "/catalog/chassis-fan/query",
-      expect.objectContaining({ filter: expect.objectContaining({ name: "AF" }) }),
+      expect.objectContaining({
+        filter: expect.objectContaining({ name: "AF" }),
+      }),
     );
 
     await listWiredNetworkAdapters({ ...paging, filter: { name: "I225" } });
@@ -182,7 +188,9 @@ describe("remaining catalog APIs", () => {
     await listWirelessNetworkAdapters({ ...paging, filter: { name: "AX" } });
     expect(post).toHaveBeenCalledWith(
       "/catalog/wireless-network-adapter/query",
-      expect.objectContaining({ filter: expect.objectContaining({ name: "AX" }) }),
+      expect.objectContaining({
+        filter: expect.objectContaining({ name: "AX" }),
+      }),
     );
   });
 
@@ -226,9 +234,13 @@ describe("remaining catalog APIs", () => {
     expect(get).toHaveBeenCalledWith("/catalog/wired-network-adapter/nic-1");
 
     get.mockResolvedValue({ data: wireless });
-    await expect(getWirelessNetworkAdapterById("wifi-1")).resolves.toMatchObject({
+    await expect(
+      getWirelessNetworkAdapterById("wifi-1"),
+    ).resolves.toMatchObject({
       id: "wifi-1",
     });
-    expect(get).toHaveBeenCalledWith("/catalog/wireless-network-adapter/wifi-1");
+    expect(get).toHaveBeenCalledWith(
+      "/catalog/wireless-network-adapter/wifi-1",
+    );
   });
 });

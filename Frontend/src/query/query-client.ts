@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query'
+import { QueryClient } from "@tanstack/react-query";
 
 export function createQueryClient(options?: { retry?: boolean | number }) {
   return new QueryClient({
@@ -8,5 +8,5 @@ export function createQueryClient(options?: { retry?: boolean | number }) {
         retry: options?.retry ?? 1,
       },
     },
-  })
+  });
 }

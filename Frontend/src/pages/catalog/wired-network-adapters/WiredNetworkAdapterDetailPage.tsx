@@ -10,7 +10,7 @@ export function WiredNetworkAdapterDetailPage() {
   const query = useWiredNetworkAdapter(wiredNetworkAdapterId);
   const adapter = query.data;
   const { isAdmin } = useAuth();
-  
+
   if (query.isPending) {
     return <PageStatus>Loading wired network adapter…</PageStatus>;
   }
@@ -40,7 +40,12 @@ export function WiredNetworkAdapterDetailPage() {
         </Link>
       </p>
       <h1>{adapter.name}</h1>
-      {!isAdmin && <AddToBuildButton productType="wirednetworkadapter" partId={adapter.id} />}
+      {!isAdmin && (
+        <AddToBuildButton
+          productType="wirednetworkadapter"
+          partId={adapter.id}
+        />
+      )}
       <dl className="catalog-details">
         <div>
           <dt>Manufacturer</dt>

@@ -1,9 +1,5 @@
-import '../App.css'
+import "../App.css";
 
 export function HomePage() {
-  return (
-    <>
-
-    </>
-  )
+  return <></>;
 }

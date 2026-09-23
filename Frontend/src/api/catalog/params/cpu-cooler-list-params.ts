@@ -1,9 +1,5 @@
 import type { CpuCoolerFilter, CpuCoolerListParams } from "../cpu-coolers";
-import {
-  emptyToUndefined,
-  parseRange,
-  setSearchValue,
-} from "../../helper";
+import { emptyToUndefined, parseRange, setSearchValue } from "../../helper";
 import type { CpuCoolerType, RadiatorLength } from "../../enums";
 import {
   catalogPagingFromSearch,
@@ -34,8 +30,7 @@ export function cpuCoolerListParamsFromSearch(
         search.get("maxRamHeightMmMax"),
       ),
       radiatorLength: emptyToUndefined(search.get("radiatorLength")) as
-        | RadiatorLength
-        | undefined,
+        RadiatorLength | undefined,
       socketId: emptyToUndefined(search.get("socketId")),
       cpuId: emptyToUndefined(search.get("cpuId")),
       chassisId: emptyToUndefined(search.get("chassisId")),

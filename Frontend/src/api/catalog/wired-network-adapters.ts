@@ -53,17 +53,19 @@ export function isWiredNetworkAdapterFilterActive(
 ): boolean {
   return Boolean(
     filter.name?.trim() ||
-      filter.manufacturerId ||
-      filter.hostInterface ||
-      hasCompleteRange(filter.maxSpeedMbps) ||
-      filter.usbVersion ||
-      filter.usbType ||
-      filter.pcieSlotType ||
-      filter.motherboardId,
+    filter.manufacturerId ||
+    filter.hostInterface ||
+    hasCompleteRange(filter.maxSpeedMbps) ||
+    filter.usbVersion ||
+    filter.usbType ||
+    filter.pcieSlotType ||
+    filter.motherboardId,
   );
 }
 
-export function listWiredNetworkAdapters(params: WiredNetworkAdapterListParams) {
+export function listWiredNetworkAdapters(
+  params: WiredNetworkAdapterListParams,
+) {
   const paging = {
     pageIndex: params.pageIndex,
     pageSize: params.pageSize,
@@ -80,21 +82,24 @@ export function listWiredNetworkAdapters(params: WiredNetworkAdapterListParams) 
   }
 
   return api
-    .post<PagedResult<WiredNetworkAdapter>>("/catalog/wired-network-adapter/query", {
-      ...paging,
-      filter: {
-        name: params.filter.name?.trim() || undefined,
-        manufacturerId: params.filter.manufacturerId,
-        hostInterface: params.filter.hostInterface,
-        maxSpeedMbps: hasCompleteRange(params.filter.maxSpeedMbps)
-          ? params.filter.maxSpeedMbps
-          : undefined,
-        usbVersion: params.filter.usbVersion,
-        usbType: params.filter.usbType,
-        pcieSlotType: params.filter.pcieSlotType,
-        motherboardId: params.filter.motherboardId,
+    .post<PagedResult<WiredNetworkAdapter>>(
+      "/catalog/wired-network-adapter/query",
+      {
+        ...paging,
+        filter: {
+          name: params.filter.name?.trim() || undefined,
+          manufacturerId: params.filter.manufacturerId,
+          hostInterface: params.filter.hostInterface,
+          maxSpeedMbps: hasCompleteRange(params.filter.maxSpeedMbps)
+            ? params.filter.maxSpeedMbps
+            : undefined,
+          usbVersion: params.filter.usbVersion,
+          usbType: params.filter.usbType,
+          pcieSlotType: params.filter.pcieSlotType,
+          motherboardId: params.filter.motherboardId,
+        },
       },
-    })
+    )
     .then((response) => response.data);
 }
 

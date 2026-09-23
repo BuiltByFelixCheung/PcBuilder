@@ -25,7 +25,9 @@ describe("graphics card list search params", () => {
       },
     };
     expect(
-      graphicsCardListParamsFromSearch(graphicsCardListSearchFromParams(params)),
+      graphicsCardListParamsFromSearch(
+        graphicsCardListSearchFromParams(params),
+      ),
     ).toMatchObject({
       pageIndex: 1,
       filter: {

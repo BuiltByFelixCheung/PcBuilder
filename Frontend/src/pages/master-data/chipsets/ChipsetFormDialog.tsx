@@ -23,13 +23,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import {
   applyApiFieldErrors,
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
 import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
-import { clearSocketFromAnotherManufacturer, newMasterDataEditValue } from "@/pages/master-data/master-data-edit";
+import {
+  clearSocketFromAnotherManufacturer,
+  newMasterDataEditValue,
+} from "@/pages/master-data/master-data-edit";
 
 const chipsetFormSchema = z.object({
   name: z
@@ -201,7 +209,9 @@ function ChipsetFields({
       } else {
         await createChipset(values);
       }
-      await queryClient.invalidateQueries({ queryKey: masterDataKeys.chipsets });
+      await queryClient.invalidateQueries({
+        queryKey: masterDataKeys.chipsets,
+      });
       onClose();
     } catch (error) {
       const parsed = parseApiError(error);
@@ -299,5 +309,3 @@ function ChipsetFields({
     </form>
   );
 }
-
-

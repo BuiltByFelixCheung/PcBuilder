@@ -1,15 +1,21 @@
-import { vi } from 'vitest'
-import { AuthRoles, type AuthContextValue, type CurrentUser } from '@/auth/types.ts'
+import { vi } from "vitest";
+import {
+  AuthRoles,
+  type AuthContextValue,
+  type CurrentUser,
+} from "@/auth/types.ts";
 
 export const testUser: CurrentUser = {
-  id: 'user-1',
-  email: 'a@b.c',
-  firstName: 'Ann',
-  lastName: 'Builder',
+  id: "user-1",
+  email: "a@b.c",
+  firstName: "Ann",
+  lastName: "Builder",
   roles: [AuthRoles.Member],
-}
+};
 
-export function authValue(overrides: Partial<AuthContextValue> = {}): AuthContextValue {
+export function authValue(
+  overrides: Partial<AuthContextValue> = {},
+): AuthContextValue {
   return {
     user: null,
     accessToken: null,
@@ -25,5 +31,5 @@ export function authValue(overrides: Partial<AuthContextValue> = {}): AuthContex
     resetPassword: vi.fn().mockResolvedValue(undefined),
     changePassword: vi.fn().mockResolvedValue(undefined),
     ...overrides,
-  }
+  };
 }

@@ -34,10 +34,17 @@ import {
 } from "@/pages/catalog/catalog-filter-fields.tsx";
 import { usePcBuild } from "@/builds/usePcBuild";
 import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
-import { CatalogFilterActions, CatalogNameField, CatalogIdSelectField } from "@/pages/catalog/catalog-filter-fields";
+import {
+  CatalogFilterActions,
+  CatalogNameField,
+  CatalogIdSelectField,
+} from "@/pages/catalog/catalog-filter-fields";
 
 const EMPTY_ITEMS: PsuListItem[] = [];
-const columnHelper = createColumnHelper<typeof dataTableFeatures, PsuListItem>();
+const columnHelper = createColumnHelper<
+  typeof dataTableFeatures,
+  PsuListItem
+>();
 
 export function PsuListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -80,9 +87,9 @@ export function PsuListPage() {
   const [showOnlyCompatible, setShowOnlyCompatible] = useState(() =>
     Boolean(
       params.filter.chassisId ||
-        params.filter.motherboardId ||
-        params.filter.graphicsCardId ||
-        params.filter.cpuId,
+      params.filter.motherboardId ||
+      params.filter.graphicsCardId ||
+      params.filter.cpuId,
     ),
   );
 
@@ -128,7 +135,9 @@ export function PsuListPage() {
   }
 
   function goToPage(nextIndex: number) {
-    setSearchParams(psuListSearchFromParams({ ...params, pageIndex: nextIndex }));
+    setSearchParams(
+      psuListSearchFromParams({ ...params, pageIndex: nextIndex }),
+    );
   }
 
   return (
@@ -147,9 +156,7 @@ export function PsuListPage() {
             <CatalogNameField
               id="psu-name"
               value={draft.name}
-              onChange={(name) =>
-                setDraft((current) => ({ ...current, name }))
-              }
+              onChange={(name) => setDraft((current) => ({ ...current, name }))}
             />
             <CatalogIdSelectField
               id="psu-manufacturer"
@@ -157,7 +164,10 @@ export function PsuListPage() {
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
-                setDraft((current) => ({ ...current, manufacturerId: value || undefined }))
+                setDraft((current) => ({
+                  ...current,
+                  manufacturerId: value || undefined,
+                }))
               }
             />
             <Field>
@@ -169,8 +179,8 @@ export function PsuListPage() {
                 onChange={(event) =>
                   setDraft((current) => ({
                     ...current,
-                    modularity: (event.target.value ||
-                      undefined) as PsuModularity | undefined,
+                    modularity: (event.target.value || undefined) as
+                      PsuModularity | undefined,
                   }))
                 }
               >
@@ -191,8 +201,8 @@ export function PsuListPage() {
                 onChange={(event) =>
                   setDraft((current) => ({
                     ...current,
-                    formFactor: (event.target.value ||
-                      undefined) as PsuFormFactor | undefined,
+                    formFactor: (event.target.value || undefined) as
+                      PsuFormFactor | undefined,
                   }))
                 }
               >
@@ -268,15 +278,12 @@ export function PsuListPage() {
       </div>
     </section>
   );
-
 }
 
 function nameCell(
   info: CellContext<typeof dataTableFeatures, PsuListItem, string>,
 ) {
   return (
-    <Link to={`/catalog/psus/${info.row.original.id}`}>
-      {info.getValue()}
-    </Link>
+    <Link to={`/catalog/psus/${info.row.original.id}`}>{info.getValue()}</Link>
   );
 }

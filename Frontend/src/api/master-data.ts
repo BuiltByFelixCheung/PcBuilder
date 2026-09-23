@@ -188,9 +188,15 @@ export function createManufacturer(body: ManufacturerWrite) {
     .then((response) => response.data);
 }
 
-export function updateManufacturer(manufacturerId: string, body: ManufacturerWrite) {
+export function updateManufacturer(
+  manufacturerId: string,
+  body: ManufacturerWrite,
+) {
   return api
-    .put<NamedMasterData>("/master-data/manufacturer", { manufacturerId, ...body })
+    .put<NamedMasterData>("/master-data/manufacturer", {
+      manufacturerId,
+      ...body,
+    })
     .then((response) => response.data);
 }
 

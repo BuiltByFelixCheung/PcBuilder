@@ -80,8 +80,7 @@ function filterFromSearch(search: URLSearchParams): GraphicsCardFilter {
     videoMemoryGb: toInteger(search.get("videoMemoryGb")),
     pcieSlotsUsed: toInteger(search.get("pcieSlotsUsed")),
     pcieGeneration: emptyToUndefined(search.get("pcieGeneration")) as
-      | PcieGeneration
-      | undefined,
+      PcieGeneration | undefined,
     isLowProfile: parseOptionalBoolean(search.get("isLowProfile")),
     lengthMm: parseRange(search.get("lengthMmMin"), search.get("lengthMmMax")),
     widthMm: parseRange(search.get("widthMmMin"), search.get("widthMmMax")),
