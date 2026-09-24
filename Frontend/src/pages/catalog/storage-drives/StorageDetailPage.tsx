@@ -4,7 +4,7 @@ import { PageStatus } from "@/components/PageStatus.tsx";
 import { useStorageDrive } from "@/hooks/use-storage-drives.ts";
 import { formatM2FormFactor, formatStorageFormFactor } from "@/api/enums";
 import { AddToBuildButton } from "@/builds";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 
 export function StorageDetailPage() {
   const { storageId } = useParams();

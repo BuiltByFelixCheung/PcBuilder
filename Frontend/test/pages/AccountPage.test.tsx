@@ -12,7 +12,7 @@ const auth = authValue({
   isMember: false,
 });
 
-vi.mock("@/auth/useAuth.ts", () => ({
+vi.mock("@/auth/use-auth.ts", () => ({
   useAuth: () => auth,
 }));
 

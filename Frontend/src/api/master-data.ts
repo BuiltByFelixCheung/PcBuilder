@@ -1,4 +1,6 @@
 import { api } from "./client";
+import { excelFormData } from "./excel-file";
+import type { BulkDeleteWrite } from "./types";
 
 export type NamedMasterData = {
   id: string;
@@ -215,4 +217,85 @@ export function updateSocket(socketId: string, body: SocketWrite) {
   return api
     .put<SocketOption>("/master-data/socket", { socketId, ...body })
     .then((response) => response.data);
+}
+
+export function deleteSocket(socketId: string) {
+  return api.delete(`/master-data/socket/${socketId}`);
+}
+
+export function deleteManufacturer(manufacturerId: string) {
+  return api.delete(`/master-data/manufacturer/${manufacturerId}`);
+}
+
+export function deleteCpuSeries(cpuSeriesId: string) {
+  return api.delete(`/master-data/cpu-series/${cpuSeriesId}`);
+}
+
+export function deleteGpuSeries(gpuSeriesId: string) {
+  return api.delete(`/master-data/gpu-series/${gpuSeriesId}`);
+}
+
+export function deleteGpu(gpuId: string) {
+  return api.delete(`/master-data/gpu/${gpuId}`);
+}
+
+export function deleteChipset(chipsetId: string) {
+  return api.delete(`/master-data/chipset/${chipsetId}`);
+}
+
+export function deleteSockets(body: BulkDeleteWrite) {
+  return api.delete(`/master-data/socket/bulk`, { data: body });
+}
+
+export function updateSockets(sockets: SocketOption[]) {
+  return api
+    .put<SocketOption[]>("/master-data/socket/bulk", { sockets })
+    .then((response) => response.data);
+}
+
+export function deleteManufacturers(body: BulkDeleteWrite) {
+  return api.delete(`/master-data/manufacturer/bulk`, { data: body });
+}
+
+export function deleteMultipleCpuSeries(body: BulkDeleteWrite) {
+  return api.delete(`/master-data/cpu-series/bulk`, { data: body });
+}
+
+export function deleteMultipleGpuSeries(body: BulkDeleteWrite) {
+  return api.delete(`/master-data/gpu-series/bulk`, { data: body });
+}
+
+export function deleteGpus(body: BulkDeleteWrite) {
+  return api.delete(`/master-data/gpu/bulk`, { data: body });
+}
+
+export function deleteChipsets(body: BulkDeleteWrite) {
+  return api.delete(`/master-data/chipset/bulk`, { data: body });
+}
+function importMasterData(path: string, file: File) {
+  return api.post(path, excelFormData(file));
+}
+
+export function importManufacturers(file: File) {
+  return importMasterData("/master-data/manufacturer/import", file);
+}
+
+export function importSockets(file: File) {
+  return importMasterData("/master-data/socket/import", file);
+}
+
+export function importCpuSeries(file: File) {
+  return importMasterData("/master-data/cpu-series/import", file);
+}
+
+export function importGpuSeries(file: File) {
+  return importMasterData("/master-data/gpu-series/import", file);
+}
+
+export function importGpus(file: File) {
+  return importMasterData("/master-data/gpu/import", file);
+}
+
+export function importChipsets(file: File) {
+  return importMasterData("/master-data/chipset/import", file);
 }

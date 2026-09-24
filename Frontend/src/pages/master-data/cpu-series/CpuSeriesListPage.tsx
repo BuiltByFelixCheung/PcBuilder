@@ -1,15 +1,19 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
+  deleteMultipleCpuSeries,
   listCpuSeries,
   masterDataKeys,
   type CpuSeriesOption,
+  importCpuSeries,
 } from "@/api/master-data";
-import { CpuSeriesFormDialog } from "@/pages/master-data/cpu-series/CpuSeriesFormDialog";
+import { CpuSeriesFormDialog } from "@/components/master-data/CpuSeriesFormDialog";
 import {
+  closeMasterDataEditor,
   cpuSeriesEditPath,
   newMasterDataEditValue,
-} from "@/pages/master-data/master-data-edit";
+} from "@/lib/master-data-edit";
+import { uniqueById } from "@/lib/unique-by-id";
 import { FieldGroup } from "@/components/ui/field";
 import {
   createColumnHelper,
@@ -18,12 +22,14 @@ import {
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useQuery } from "@tanstack/react-query";
-import { MasterDataResults } from "@/pages/catalog/catalog-results";
+import { MasterDataResults } from "@/components/master-data/MasterDataResults";
 import {
-  CatalogFilterActions,
-  CatalogNameField,
-  CatalogIdSelectField,
-} from "@/pages/catalog/catalog-filter-fields";
+  FilterActions,
+  NameField,
+  IdSelectField,
+} from "@/components/filters/ListFilters";
+import { useBulkDelete } from "@/hooks/use-bulk-delete";
+import { useExcelImport } from "@/hooks/use-excel-import";
 
 const EMPTY_ITEMS: CpuSeriesOption[] = [];
 const columnHelper = createColumnHelper<
@@ -54,15 +60,6 @@ const emptyCpuSeriesFilter: CpuSeriesFilter = {};
 
 function isCpuSeriesFilterActive(filter: CpuSeriesFilter) {
   return Boolean(filter.name || filter.manufacturerId || filter.socketId);
-}
-
-function uniqueById<T extends { id: string }>(items: T[]) {
-  const seen = new Set<string>();
-  return items.filter((item) => {
-    if (seen.has(item.id)) return false;
-    seen.add(item.id);
-    return true;
-  });
 }
 
 export function CpuSeriesListPage() {
@@ -114,6 +111,19 @@ export function CpuSeriesListPage() {
       return true;
     });
   }, [applied, items]);
+  const bulkDelete = useBulkDelete({
+    items: visibleItems,
+    rowSelection,
+    setRowSelection,
+    queryKey: masterDataKeys.cpuSeries,
+    singular: "CPU series",
+    plural: "CPU series",
+    deleteByIds: (ids) => deleteMultipleCpuSeries({ ids }),
+  });
+  const excelImport = useExcelImport({
+    queryKey: masterDataKeys.cpuSeries,
+    importFile: importCpuSeries,
+  });
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -125,12 +135,6 @@ export function CpuSeriesListPage() {
     setApplied(emptyCpuSeriesFilter);
   }
 
-  function closeEditor() {
-    const next = new URLSearchParams(searchParams);
-    next.delete("edit");
-    setSearchParams(next);
-  }
-
   return (
     <section className="catalog-page">
       <h1>CPU Series</h1>
@@ -140,12 +144,12 @@ export function CpuSeriesListPage() {
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <FieldGroup className="catalog-filter-grid">
-            <CatalogNameField
+            <NameField
               id="cpu-series-name"
               value={draft.name}
               onChange={(name) => setDraft((current) => ({ ...current, name }))}
             />
-            <CatalogIdSelectField
+            <IdSelectField
               id="cpu-series-manufacturer"
               label="Manufacturer"
               value={draft.manufacturerId}
@@ -154,7 +158,7 @@ export function CpuSeriesListPage() {
                 setDraft((current) => ({ ...current, manufacturerId: value }))
               }
             />
-            <CatalogIdSelectField
+            <IdSelectField
               id="cpu-series-socket"
               label="Socket"
               value={draft.socketId}
@@ -164,7 +168,7 @@ export function CpuSeriesListPage() {
               }
             />
           </FieldGroup>
-          <CatalogFilterActions onClear={clearFilters} />
+          <FilterActions onClear={clearFilters} />
         </form>
         <div className="catalog-results">
           <MasterDataResults
@@ -179,6 +183,10 @@ export function CpuSeriesListPage() {
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
+            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
+            deleting={bulkDelete.isDeleting}
+            deleteError={bulkDelete.deleteError}
+            onImport={excelImport.openImport}
             newItemTo={cpuSeriesEditPath(newMasterDataEditValue)}
             newItemLabel="New CPU Series"
           />
@@ -190,9 +198,10 @@ export function CpuSeriesListPage() {
           editingId={editingId}
           cpuSeries={items}
           cpuSeriesSettled={query.isSuccess || query.isError}
-          onClose={closeEditor}
+          onClose={() => closeMasterDataEditor(searchParams, setSearchParams)}
         />
       ) : null}
+      {excelImport.importDialog}
     </section>
   );
 }

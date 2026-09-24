@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../auth/useAuth.ts";
+import { useAuth } from "../../auth/use-auth.ts";
 
 export function AccountPage() {
   const { user, isAdmin, isMember, logout } = useAuth();

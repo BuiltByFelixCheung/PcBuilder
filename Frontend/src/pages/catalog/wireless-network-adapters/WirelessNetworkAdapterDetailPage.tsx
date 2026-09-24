@@ -8,7 +8,7 @@ import {
   formatM2FormFactor,
   formatWifiStandard,
 } from "@/api/enums";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 export function WirelessNetworkAdapterDetailPage() {
   const { wirelessNetworkAdapterId } = useParams();
   const query = useWirelessNetworkAdapter(wirelessNetworkAdapterId);

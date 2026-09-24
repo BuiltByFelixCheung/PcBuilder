@@ -1,6 +1,8 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { deletePsus } from "@/api/catalog/bulk-delete";
 import {
+  psuKeys,
   isPsuFilterActive,
   type PsuFilter,
   type PsuListItem,
@@ -8,12 +10,11 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   createColumnHelper,
-  type CellContext,
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import { usePsus } from "@/hooks/use-psus.ts";
 import {
@@ -27,18 +28,22 @@ import {
   type PsuFormFactor,
   type PsuModularity,
 } from "@/api/enums";
-import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
+import { formSelectClassName } from "@/components/filters/ListFilters";
 import {
   CatalogCompatibleCheckbox,
   CatalogRangeField,
-} from "@/pages/catalog/catalog-filter-fields.tsx";
-import { usePcBuild } from "@/builds/usePcBuild";
-import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
+} from "@/components/catalog/CatalogFilterFields.tsx";
+import { usePcBuild } from "@/builds/use-pc-build";
+import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { useBulkDelete } from "@/hooks/use-bulk-delete";
+import { importPsus } from "@/api/catalog/import-excel";
+import { useExcelImport } from "@/hooks/use-excel-import";
+import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
   CatalogIdSelectField,
-} from "@/pages/catalog/catalog-filter-fields";
+} from "@/components/catalog/CatalogFilterFields";
 
 const EMPTY_ITEMS: PsuListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -65,7 +70,11 @@ export function PsuListPage() {
         ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
         columnHelper.accessor("name", {
           header: "Name",
-          cell: nameCell,
+          cell: (info) =>
+            catalogNameCell(
+              `/catalog/psus/${info.row.original.id}`,
+              info.getValue(),
+            ),
         }),
         columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
         columnHelper.accessor("wattage", {
@@ -78,6 +87,19 @@ export function PsuListPage() {
     [isAdmin],
   );
   const items = query.data?.items ?? EMPTY_ITEMS;
+  const bulkDelete = useBulkDelete({
+    items,
+    rowSelection,
+    setRowSelection,
+    queryKey: psuKeys.all,
+    singular: "PSU",
+    plural: "PSUs",
+    deleteByIds: deletePsus,
+  });
+  const excelImport = useExcelImport({
+    queryKey: psuKeys.all,
+    importFile: importPsus,
+  });
   const totalCount = query.data?.totalCount ?? 0;
   const pageIndex = params.pageIndex;
   const pageSize = params.pageSize;
@@ -174,7 +196,7 @@ export function PsuListPage() {
               <FieldLabel htmlFor="psu-modularity">Modularity</FieldLabel>
               <select
                 id="psu-modularity"
-                className={catalogSelectClassName}
+                className={formSelectClassName}
                 value={draft.modularity ?? ""}
                 onChange={(event) =>
                   setDraft((current) => ({
@@ -196,7 +218,7 @@ export function PsuListPage() {
               <FieldLabel htmlFor="psu-form-factor">Form factor</FieldLabel>
               <select
                 id="psu-form-factor"
-                className={catalogSelectClassName}
+                className={formSelectClassName}
                 value={draft.formFactor ?? ""}
                 onChange={(event) =>
                   setDraft((current) => ({
@@ -268,6 +290,10 @@ export function PsuListPage() {
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
+            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
+            deleting={bulkDelete.isDeleting}
+            deleteError={bulkDelete.deleteError}
+            onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
             totalCount={totalCount}
@@ -276,14 +302,7 @@ export function PsuListPage() {
           />
         </div>
       </div>
+      {excelImport.importDialog}
     </section>
-  );
-}
-
-function nameCell(
-  info: CellContext<typeof dataTableFeatures, PsuListItem, string>,
-) {
-  return (
-    <Link to={`/catalog/psus/${info.row.original.id}`}>{info.getValue()}</Link>
   );
 }

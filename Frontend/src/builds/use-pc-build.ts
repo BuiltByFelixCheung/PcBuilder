@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { PcBuildContext } from "./pcbuild-context.ts";
+import { PcBuildContext } from "./pc-build-context.ts";
 
 export function usePcBuild() {
   const context = useContext(PcBuildContext);

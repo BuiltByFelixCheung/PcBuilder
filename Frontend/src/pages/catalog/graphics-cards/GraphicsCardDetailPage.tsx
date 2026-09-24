@@ -5,7 +5,7 @@ import { PageStatus } from "@/components/PageStatus.tsx";
 import { useGraphicsCard } from "@/hooks/use-graphics-cards.ts";
 import { builderHref, usePcBuild } from "@/builds";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 
 export function GraphicsCardDetailPage() {
   const { graphicsCardId } = useParams();

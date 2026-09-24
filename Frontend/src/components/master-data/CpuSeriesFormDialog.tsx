@@ -4,12 +4,13 @@ import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { parseApiError } from "@/api/errors.ts";
 import {
-  createChipset,
+  createCpuSeries,
+  deleteCpuSeries,
   listManufacturersByProductType,
   listSockets,
   masterDataKeys,
-  updateChipset,
-  type ChipsetOption,
+  updateCpuSeries,
+  type CpuSeriesOption,
   type SocketOption,
 } from "@/api/master-data";
 import { PageStatus } from "@/components/PageStatus";
@@ -23,23 +24,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   applyApiFieldErrors,
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
-import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
+import { formSelectClassName } from "@/components/filters/ListFilters";
 import {
   clearSocketFromAnotherManufacturer,
   newMasterDataEditValue,
-} from "@/pages/master-data/master-data-edit";
+} from "@/lib/master-data-edit";
+import { useState } from "react";
 
-const chipsetFormSchema = z.object({
+const cpuSeriesFormSchema = z.object({
   name: z
     .string()
     .trim()
@@ -49,27 +46,27 @@ const chipsetFormSchema = z.object({
   socketId: z.string().min(1, "Socket is required."),
 });
 
-type ChipsetFormValues = z.infer<typeof chipsetFormSchema>;
+type CpuSeriesFormValues = z.infer<typeof cpuSeriesFormSchema>;
 
-type ChipsetFormDialogProps = {
+type CpuSeriesFormDialogProps = {
   editingId: string;
-  chipsets: readonly ChipsetOption[];
-  chipsetsSettled: boolean;
+  cpuSeries: readonly CpuSeriesOption[];
+  cpuSeriesSettled: boolean;
   onClose: () => void;
 };
 
-export function ChipsetFormDialog({
+export function CpuSeriesFormDialog({
   editingId,
-  chipsets,
-  chipsetsSettled,
+  cpuSeries,
+  cpuSeriesSettled,
   onClose,
-}: Readonly<ChipsetFormDialogProps>) {
+}: Readonly<CpuSeriesFormDialogProps>) {
   const isNew = editingId === newMasterDataEditValue;
-  const chipset = isNew
+  const editing = isNew
     ? undefined
-    : chipsets.find((item) => item.id === editingId);
-  const missing = !isNew && chipsetsSettled && !chipset;
-  const loading = !isNew && !chipsetsSettled;
+    : cpuSeries.find((item) => item.id === editingId);
+  const missing = !isNew && cpuSeriesSettled && !editing;
+  const loading = !isNew && !cpuSeriesSettled;
 
   return (
     <Dialog
@@ -82,45 +79,36 @@ export function ChipsetFormDialog({
         {loading ? (
           <>
             <DialogHeader>
-              <DialogTitle>Edit chipset</DialogTitle>
+              <DialogTitle>Edit CPU Series</DialogTitle>
             </DialogHeader>
-            <PageStatus>Loading chipset…</PageStatus>
+            <PageStatus>Loading CPU Series…</PageStatus>
           </>
         ) : null}
-        {missing ? <MissingChipset onClose={onClose} /> : null}
-        {isNew || chipset ? (
-          <ChipsetForm chipset={chipset} onClose={onClose} />
+        {missing ? <MissingCpuSeries onClose={onClose} /> : null}
+        {isNew || editing ? (
+          <CpuSeriesForm cpuSeries={editing} onClose={onClose} />
         ) : null}
       </DialogContent>
     </Dialog>
   );
 }
 
-function MissingChipset({ onClose }: Readonly<{ onClose: () => void }>) {
+function MissingCpuSeries({ onClose }: Readonly<{ onClose: () => void }>) {
   return (
-    <>
-      <DialogHeader>
-        <DialogTitle>Chipset not found</DialogTitle>
-        <DialogDescription>
-          This chipset is not in the current list.
-        </DialogDescription>
-      </DialogHeader>
-      <DialogFooter>
-        <Button type="button" variant="outline" onClick={onClose}>
-          Close
-        </Button>
-      </DialogFooter>
-    </>
+    <div className="flex flex-col gap-2">
+      <PageStatus>CPU Series not found.</PageStatus>
+      <Button onClick={onClose}>Close</Button>
+    </div>
   );
 }
 
-function ChipsetForm({
-  chipset,
+function CpuSeriesForm({
+  cpuSeries,
   onClose,
-}: Readonly<{ chipset: ChipsetOption | undefined; onClose: () => void }>) {
+}: Readonly<{ cpuSeries: CpuSeriesOption | undefined; onClose: () => void }>) {
   const manufacturers = useQuery({
-    queryKey: masterDataKeys.manufacturersByProductType("chipset"),
-    queryFn: () => listManufacturersByProductType("chipset"),
+    queryKey: masterDataKeys.manufacturersByProductType("cpuseries"),
+    queryFn: () => listManufacturersByProductType("cpuseries"),
   });
   const sockets = useQuery({
     queryKey: masterDataKeys.sockets,
@@ -132,9 +120,11 @@ function ChipsetForm({
     return (
       <>
         <DialogHeader>
-          <DialogTitle>{chipset ? "Edit chipset" : "New chipset"}</DialogTitle>
+          <DialogTitle>
+            {cpuSeries ? "Edit CPU Series" : "New CPU Series"}
+          </DialogTitle>
         </DialogHeader>
-        <PageStatus>Loading chipset…</PageStatus>
+        <PageStatus>Loading CPU Series…</PageStatus>
       </>
     );
   }
@@ -143,7 +133,9 @@ function ChipsetForm({
     return (
       <>
         <DialogHeader>
-          <DialogTitle>{chipset ? "Edit chipset" : "New chipset"}</DialogTitle>
+          <DialogTitle>
+            {cpuSeries ? "Edit CPU Series" : "New CPU Series"}
+          </DialogTitle>
         </DialogHeader>
         <p className="form-error" role="alert">
           {parseApiError(optionsError).message}
@@ -158,8 +150,8 @@ function ChipsetForm({
   }
 
   return (
-    <ChipsetFields
-      chipset={chipset}
+    <CpuSeriesFields
+      cpuSeries={cpuSeries}
       manufacturers={manufacturers.data}
       sockets={sockets.data}
       onClose={onClose}
@@ -167,26 +159,27 @@ function ChipsetForm({
   );
 }
 
-function ChipsetFields({
-  chipset,
+function CpuSeriesFields({
+  cpuSeries,
   manufacturers,
   sockets,
   onClose,
 }: Readonly<{
-  chipset: ChipsetOption | undefined;
+  cpuSeries: CpuSeriesOption | undefined;
   manufacturers: { id: string; name: string }[];
   sockets: SocketOption[];
   onClose: () => void;
 }>) {
   const queryClient = useQueryClient();
-  const form = useForm<ChipsetFormValues>({
-    resolver: zodResolver(chipsetFormSchema),
+  const form = useForm<CpuSeriesFormValues>({
+    resolver: zodResolver(cpuSeriesFormSchema),
     defaultValues: {
-      name: chipset?.name ?? "",
-      manufacturerId: chipset?.manufacturerId ?? "",
-      socketId: chipset?.socketId ?? "",
+      name: cpuSeries?.name ?? "",
+      manufacturerId: cpuSeries?.manufacturerId ?? "",
+      socketId: cpuSeries?.socketId ?? "",
     },
   });
+  const [isDeleting, setIsDeleting] = useState(false);
   const {
     register,
     handleSubmit,
@@ -202,15 +195,30 @@ function ChipsetFields({
   );
   const manufacturerRegistration = register("manufacturerId");
 
-  async function onSubmit(values: ChipsetFormValues) {
+  async function onDelete() {
+    if (!cpuSeries || !window.confirm(`Delete ${cpuSeries.name}?`)) return;
+    setIsDeleting(true);
     try {
-      if (chipset) {
-        await updateChipset(chipset.id, values);
+      await deleteCpuSeries(cpuSeries.id);
+      await queryClient.invalidateQueries({
+        queryKey: masterDataKeys.cpuSeries,
+      });
+      onClose();
+    } catch (error) {
+      applyApiFormError(setError, parseApiError(error));
+      setIsDeleting(false);
+    }
+  }
+
+  async function onSubmit(values: CpuSeriesFormValues) {
+    try {
+      if (cpuSeries) {
+        await updateCpuSeries(cpuSeries.id, values);
       } else {
-        await createChipset(values);
+        await createCpuSeries(values);
       }
       await queryClient.invalidateQueries({
-        queryKey: masterDataKeys.chipsets,
+        queryKey: masterDataKeys.cpuSeries,
       });
       onClose();
     } catch (error) {
@@ -227,11 +235,13 @@ function ChipsetFields({
   return (
     <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
       <DialogHeader>
-        <DialogTitle>{chipset ? "Edit chipset" : "New chipset"}</DialogTitle>
+        <DialogTitle>
+          {cpuSeries ? "Edit CPU Series" : "New CPU Series"}
+        </DialogTitle>
         <DialogDescription>
-          {chipset
+          {cpuSeries
             ? "Update the name, manufacturer, and socket."
-            : "Add a chipset to master data."}
+            : "Add a CPU Series to master data."}
         </DialogDescription>
       </DialogHeader>
       {errors.root?.message ? (
@@ -241,19 +251,19 @@ function ChipsetFields({
       ) : null}
       <FieldGroup>
         <FormTextField
-          id="chipset-edit-name"
+          id="cpu-series-edit-name"
           label="Name"
           required
           error={errors.name}
           registration={register("name")}
         />
         <Field data-invalid={errors.manufacturerId ? true : undefined}>
-          <FieldLabel htmlFor="chipset-edit-manufacturer">
+          <FieldLabel htmlFor="cpu-series-edit-manufacturer">
             Manufacturer
           </FieldLabel>
           <select
-            id="chipset-edit-manufacturer"
-            className={catalogSelectClassName}
+            id="cpu-series-edit-manufacturer"
+            className={formSelectClassName}
             aria-invalid={errors.manufacturerId ? true : undefined}
             {...manufacturerRegistration}
             onChange={(event) => {
@@ -273,13 +283,12 @@ function ChipsetFields({
               </option>
             ))}
           </select>
-          <FieldError errors={[errors.manufacturerId]} />
         </Field>
         <Field data-invalid={errors.socketId ? true : undefined}>
-          <FieldLabel htmlFor="chipset-edit-socket">Socket</FieldLabel>
+          <FieldLabel htmlFor="cpu-series-edit-socket">Socket</FieldLabel>
           <select
-            id="chipset-edit-socket"
-            className={catalogSelectClassName}
+            id="cpu-series-edit-socket"
+            className={formSelectClassName}
             aria-invalid={errors.socketId ? true : undefined}
             {...register("socketId")}
           >
@@ -290,20 +299,30 @@ function ChipsetFields({
               </option>
             ))}
           </select>
-          <FieldError errors={[errors.socketId]} />
         </Field>
       </FieldGroup>
       <DialogFooter>
+        {cpuSeries ? (
+          <Button
+            type="button"
+            variant="destructive"
+            className="sm:mr-auto"
+            onClick={() => void onDelete()}
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Deleting…" : "Delete"}
+          </Button>
+        ) : null}
         <Button
           type="button"
           variant="outline"
           onClick={onClose}
           disabled={isSubmitting}
         >
-          Cancel
+          Close
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving…" : "Save"}
+          {cpuSeries ? "Update" : "Create"}
         </Button>
       </DialogFooter>
     </form>

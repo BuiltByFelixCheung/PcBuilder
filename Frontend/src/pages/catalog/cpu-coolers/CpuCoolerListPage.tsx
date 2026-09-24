@@ -1,6 +1,8 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { deleteCpuCoolers } from "@/api/catalog/bulk-delete";
 import {
+  cpuCoolerKeys,
   isCpuCoolerFilterActive,
   type CpuCoolerFilter,
   type CpuCoolerListItem,
@@ -9,12 +11,11 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   createColumnHelper,
-  type CellContext,
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 import {
   useCatalogManufacturers,
   useCatalogSockets,
@@ -31,16 +32,20 @@ import {
   RADIATOR_LENGTHS,
   formatRadiatorLength,
 } from "@/api/enums";
-import { usePcBuild } from "@/builds/usePcBuild";
+import { usePcBuild } from "@/builds/use-pc-build";
 import type { RangeFilter } from "@/api/paging";
-import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
+import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { useBulkDelete } from "@/hooks/use-bulk-delete";
+import { importCpuCoolers } from "@/api/catalog/import-excel";
+import { useExcelImport } from "@/hooks/use-excel-import";
+import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
   CatalogCompatibleCheckbox,
   CatalogEnumField,
   CatalogIdSelectField,
-} from "@/pages/catalog/catalog-filter-fields";
+} from "@/components/catalog/CatalogFilterFields";
 
 const EMPTY_ITEMS: CpuCoolerListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -68,7 +73,11 @@ export function CpuCoolerListPage() {
         ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
         columnHelper.accessor("name", {
           header: "Name",
-          cell: nameCell,
+          cell: (info) =>
+            catalogNameCell(
+              `/catalog/cpu-coolers/${info.row.original.id}`,
+              info.getValue(),
+            ),
         }),
         columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
         columnHelper.accessor("type", { header: "Type" }),
@@ -101,6 +110,19 @@ export function CpuCoolerListPage() {
     [isAdmin],
   );
   const items = query.data?.items ?? EMPTY_ITEMS;
+  const bulkDelete = useBulkDelete({
+    items,
+    rowSelection,
+    setRowSelection,
+    queryKey: cpuCoolerKeys.all,
+    singular: "CPU cooler",
+    plural: "CPU coolers",
+    deleteByIds: deleteCpuCoolers,
+  });
+  const excelImport = useExcelImport({
+    queryKey: cpuCoolerKeys.all,
+    importFile: importCpuCoolers,
+  });
   const totalCount = query.data?.totalCount ?? 0;
   const pageIndex = params.pageIndex;
   const pageSize = params.pageSize;
@@ -358,6 +380,10 @@ export function CpuCoolerListPage() {
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
+            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
+            deleting={bulkDelete.isDeleting}
+            deleteError={bulkDelete.deleteError}
+            onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
             totalCount={totalCount}
@@ -366,16 +392,7 @@ export function CpuCoolerListPage() {
           />
         </div>
       </div>
+      {excelImport.importDialog}
     </section>
-  );
-}
-
-function nameCell(
-  info: CellContext<typeof dataTableFeatures, CpuCoolerListItem, string>,
-) {
-  return (
-    <Link to={`/catalog/cpu-coolers/${info.row.original.id}`}>
-      {info.getValue()}
-    </Link>
   );
 }

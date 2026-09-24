@@ -13,7 +13,7 @@ import { useMotherboard } from "@/hooks/use-motherboards.ts";
 import { formatM2FormFactor } from "@/api/enums";
 import { Button } from "@/components/ui/button";
 import { builderHref, usePcBuild } from "@/builds";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 
 export function MotherboardDetailPage() {
   const { motherboardId } = useParams();

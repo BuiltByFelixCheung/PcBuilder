@@ -3,10 +3,10 @@ using PcBuilderBackend.Application.Catalog.Cpus.Commands.BulkDeleteCpus;
 
 namespace PcBuilderBackend.Application.Catalog.Cpus.Validators;
 
-public class BulkDeleteCpusCommandValidator: AbstractValidator<BulkDeleteCpusCommand>
+public class BulkDeleteCpusCommandValidator : AbstractValidator<BulkDeleteCpusCommand>
 {
     public BulkDeleteCpusCommandValidator()
     {
-        RuleFor(x => x.CpuIds).NotEmpty().WithMessage("CpuIds list cannot be empty.");
+        RuleFor(x => x.Ids).NotEmpty().WithMessage("CpuIds list cannot be empty.");
     }
 }

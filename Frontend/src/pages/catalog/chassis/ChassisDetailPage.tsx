@@ -18,7 +18,7 @@ import {
 } from "@/api/enums";
 import { Button } from "@/components/ui/button";
 import { builderHref, usePcBuild } from "@/builds";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 
 function formatList(values: string[]): string {
   return values.length > 0 ? values.join(", ") : "None";

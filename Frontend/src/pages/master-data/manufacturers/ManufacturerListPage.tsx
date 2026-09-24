@@ -1,15 +1,18 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
+  deleteManufacturers,
   listManufacturers,
   masterDataKeys,
   type NamedMasterData,
+  importManufacturers,
 } from "@/api/master-data";
-import { ManufacturerFormDialog } from "@/pages/master-data/manufacturers/ManufacturerFormDialog";
+import { ManufacturerFormDialog } from "@/components/master-data/ManufacturerFormDialog";
 import {
+  closeMasterDataEditor,
   manufacturerEditPath,
   newMasterDataEditValue,
-} from "@/pages/master-data/master-data-edit";
+} from "@/lib/master-data-edit";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,8 +22,10 @@ import {
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useQuery } from "@tanstack/react-query";
-import { MasterDataResults } from "@/pages/catalog/catalog-results";
-import { CatalogFilterActions } from "@/pages/catalog/catalog-filter-fields";
+import { MasterDataResults } from "@/components/master-data/MasterDataResults";
+import { FilterActions } from "@/components/filters/ListFilters";
+import { useBulkDelete } from "@/hooks/use-bulk-delete";
+import { useExcelImport } from "@/hooks/use-excel-import";
 
 const EMPTY_ITEMS: NamedMasterData[] = [];
 const columnHelper = createColumnHelper<
@@ -72,6 +77,19 @@ export function ManufacturerListPage() {
       return true;
     });
   }, [applied, items]);
+  const bulkDelete = useBulkDelete({
+    items: visibleItems,
+    rowSelection,
+    setRowSelection,
+    queryKey: masterDataKeys.manufacturers,
+    singular: "manufacturer",
+    plural: "manufacturers",
+    deleteByIds: (ids) => deleteManufacturers({ ids }),
+  });
+  const excelImport = useExcelImport({
+    queryKey: masterDataKeys.manufacturers,
+    importFile: importManufacturers,
+  });
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -81,12 +99,6 @@ export function ManufacturerListPage() {
   function clearFilters() {
     setDraft(emptyManufacturerFilter);
     setApplied(emptyManufacturerFilter);
-  }
-
-  function closeEditor() {
-    const next = new URLSearchParams(searchParams);
-    next.delete("edit");
-    setSearchParams(next);
   }
 
   return (
@@ -110,7 +122,7 @@ export function ManufacturerListPage() {
               />
             </Field>
           </FieldGroup>
-          <CatalogFilterActions onClear={clearFilters} />
+          <FilterActions onClear={clearFilters} />
         </form>
         <div className="catalog-results">
           <MasterDataResults
@@ -125,9 +137,12 @@ export function ManufacturerListPage() {
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
+            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
+            deleting={bulkDelete.isDeleting}
+            deleteError={bulkDelete.deleteError}
+            onImport={excelImport.openImport}
             newItemTo={manufacturerEditPath(newMasterDataEditValue)}
             newItemLabel="New Manufacturer"
-            showImport={false}
             keepTableWhenEmpty
           />
         </div>
@@ -137,10 +152,11 @@ export function ManufacturerListPage() {
             editingId={editingId}
             manufacturers={items}
             manufacturersSettled={query.isSuccess || query.isError}
-            onClose={closeEditor}
+            onClose={() => closeMasterDataEditor(searchParams, setSearchParams)}
           />
         ) : null}
       </div>
+      {excelImport.importDialog}
     </section>
   );
 }

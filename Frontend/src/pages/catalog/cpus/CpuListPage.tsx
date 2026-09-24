@@ -1,6 +1,8 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { deleteCpus } from "@/api/catalog/bulk-delete";
 import {
+  cpuKeys,
   isCpuFilterActive,
   type CpuFilter,
   type CpuListItem,
@@ -8,12 +10,11 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   createColumnHelper,
-  type CellContext,
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 import { useCpuFilterOptions } from "@/hooks/use-cpu-filter-options.ts";
 import { useCpus } from "@/hooks/use-cpus.ts";
 import {
@@ -22,14 +23,18 @@ import {
   emptyCpuFilter,
 } from "@/api/catalog/params/cpu-list-params";
 import { usePcBuild } from "@/builds";
-import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
+import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { useBulkDelete } from "@/hooks/use-bulk-delete";
+import { importCpus } from "@/api/catalog/import-excel";
+import { useExcelImport } from "@/hooks/use-excel-import";
+import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
   CatalogCompatibleCheckbox,
   CatalogIdSelectField,
   CatalogRangeField,
-} from "@/pages/catalog/catalog-filter-fields";
+} from "@/components/catalog/CatalogFilterFields";
 
 const EMPTY_ITEMS: CpuListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -58,7 +63,11 @@ export function CpuListPage() {
         ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
         columnHelper.accessor("name", {
           header: "Name",
-          cell: nameCell,
+          cell: (info) =>
+            catalogNameCell(
+              `/catalog/cpus/${info.row.original.id}`,
+              info.getValue(),
+            ),
         }),
         columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
         columnHelper.accessor("seriesName", { header: "Series" }),
@@ -83,6 +92,19 @@ export function CpuListPage() {
     [isAdmin],
   );
   const items = query.data?.items ?? EMPTY_ITEMS;
+  const bulkDelete = useBulkDelete({
+    items,
+    rowSelection,
+    setRowSelection,
+    queryKey: cpuKeys.all,
+    singular: "CPU",
+    plural: "CPUs",
+    deleteByIds: deleteCpus,
+  });
+  const excelImport = useExcelImport({
+    queryKey: cpuKeys.all,
+    importFile: importCpus,
+  });
   const totalCount = query.data?.totalCount ?? 0;
   const pageIndex = params.pageIndex;
   const pageSize = params.pageSize;
@@ -253,6 +275,10 @@ export function CpuListPage() {
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
+            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
+            deleting={bulkDelete.isDeleting}
+            deleteError={bulkDelete.deleteError}
+            onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
             totalCount={totalCount}
@@ -261,14 +287,7 @@ export function CpuListPage() {
           />
         </div>
       </div>
+      {excelImport.importDialog}
     </section>
-  );
-}
-
-function nameCell(
-  info: CellContext<typeof dataTableFeatures, CpuListItem, string>,
-) {
-  return (
-    <Link to={`/catalog/cpus/${info.row.original.id}`}>{info.getValue()}</Link>
   );
 }

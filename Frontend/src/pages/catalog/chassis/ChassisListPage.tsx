@@ -1,6 +1,8 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { deleteChassis } from "@/api/catalog/bulk-delete";
 import {
+  chassisKeys,
   isChassisFilterActive,
   type ChassisFilter,
   type ChassisListItem,
@@ -9,13 +11,13 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   createColumnHelper,
-  type CellContext,
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 
+import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import { useChassis } from "@/hooks/use-chassis.ts";
 import {
   chassisListParamsFromSearch,
@@ -24,17 +26,16 @@ import {
 } from "@/api/catalog/params/chassis-list-params";
 import { toOptionalNumber } from "@/api/helper";
 import { MB_FORM_FACTORS } from "@/api/enums";
-import {
-  listManufacturersByProductType,
-  masterDataKeys,
-} from "@/api/master-data";
-import { useQuery } from "@tanstack/react-query";
-import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
+import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { useBulkDelete } from "@/hooks/use-bulk-delete";
+import { importChassis } from "@/api/catalog/import-excel";
+import { useExcelImport } from "@/hooks/use-excel-import";
+import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
   CatalogIdSelectField,
-} from "@/pages/catalog/catalog-filter-fields";
+} from "@/components/catalog/CatalogFilterFields";
 
 const EMPTY_ITEMS: ChassisListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -60,7 +61,11 @@ export function ChassisListPage() {
         ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
         columnHelper.accessor("name", {
           header: "Name",
-          cell: nameCell,
+          cell: (info) =>
+            catalogNameCell(
+              `/catalog/chassis/${info.row.original.id}`,
+              info.getValue(),
+            ),
         }),
         columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
         columnHelper.accessor("lengthMm", { header: "Length (mm)" }),
@@ -85,16 +90,25 @@ export function ChassisListPage() {
     [isAdmin],
   );
   const items = query.data?.items ?? EMPTY_ITEMS;
+  const bulkDelete = useBulkDelete({
+    items,
+    rowSelection,
+    setRowSelection,
+    queryKey: chassisKeys.all,
+    singular: "chassis",
+    plural: "chassis",
+    deleteByIds: deleteChassis,
+  });
+  const excelImport = useExcelImport({
+    queryKey: chassisKeys.all,
+    importFile: importChassis,
+  });
   const totalCount = query.data?.totalCount ?? 0;
   const pageIndex = params.pageIndex;
   const pageSize = params.pageSize;
   const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
   const filtering = isChassisFilterActive(params.filter);
-  const manufacturerQuery = useQuery({
-    queryKey: masterDataKeys.manufacturersByProductType("chassis"),
-    queryFn: () => listManufacturersByProductType("chassis"),
-  });
-  const manufacturers = manufacturerQuery.data ?? [];
+  const manufacturers = useCatalogManufacturers("chassis");
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -513,6 +527,10 @@ export function ChassisListPage() {
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
+            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
+            deleting={bulkDelete.isDeleting}
+            deleteError={bulkDelete.deleteError}
+            onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
             totalCount={totalCount}
@@ -521,16 +539,7 @@ export function ChassisListPage() {
           />
         </div>
       </div>
+      {excelImport.importDialog}
     </section>
-  );
-}
-
-function nameCell(
-  info: CellContext<typeof dataTableFeatures, ChassisListItem, string>,
-) {
-  return (
-    <Link to={`/catalog/chassis/${info.row.original.id}`}>
-      {info.getValue()}
-    </Link>
   );
 }

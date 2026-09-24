@@ -3,7 +3,6 @@ import type {
   RowData,
   RowSelectionState,
 } from "@tanstack/react-table";
-import { Link } from "react-router-dom";
 import { parseApiError } from "@/api/errors.ts";
 import { PageStatus } from "@/components/PageStatus";
 import { Button } from "@/components/ui/button";
@@ -41,6 +40,10 @@ export function CatalogPagedResults<TData extends RowData>({
   columns,
   rowSelection,
   onRowSelectionChange,
+  onDeleteSelected,
+  deleting = false,
+  deleteError = null,
+  onImport,
   pageIndex,
   pageCount,
   totalCount,
@@ -49,6 +52,10 @@ export function CatalogPagedResults<TData extends RowData>({
 }: Readonly<
   CatalogResultsBase<TData> & {
     isAdmin: boolean;
+    onDeleteSelected: () => void;
+    deleting?: boolean;
+    deleteError?: string | null;
+    onImport: () => void;
     newItemLabel: string;
     pageIndex: number;
     pageCount: number;
@@ -63,24 +70,48 @@ export function CatalogPagedResults<TData extends RowData>({
   if (isError) {
     return <PageStatus>{parseApiError(error).message}</PageStatus>;
   }
+  const hasSelection = selectionActive(rowSelection);
+  const adminActions = isAdmin ? (
+    <>
+      {deleteError ? (
+        <p className="form-error" role="alert">
+          {deleteError}
+        </p>
+      ) : null}
+      <div className="catalog-results-actions">
+        <Button type="button" disabled={!hasSelection}>
+          Edit Selected
+        </Button>
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={!hasSelection || deleting}
+          onClick={onDeleteSelected}
+        >
+          {deleting ? "Deleting…" : "Delete Selected"}
+        </Button>
+        <Button type="button">{newItemLabel}</Button>
+        <Button type="button" onClick={onImport}>
+          Import
+        </Button>
+      </div>
+    </>
+  ) : null;
+
   if (items.length === 0) {
     return (
-      <PageStatus>{filtering ? emptyFilteredMessage : emptyMessage}</PageStatus>
+      <>
+        {adminActions}
+        <PageStatus>
+          {filtering ? emptyFilteredMessage : emptyMessage}
+        </PageStatus>
+      </>
     );
   }
 
-  const hasSelection = selectionActive(rowSelection);
-
   return (
     <>
-      {isAdmin && (
-        <div className="catalog-results-actions">
-          <Button disabled={!hasSelection}>Edit Selected</Button>
-          <Button disabled={!hasSelection}>Delete Selected</Button>
-          <Button>{newItemLabel}</Button>
-          <Button>Import</Button>
-        </div>
-      )}
+      {adminActions}
       <DataTable
         data={items}
         columns={columns}
@@ -110,82 +141,6 @@ export function CatalogPagedResults<TData extends RowData>({
           </Button>
         </div>
       </div>
-    </>
-  );
-}
-
-export function MasterDataResults<TData extends RowData>({
-  isInitialLoading,
-  isError,
-  error,
-  items,
-  filtering,
-  loadingMessage,
-  emptyFilteredMessage,
-  emptyMessage,
-  columns,
-  rowSelection,
-  onRowSelectionChange,
-  newItemTo,
-  newItemLabel,
-  showImport = true,
-  keepTableWhenEmpty = false,
-}: Readonly<
-  CatalogResultsBase<TData> & {
-    newItemTo: string;
-    newItemLabel: string;
-    showImport?: boolean;
-    keepTableWhenEmpty?: boolean;
-  }
->) {
-  if (isInitialLoading) {
-    return <PageStatus>{loadingMessage}</PageStatus>;
-  }
-  if (isError) {
-    return <PageStatus>{parseApiError(error).message}</PageStatus>;
-  }
-
-  const hasSelection = selectionActive(rowSelection);
-  const emptyStatus =
-    items.length === 0 ? (
-      <PageStatus>{filtering ? emptyFilteredMessage : emptyMessage}</PageStatus>
-    ) : null;
-
-  return (
-    <>
-      <div className="catalog-results-actions">
-        <Button disabled={!hasSelection}>Edit Selected</Button>
-        <Button disabled={!hasSelection}>Delete Selected</Button>
-        <Button asChild>
-          <Link
-            style={{ textDecoration: "none", color: "black" }}
-            to={newItemTo}
-          >
-            {newItemLabel}
-          </Link>
-        </Button>
-        {showImport ? <Button>Import</Button> : null}
-      </div>
-      {keepTableWhenEmpty ? (
-        <>
-          {emptyStatus}
-          <DataTable
-            data={items}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={onRowSelectionChange}
-          />
-        </>
-      ) : (
-        (emptyStatus ?? (
-          <DataTable
-            data={items}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={onRowSelectionChange}
-          />
-        ))
-      )}
     </>
   );
 }

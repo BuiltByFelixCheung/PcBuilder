@@ -7,7 +7,7 @@ public class BulkDeleteCpuCoolersCommandValidator : AbstractValidator<BulkDelete
 {
     public BulkDeleteCpuCoolersCommandValidator()
     {
-        RuleFor(x => x.CpuCoolerIds)
+        RuleFor(x => x.Ids)
             .NotEmpty().WithMessage("CpuCoolerIds list cannot be empty.");
     }
 }

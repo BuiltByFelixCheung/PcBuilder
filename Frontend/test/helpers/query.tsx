@@ -28,10 +28,12 @@ export function renderWithQuery(
   ui: ReactElement,
   options?: {
     route?: string;
+    isAdmin?: boolean;
     initialBuild?: Partial<PcBuildDraft>;
   } & Omit<RenderOptions, "wrapper">,
 ) {
-  const { route = "/", initialBuild, ...renderOptions } = options ?? {};
+  const { route = "/", initialBuild, isAdmin = false, ...renderOptions } =
+    options ?? {};
   const queryClient = createQueryClient({ retry: false });
 
   return {
@@ -40,7 +42,7 @@ export function renderWithQuery(
       wrapper: ({ children }) => (
         <QueryClientProvider client={queryClient}>
           <MemoryRouter initialEntries={[route]}>
-            <AuthContext.Provider value={anonymousAuth}>
+            <AuthContext.Provider value={{ ...anonymousAuth, isAdmin }}>
               <PcBuildProvider initialDraft={initialBuild}>
                 {children}
               </PcBuildProvider>

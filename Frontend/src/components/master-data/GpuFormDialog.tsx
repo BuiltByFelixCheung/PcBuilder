@@ -5,6 +5,7 @@ import { z } from "zod";
 import { parseApiError } from "@/api/errors.ts";
 import {
   createGpu,
+  deleteGpu,
   listGpuSeries,
   listManufacturersByProductType,
   masterDataKeys,
@@ -33,8 +34,9 @@ import {
   applyApiFieldErrors,
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
-import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
-import { newMasterDataEditValue } from "@/pages/master-data/master-data-edit";
+import { formSelectClassName } from "@/components/filters/ListFilters";
+import { newMasterDataEditValue } from "@/lib/master-data-edit";
+import { useState } from "react";
 
 const gpuFormSchema = z.object({
   name: z
@@ -192,6 +194,7 @@ function GpuFields({
     (item) => !manufacturerId || item.manufacturerId === manufacturerId,
   );
   const manufacturerRegistration = register("manufacturerId");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   async function onSubmit(values: GpuFormValues) {
     try {
@@ -210,6 +213,19 @@ function GpuFields({
         "gpuSeriesId",
       ]);
       applyApiFormError(setError, parsed);
+    }
+  }
+
+  async function onDelete() {
+    if (!gpu || !window.confirm(`Delete ${gpu.name}?`)) return;
+    setIsDeleting(true);
+    try {
+      await deleteGpu(gpu.id);
+      await queryClient.invalidateQueries({ queryKey: masterDataKeys.gpus });
+      onClose();
+    } catch (error) {
+      applyApiFormError(setError, parseApiError(error));
+      setIsDeleting(false);
     }
   }
 
@@ -240,7 +256,7 @@ function GpuFields({
           <FieldLabel>Manufacturer</FieldLabel>
           <select
             id="gpu-edit-manufacturer"
-            className={catalogSelectClassName}
+            className={formSelectClassName}
             aria-invalid={errors.manufacturerId ? true : undefined}
             {...manufacturerRegistration}
             onChange={(event) => {
@@ -259,7 +275,7 @@ function GpuFields({
           <FieldLabel>Series</FieldLabel>
           <select
             id="gpu-edit-series"
-            className={catalogSelectClassName}
+            className={formSelectClassName}
             aria-invalid={errors.gpuSeriesId ? true : undefined}
             {...register("gpuSeriesId")}
           >
@@ -274,6 +290,17 @@ function GpuFields({
         </Field>
       </FieldGroup>
       <DialogFooter>
+        {gpu ? (
+          <Button
+            type="button"
+            variant="destructive"
+            className="sm:mr-auto"
+            onClick={() => void onDelete()}
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Deleting…" : "Delete"}
+          </Button>
+        ) : null}
         <Button type="button" variant="outline" onClick={onClose}>
           Cancel
         </Button>

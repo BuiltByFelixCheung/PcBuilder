@@ -1,6 +1,8 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { deleteGraphicsCards } from "@/api/catalog/bulk-delete";
 import {
+  graphicsCardKeys,
   isGraphicsCardFilterActive,
   type GraphicsCardFilter,
   type GraphicsCardListItem,
@@ -8,12 +10,11 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   createColumnHelper,
-  type CellContext,
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 import { useGraphicsCardFilterOptions } from "@/hooks/use-graphics-card-filter-options";
 import { useGraphicsCards } from "@/hooks/use-graphics-cards";
 import {
@@ -32,14 +33,18 @@ import {
   CatalogCompatibleCheckbox,
   CatalogOptionalBooleanField,
   CatalogRangeField,
-} from "@/pages/catalog/catalog-filter-fields.tsx";
-import { usePcBuild } from "@/builds/usePcBuild";
-import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
+} from "@/components/catalog/CatalogFilterFields.tsx";
+import { usePcBuild } from "@/builds/use-pc-build";
+import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { useBulkDelete } from "@/hooks/use-bulk-delete";
+import { importGraphicsCards } from "@/api/catalog/import-excel";
+import { useExcelImport } from "@/hooks/use-excel-import";
+import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
   CatalogIdSelectField,
-} from "@/pages/catalog/catalog-filter-fields";
+} from "@/components/catalog/CatalogFilterFields";
 
 const EMPTY_ITEMS: GraphicsCardListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -74,7 +79,11 @@ export function GraphicsCardListPage() {
         ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
         columnHelper.accessor("name", {
           header: "Name",
-          cell: nameCell,
+          cell: (info) =>
+            catalogNameCell(
+              `/catalog/graphics-cards/${info.row.original.id}`,
+              info.getValue(),
+            ),
         }),
         columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
         columnHelper.accessor("gpuName", { header: "GPU" }),
@@ -114,6 +123,19 @@ export function GraphicsCardListPage() {
     [isAdmin],
   );
   const items = query.data?.items ?? EMPTY_ITEMS;
+  const bulkDelete = useBulkDelete({
+    items,
+    rowSelection,
+    setRowSelection,
+    queryKey: graphicsCardKeys.all,
+    singular: "graphics card",
+    plural: "graphics cards",
+    deleteByIds: deleteGraphicsCards,
+  });
+  const excelImport = useExcelImport({
+    queryKey: graphicsCardKeys.all,
+    importFile: importGraphicsCards,
+  });
   const totalCount = query.data?.totalCount ?? 0;
   const pageIndex = params.pageIndex;
   const pageSize = params.pageSize;
@@ -399,6 +421,10 @@ export function GraphicsCardListPage() {
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
+            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
+            deleting={bulkDelete.isDeleting}
+            deleteError={bulkDelete.deleteError}
+            onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
             totalCount={totalCount}
@@ -407,16 +433,7 @@ export function GraphicsCardListPage() {
           />
         </div>
       </div>
+      {excelImport.importDialog}
     </section>
-  );
-}
-
-function nameCell(
-  info: CellContext<typeof dataTableFeatures, GraphicsCardListItem, string>,
-) {
-  return (
-    <Link to={`/catalog/graphics-cards/${info.row.original.id}`}>
-      {info.getValue()}
-    </Link>
   );
 }

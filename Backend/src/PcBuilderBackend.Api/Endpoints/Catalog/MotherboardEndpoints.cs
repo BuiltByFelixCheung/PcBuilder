@@ -6,6 +6,7 @@ using PcBuilderBackend.Api.Filters;
 using PcBuilderBackend.Application.Catalog.Motherboards.Commands.BulkUpdateMotherboardM2Slots;
 using PcBuilderBackend.Application.Catalog.Motherboards.Commands.BulkUpdateMotherboardPcieSlots;
 using PcBuilderBackend.Application.Catalog.Motherboards.Commands.BulkUpdateMotherboardUsbPorts;
+using PcBuilderBackend.Application.Catalog.Motherboards.Commands.BulkDeleteMotherboards;
 using PcBuilderBackend.Application.Catalog.Motherboards.Commands.CreateMotherboard;
 using PcBuilderBackend.Application.Catalog.Motherboards.Commands.DeleteMotherboard;
 using PcBuilderBackend.Application.Catalog.Motherboards.Commands.ImportMotherboards;
@@ -62,6 +63,13 @@ public static class MotherboardEndpoints
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Delete Motherboard")
             .WithDescription("\n    DELETE /catalog/motherboard/00000000-0000-0000-0000-000000000000");
+
+        subgroup.MapDelete("/bulk", BulkDeleteMotherboards)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status500InternalServerError)
+            .WithSummary("Delete multiple Motherboards")
+            .WithDescription("\n    DELETE /catalog/motherboard/bulk");
 
         subgroup.MapPost("/import", ImportMotherboards)
             .Produces<List<MotherboardDto>>()
@@ -174,6 +182,15 @@ public static class MotherboardEndpoints
         CancellationToken cancellationToken)
     {
         var success = await sender.Send(new DeleteMotherboardCommand(id), cancellationToken);
+        return success ? TypedResults.NoContent() : TypedResults.NotFound();
+    }
+
+    private static async Task<Results<NoContent, NotFound>> BulkDeleteMotherboards(
+        [FromBody] BulkDeleteMotherboardsCommand command,
+        [FromServices] ISender sender,
+        CancellationToken cancellationToken)
+    {
+        var success = await sender.Send(command, cancellationToken);
         return success ? TypedResults.NoContent() : TypedResults.NotFound();
     }
 

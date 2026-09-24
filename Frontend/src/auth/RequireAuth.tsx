@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { PageStatus } from "../components/PageStatus.tsx";
-import { useAuth } from "./useAuth.ts";
+import { useAuth } from "./use-auth.ts";
 import type { AuthRole } from "./types.ts";
 
 export function RequireAuth({ role }: Readonly<{ role?: AuthRole }>) {

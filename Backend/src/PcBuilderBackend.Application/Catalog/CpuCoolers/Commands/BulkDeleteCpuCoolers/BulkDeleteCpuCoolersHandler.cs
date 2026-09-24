@@ -13,7 +13,7 @@ public class BulkDeleteCpuCoolersHandler(
 {
     public async Task<bool> Handle(BulkDeleteCpuCoolersCommand request, CancellationToken cancellationToken)
     {
-        var ids = request.CpuCoolerIds.Distinct().ToList();
+        var ids = request.Ids.Distinct().ToList();
 
         var entities = await cpuCoolers.GetByIdsAsync(ids, cancellationToken);
 

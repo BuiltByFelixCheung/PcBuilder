@@ -4,7 +4,7 @@ import { PageStatus } from "@/components/PageStatus.tsx";
 import { useChassisFan } from "@/hooks/use-chassis-fans.ts";
 import { formatFanDiameterMm } from "@/api/enums";
 import { AddToBuildButton } from "@/builds";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 
 export function ChassisFanDetailPage() {
   const { chassisFanId } = useParams();

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { parseApiError } from "@/api/errors.ts";
 import {
   createManufacturer,
+  deleteManufacturer,
   masterDataKeys,
   updateManufacturer,
 } from "@/api/master-data";
@@ -24,7 +25,8 @@ import {
   applyApiFieldErrors,
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
-import { newMasterDataEditValue } from "@/pages/master-data/master-data-edit";
+import { newMasterDataEditValue } from "@/lib/master-data-edit";
+import { useState } from "react";
 
 const manufacturerFormSchema = z.object({
   name: z
@@ -129,7 +131,7 @@ function ManufacturerFields({
     setError,
     formState: { errors, isSubmitting },
   } = form;
-
+  const [isDeleting, setIsDeleting] = useState(false);
   async function onSubmit(values: ManufacturerFormValues) {
     try {
       if (manufacturer) {
@@ -145,6 +147,19 @@ function ManufacturerFields({
       const parsed = parseApiError(error);
       applyApiFieldErrors(setError, parsed.fieldErrors, ["name"]);
       applyApiFormError(setError, parsed);
+    }
+  }
+
+  async function onDelete() {
+    if (!manufacturer || !window.confirm(`Delete ${manufacturer.name}?`)) return;
+    setIsDeleting(true);
+    try {
+      await deleteManufacturer(manufacturer.id);
+      await queryClient.invalidateQueries({ queryKey: masterDataKeys.manufacturers });
+      onClose();
+    } catch (error) {
+      applyApiFormError(setError, parseApiError(error));
+      setIsDeleting(false);
     }
   }
 
@@ -170,6 +185,17 @@ function ManufacturerFields({
         />
       </FieldGroup>
       <DialogFooter>
+        {manufacturer ? (
+          <Button
+            type="button"
+            variant="destructive"
+            className="sm:mr-auto"
+            onClick={() => void onDelete()}
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Deleting…" : "Delete"}
+          </Button>
+        ) : null}
         <Button type="button" variant="outline" onClick={onClose}>
           Cancel
         </Button>

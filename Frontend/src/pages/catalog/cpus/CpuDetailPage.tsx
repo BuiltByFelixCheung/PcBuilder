@@ -12,7 +12,7 @@ import {
 import { useCpu } from "@/hooks/use-cpus.ts";
 import { builderHref, usePcBuild } from "@/builds";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 
 export function CpuDetailPage() {
   const { cpuId } = useParams();

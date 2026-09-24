@@ -5,7 +5,7 @@ import { PageStatus } from "@/components/PageStatus.tsx";
 import { useMemory } from "@/hooks/use-memories.ts";
 import { Button } from "@/components/ui/button";
 import { builderHref, usePcBuild } from "@/builds";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 
 export function RamDetailPage() {
   const { memoryId } = useParams();

@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRoles, type AuthTokens } from "@/auth/types.ts";
-import { useAuth } from "@/auth/useAuth.ts";
+import { useAuth } from "@/auth/use-auth.ts";
 
 const loginRequest = vi.fn();
 const logoutRequest = vi.fn();

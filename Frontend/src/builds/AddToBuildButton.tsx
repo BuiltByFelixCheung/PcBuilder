@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { allowsBuildQuantity, builderHref } from "./types";
-import { usePcBuild } from "./usePcBuild";
+import { usePcBuild } from "./use-pc-build";
 import type { CatalogProductType } from "./types";
 
 export function AddToBuildButton({

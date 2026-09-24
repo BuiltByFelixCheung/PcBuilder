@@ -13,7 +13,7 @@ public class BulkDeleteCpusHandler(
 {
     public async Task<bool> Handle(BulkDeleteCpusCommand request, CancellationToken cancellationToken)
     {
-        var ids = request.CpuIds.Distinct().ToList();
+        var ids = request.Ids.Distinct().ToList();
 
         var entities = await cpus.GetByIdsAsync(ids, cancellationToken);
 

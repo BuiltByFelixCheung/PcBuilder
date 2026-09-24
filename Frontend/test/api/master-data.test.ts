@@ -3,12 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const get = vi.fn();
 const post = vi.fn();
 const put = vi.fn();
+const del = vi.fn();
 
 vi.mock("@/api/client.ts", () => ({
   api: {
     get: (...args: unknown[]) => get(...args),
     post: (...args: unknown[]) => post(...args),
     put: (...args: unknown[]) => put(...args),
+    delete: (...args: unknown[]) => del(...args),
   },
 }));
 
@@ -18,6 +20,14 @@ import {
   listCpuSeries,
   listGpuSeries,
   listGpus,
+  deleteChipsets,
+  deleteGpus,
+  deleteManufacturers,
+  deleteMultipleCpuSeries,
+  deleteMultipleGpuSeries,
+  deleteSocket,
+  deleteSockets,
+  updateSockets,
   listManufacturers,
   listManufacturersByProductType,
   listSockets,
@@ -30,6 +40,7 @@ describe("master-data API", () => {
     get.mockReset();
     post.mockReset();
     put.mockReset();
+    del.mockReset();
   });
 
   it("lists manufacturers by product type", async () => {
@@ -147,6 +158,58 @@ describe("master-data API", () => {
     expect(put).toHaveBeenCalledWith("/master-data/chipset", {
       id: "x870",
       ...body,
+    });
+  });
+
+  it("deletes a socket", async () => {
+    del.mockResolvedValue({ status: 204 });
+    await deleteSocket("am5");
+    expect(del).toHaveBeenCalledWith("/master-data/socket/am5");
+  });
+
+  it("updates selected sockets in bulk", async () => {
+    const sockets = [
+      {
+        id: "am5",
+        name: "AM5",
+        manufacturerId: "amd",
+        manufacturerName: "AMD",
+      },
+    ];
+    put.mockResolvedValue({ data: sockets });
+
+    await expect(updateSockets(sockets)).resolves.toEqual(sockets);
+    expect(put).toHaveBeenCalledWith("/master-data/socket/bulk", { sockets });
+  });
+
+  it("deletes selected master data in bulk", async () => {
+    del.mockResolvedValue({ status: 204 });
+    const ids = { ids: ["a", "b"] };
+
+    await deleteSockets(ids);
+    await deleteManufacturers(ids);
+    await deleteMultipleCpuSeries(ids);
+    await deleteMultipleGpuSeries(ids);
+    await deleteGpus(ids);
+    await deleteChipsets(ids);
+
+    expect(del).toHaveBeenNthCalledWith(1, "/master-data/socket/bulk", {
+      data: ids,
+    });
+    expect(del).toHaveBeenNthCalledWith(2, "/master-data/manufacturer/bulk", {
+      data: ids,
+    });
+    expect(del).toHaveBeenNthCalledWith(3, "/master-data/cpu-series/bulk", {
+      data: ids,
+    });
+    expect(del).toHaveBeenNthCalledWith(4, "/master-data/gpu-series/bulk", {
+      data: ids,
+    });
+    expect(del).toHaveBeenNthCalledWith(5, "/master-data/gpu/bulk", {
+      data: ids,
+    });
+    expect(del).toHaveBeenNthCalledWith(6, "/master-data/chipset/bulk", {
+      data: ids,
     });
   });
 

@@ -185,12 +185,12 @@ public static class ManufacturerEndpoints
     }
     
     private static async Task<Results<NoContent, NotFound>> BulkDeleteManufacturers(
-        [Validate] [FromBody] List<Guid> ids,
+        [Validate] [FromBody] BulkDeleteManufacturersCommand command,
         [FromServices] ISender sender,
         CancellationToken cancellationToken
     )
     {
-        var success = await sender.Send(new BulkDeleteManufacturersCommand(ids), cancellationToken);
+        var success = await sender.Send(command, cancellationToken);
         return success ? TypedResults.NoContent() : TypedResults.NotFound();
     }
 

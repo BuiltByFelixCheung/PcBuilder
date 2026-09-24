@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { ChangePasswordPage } from "./pages/auth/ChangePasswordPage.tsx";
 import { RequireAuth } from "./auth/RequireAuth.tsx";
 import { RequireGuest } from "./auth/RequireGuest.tsx";
-import { AppLayout } from "./components/AppLayout.tsx";
+import { AppLayout } from "./components/layout/AppLayout.tsx";
 import { AccountPage } from "./pages/auth/AccountPage.tsx";
 import { HomePage } from "./pages/HomePage.tsx";
 import { LoginPage } from "./pages/auth/LoginPage.tsx";
@@ -41,6 +41,7 @@ import { CpuSeriesListPage } from "./pages/master-data/cpu-series/CpuSeriesListP
 import { GpuSeriesListPage } from "./pages/master-data/gpu-series/GpuSeriesListPage.tsx";
 import { GpuListPage } from "./pages/master-data/gpus/GpuListPage.tsx";
 import { ManufacturerListPage } from "./pages/master-data/manufacturers/ManufacturerListPage.tsx";
+import { SocketListPage } from "./pages/master-data/sockets/SocketListPage.tsx";
 
 export default function App() {
   return (
@@ -133,6 +134,7 @@ export default function App() {
             path="master-data/manufacturers"
             element={<ManufacturerListPage />}
           />
+          <Route path="master-data/sockets" element={<SocketListPage />} />
         </Route>
       </Route>
     </Routes>

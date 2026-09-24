@@ -1,15 +1,19 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
+  deleteMultipleGpuSeries,
   listGpuSeries,
   masterDataKeys,
   type GpuSeriesOption,
+  importGpuSeries,
 } from "@/api/master-data";
-import { GpuSeriesFormDialog } from "@/pages/master-data/gpu-series/GpuSeriesFormDialog";
+import { GpuSeriesFormDialog } from "@/components/master-data/GpuSeriesFormDialog";
 import {
+  closeMasterDataEditor,
   gpuSeriesEditPath,
   newMasterDataEditValue,
-} from "@/pages/master-data/master-data-edit";
+} from "@/lib/master-data-edit";
+import { uniqueById } from "@/lib/unique-by-id";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   createColumnHelper,
@@ -18,12 +22,14 @@ import {
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useQuery } from "@tanstack/react-query";
-import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
-import { MasterDataResults } from "@/pages/catalog/catalog-results";
 import {
-  CatalogFilterActions,
-  CatalogNameField,
-} from "@/pages/catalog/catalog-filter-fields";
+  FilterActions,
+  formSelectClassName,
+  NameField,
+} from "@/components/filters/ListFilters";
+import { MasterDataResults } from "@/components/master-data/MasterDataResults";
+import { useBulkDelete } from "@/hooks/use-bulk-delete";
+import { useExcelImport } from "@/hooks/use-excel-import";
 
 const EMPTY_ITEMS: GpuSeriesOption[] = [];
 const columnHelper = createColumnHelper<
@@ -52,15 +58,6 @@ const emptyGpuSeriesFilter: GpuSeriesFilter = {};
 
 function isGpuSeriesFilterActive(filter: GpuSeriesFilter) {
   return Object.values(filter).some((value) => value !== undefined);
-}
-
-function uniqueById<T extends { id: string }>(items: T[]) {
-  const seen = new Set<string>();
-  return items.filter((item) => {
-    if (seen.has(item.id)) return false;
-    seen.add(item.id);
-    return true;
-  });
 }
 
 export function GpuSeriesListPage() {
@@ -98,6 +95,19 @@ export function GpuSeriesListPage() {
       return true;
     });
   }, [applied, items]);
+  const bulkDelete = useBulkDelete({
+    items: visibleItems,
+    rowSelection,
+    setRowSelection,
+    queryKey: masterDataKeys.gpuSeries,
+    singular: "GPU series",
+    plural: "GPU series",
+    deleteByIds: (ids) => deleteMultipleGpuSeries({ ids }),
+  });
+  const excelImport = useExcelImport({
+    queryKey: masterDataKeys.gpuSeries,
+    importFile: importGpuSeries,
+  });
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -109,12 +119,6 @@ export function GpuSeriesListPage() {
     setApplied(emptyGpuSeriesFilter);
   }
 
-  function closeEditor() {
-    const next = new URLSearchParams(searchParams);
-    next.delete("edit");
-    setSearchParams(next);
-  }
-
   return (
     <section className="catalog-page">
       <h1>GPU Series</h1>
@@ -124,7 +128,7 @@ export function GpuSeriesListPage() {
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <FieldGroup className="catalog-filter-grid">
-            <CatalogNameField
+            <NameField
               id="gpu-series-name"
               name="name"
               value={draft.name}
@@ -136,7 +140,7 @@ export function GpuSeriesListPage() {
               </FieldLabel>
               <select
                 id="gpu-series-manufacturer"
-                className={catalogSelectClassName}
+                className={formSelectClassName}
                 value={draft.manufacturerId ?? ""}
                 onChange={(event) =>
                   setDraft({ ...draft, manufacturerId: event.target.value })
@@ -151,7 +155,7 @@ export function GpuSeriesListPage() {
               </select>
             </Field>
           </FieldGroup>
-          <CatalogFilterActions onClear={clearFilters} />
+          <FilterActions onClear={clearFilters} />
         </form>
         <div className="catalog-results">
           <MasterDataResults
@@ -166,6 +170,10 @@ export function GpuSeriesListPage() {
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
+            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
+            deleting={bulkDelete.isDeleting}
+            deleteError={bulkDelete.deleteError}
+            onImport={excelImport.openImport}
             newItemTo={gpuSeriesEditPath(newMasterDataEditValue)}
             newItemLabel="New GPU Series"
           />
@@ -177,9 +185,10 @@ export function GpuSeriesListPage() {
           editingId={editingId}
           gpuSeries={items}
           gpuSeriesSettled={query.isSuccess || query.isError}
-          onClose={closeEditor}
+          onClose={() => closeMasterDataEditor(searchParams, setSearchParams)}
         />
       ) : null}
+      {excelImport.importDialog}
     </section>
   );
 }

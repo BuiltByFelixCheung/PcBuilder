@@ -3,7 +3,7 @@ import { parseApiError } from "@/api/errors.ts";
 import { PageStatus } from "@/components/PageStatus.tsx";
 import { useWiredNetworkAdapter } from "@/hooks/use-wired-network-adapters.ts";
 import { AddToBuildButton } from "@/builds";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 
 export function WiredNetworkAdapterDetailPage() {
   const { wiredNetworkAdapterId } = useParams();

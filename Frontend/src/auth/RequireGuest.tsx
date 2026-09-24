@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { PageStatus } from "../components/PageStatus.tsx";
-import { useAuth } from "./useAuth.ts";
+import { useAuth } from "./use-auth.ts";
 
 export function RequireGuest() {
   const { isReady, isAuthenticated } = useAuth();

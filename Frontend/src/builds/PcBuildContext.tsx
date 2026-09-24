@@ -5,7 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { PcBuildContext } from "./pcbuild-context.ts";
+import { PcBuildContext } from "./pc-build-context.ts";
 import {
   emptyBuildWorkspace,
   loadBuildDraft,

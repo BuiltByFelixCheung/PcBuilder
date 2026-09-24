@@ -1,9 +1,21 @@
 import { toOptionalNumber } from "@/api/helper";
 import type { RangeFilter } from "@/api/paging";
-import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
+import {
+  formSelectClassName,
+  IdSelectField,
+  FilterActions,
+  NameField,
+  SelectField,
+} from "@/components/filters/ListFilters";
+
+export {
+  FilterActions as CatalogFilterActions,
+  NameField as CatalogNameField,
+  SelectField as CatalogSelectField,
+  IdSelectField as CatalogIdSelectField,
+};
 
 export function CatalogCompatibleCheckbox({
   checked,
@@ -93,7 +105,7 @@ export function CatalogOptionalBooleanField({
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <select
         id={id}
-        className={catalogSelectClassName}
+        className={formSelectClassName}
         value={value == null ? "" : String(value)}
         onChange={(event) => {
           if (event.target.value === "true") onChange(true);
@@ -104,86 +116,6 @@ export function CatalogOptionalBooleanField({
         <option value="">Any</option>
         <option value="true">Yes</option>
         <option value="false">No</option>
-      </select>
-    </Field>
-  );
-}
-
-export function CatalogFilterActions({
-  onClear,
-}: Readonly<{ onClear: () => void }>) {
-  return (
-    <div className="catalog-filter-actions">
-      <Button type="submit">Apply filters</Button>
-      <Button type="button" variant="outline" onClick={onClear}>
-        Clear
-      </Button>
-    </div>
-  );
-}
-
-export function CatalogNameField({
-  id,
-  name,
-  value,
-  onChange,
-}: Readonly<{
-  id: string;
-  name?: string;
-  value: string | undefined;
-  onChange: (value: string) => void;
-}>) {
-  return (
-    <Field>
-      <FieldLabel htmlFor={id}>Name</FieldLabel>
-      <Input
-        id={id}
-        name={name}
-        value={value ?? ""}
-        onChange={(event) => onChange(event.target.value)}
-      />
-    </Field>
-  );
-}
-
-export type CatalogSelectOption = {
-  value: string;
-  label: string;
-};
-
-export function CatalogSelectField({
-  id,
-  label,
-  name,
-  value,
-  emptyLabel = "Any",
-  options,
-  onValueChange,
-}: Readonly<{
-  id: string;
-  label: string;
-  name?: string;
-  value: string | undefined;
-  emptyLabel?: string;
-  options: readonly CatalogSelectOption[];
-  onValueChange: (value: string) => void;
-}>) {
-  return (
-    <Field>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <select
-        id={id}
-        name={name}
-        className={catalogSelectClassName}
-        value={value ?? ""}
-        onChange={(event) => onValueChange(event.target.value)}
-      >
-        <option value="">{emptyLabel}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
       </select>
     </Field>
   );
@@ -207,7 +139,7 @@ export function CatalogEnumField<T extends string>({
   onChange: (value: T | undefined) => void;
 }>) {
   return (
-    <CatalogSelectField
+    <SelectField
       id={id}
       label={label}
       value={value}
@@ -221,35 +153,3 @@ export function CatalogEnumField<T extends string>({
   );
 }
 
-export function CatalogIdSelectField({
-  id,
-  label,
-  name,
-  value,
-  options,
-  emptyLabel = "Any",
-  onChange,
-}: Readonly<{
-  id: string;
-  label: string;
-  name?: string;
-  value: string | undefined;
-  options: readonly { id: string; name: string }[];
-  emptyLabel?: string;
-  onChange: (value: string) => void;
-}>) {
-  return (
-    <CatalogSelectField
-      id={id}
-      label={label}
-      name={name}
-      value={value}
-      emptyLabel={emptyLabel}
-      options={options.map((option) => ({
-        value: option.id,
-        label: option.name,
-      }))}
-      onValueChange={onChange}
-    />
-  );
-}

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { usePsu } from "@/hooks/use-psus.ts";
 import { AddToBuildButton } from "@/builds";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 
 export function PsuDetailPage() {
   const { psuId } = useParams();

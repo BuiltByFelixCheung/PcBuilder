@@ -1,6 +1,8 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { deleteWirelessNetworkAdapters } from "@/api/catalog/bulk-delete";
 import {
+  wirelessNetworkAdapterKeys,
   isWirelessNetworkAdapterFilterActive,
   type WirelessNetworkAdapter,
   type WirelessNetworkAdapterFilter,
@@ -8,12 +10,11 @@ import {
 import { FieldGroup } from "@/components/ui/field";
 import {
   createColumnHelper,
-  type CellContext,
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import { useWirelessNetworkAdapters } from "@/hooks/use-wireless-network-adapters.ts";
 import {
@@ -37,15 +38,19 @@ import {
 import {
   CatalogCompatibleCheckbox,
   CatalogRangeField,
-} from "@/pages/catalog/catalog-filter-fields.tsx";
-import { usePcBuild } from "@/builds/usePcBuild";
-import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
+} from "@/components/catalog/CatalogFilterFields.tsx";
+import { usePcBuild } from "@/builds/use-pc-build";
+import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { useBulkDelete } from "@/hooks/use-bulk-delete";
+import { importWirelessNetworkAdapters } from "@/api/catalog/import-excel";
+import { useExcelImport } from "@/hooks/use-excel-import";
+import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
   CatalogEnumField,
   CatalogIdSelectField,
-} from "@/pages/catalog/catalog-filter-fields";
+} from "@/components/catalog/CatalogFilterFields";
 
 const EMPTY_ITEMS: WirelessNetworkAdapter[] = [];
 const columnHelper = createColumnHelper<
@@ -74,7 +79,11 @@ export function WirelessNetworkAdapterListPage() {
         ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
         columnHelper.accessor("name", {
           header: "Name",
-          cell: nameCell,
+          cell: (info) =>
+            catalogNameCell(
+              `/catalog/wireless-network-adapters/${info.row.original.id}`,
+              info.getValue(),
+            ),
         }),
         columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
         columnHelper.accessor("wifiStandard", {
@@ -90,6 +99,19 @@ export function WirelessNetworkAdapterListPage() {
     [isAdmin],
   );
   const items = query.data?.items ?? EMPTY_ITEMS;
+  const bulkDelete = useBulkDelete({
+    items,
+    rowSelection,
+    setRowSelection,
+    queryKey: wirelessNetworkAdapterKeys.all,
+    singular: "wireless network adapter",
+    plural: "wireless network adapters",
+    deleteByIds: deleteWirelessNetworkAdapters,
+  });
+  const excelImport = useExcelImport({
+    queryKey: wirelessNetworkAdapterKeys.all,
+    importFile: importWirelessNetworkAdapters,
+  });
   const totalCount = query.data?.totalCount ?? 0;
   const pageIndex = params.pageIndex;
   const pageSize = params.pageSize;
@@ -299,6 +321,10 @@ export function WirelessNetworkAdapterListPage() {
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
+            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
+            deleting={bulkDelete.isDeleting}
+            deleteError={bulkDelete.deleteError}
+            onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
             totalCount={totalCount}
@@ -307,16 +333,7 @@ export function WirelessNetworkAdapterListPage() {
           />
         </div>
       </div>
+      {excelImport.importDialog}
     </section>
-  );
-}
-
-function nameCell(
-  info: CellContext<typeof dataTableFeatures, WirelessNetworkAdapter, string>,
-) {
-  return (
-    <Link to={`/catalog/wireless-network-adapters/${info.row.original.id}`}>
-      {info.getValue()}
-    </Link>
   );
 }

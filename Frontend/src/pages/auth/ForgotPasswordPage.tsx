@@ -6,7 +6,7 @@ import {
   forgotPasswordSchema,
   type ForgotPasswordValues,
 } from "../../auth/schemas.ts";
-import { useAuth } from "../../auth/useAuth.ts";
+import { useAuth } from "../../auth/use-auth.ts";
 import { FormTextField } from "@/components/FormTextField.tsx";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";

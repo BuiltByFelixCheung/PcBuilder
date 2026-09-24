@@ -13,7 +13,7 @@ public class BulkDeleteMotherboardsHandler(
 {
     public async Task<bool> Handle(BulkDeleteMotherboardsCommand request, CancellationToken cancellationToken)
     {
-        var ids = request.MotherboardIds.Distinct().ToList();
+        var ids = request.Ids.Distinct().ToList();
         var entities = await motherboards.GetByIdsAsync(ids, cancellationToken);
 
         if (entities.Count != ids.Count)

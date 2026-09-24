@@ -13,7 +13,7 @@ import { useCpuCooler } from "@/hooks/use-cpu-coolers.ts";
 import { formatRadiatorLength } from "@/api/enums";
 import { builderHref, usePcBuild } from "@/builds";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 
 export function CpuCoolerDetailPage() {
   const { cpuCoolerId } = useParams();

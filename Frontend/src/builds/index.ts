@@ -1,5 +1,5 @@
 export { PcBuildProvider } from "./PcBuildContext.tsx";
-export { usePcBuild } from "./usePcBuild.ts";
+export { usePcBuild } from "./use-pc-build.ts";
 export { type PcBuildPartType, PC_BUILD_PART_TYPES } from "@/api/builds.ts";
 export type { PcBuildDraft } from "@/api/builds.ts";
 export {

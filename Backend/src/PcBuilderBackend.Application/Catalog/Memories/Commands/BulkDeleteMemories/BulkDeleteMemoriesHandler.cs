@@ -7,7 +7,7 @@ public class BulkDeleteMemoriesHandler(IRamRepository memories, IUnitOfWork unit
 {
     public async Task<bool> Handle(BulkDeleteMemoriesCommand request, CancellationToken cancellationToken)
     {
-        var ids = request.MemoryIds.Distinct().ToList();
+        var ids = request.Ids.Distinct().ToList();
         var entities = await memories.GetByIdsAsync(ids, cancellationToken);
 
         if (entities.Count != ids.Count)

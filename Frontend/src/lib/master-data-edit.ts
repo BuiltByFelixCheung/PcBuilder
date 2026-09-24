@@ -1,6 +1,16 @@
+import type { SetURLSearchParams } from "react-router-dom";
 import type { SocketOption } from "@/api/master-data";
 
 export const newMasterDataEditValue = "new";
+
+export function closeMasterDataEditor(
+  searchParams: URLSearchParams,
+  setSearchParams: SetURLSearchParams,
+) {
+  const next = new URLSearchParams(searchParams);
+  next.delete("edit");
+  setSearchParams(next, { replace: true });
+}
 
 export function clearSocketFromAnotherManufacturer(
   manufacturerId: string,

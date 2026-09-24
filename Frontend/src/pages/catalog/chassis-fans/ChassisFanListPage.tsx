@@ -1,6 +1,8 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { deleteChassisFans } from "@/api/catalog/bulk-delete";
 import {
+  chassisFanKeys,
   isChassisFanFilterActive,
   type ChassisFan,
   type ChassisFanFilter,
@@ -9,7 +11,6 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   createColumnHelper,
-  type CellContext,
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
@@ -23,16 +24,20 @@ import {
 } from "@/api/catalog/params/chassis-fan-list-params";
 import { toInteger } from "@/api/helper";
 import { FAN_DIAMETERS_MM, formatFanDiameterMm } from "@/api/enums";
-import { CatalogCompatibleCheckbox } from "@/pages/catalog/catalog-filter-fields.tsx";
-import { usePcBuild } from "@/builds/usePcBuild";
-import { useAuth } from "@/auth/useAuth";
-import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
+import { CatalogCompatibleCheckbox } from "@/components/catalog/CatalogFilterFields.tsx";
+import { usePcBuild } from "@/builds/use-pc-build";
+import { useAuth } from "@/auth/use-auth";
+import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { useBulkDelete } from "@/hooks/use-bulk-delete";
+import { importChassisFans } from "@/api/catalog/import-excel";
+import { useExcelImport } from "@/hooks/use-excel-import";
+import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
   CatalogEnumField,
   CatalogIdSelectField,
-} from "@/pages/catalog/catalog-filter-fields";
+} from "@/components/catalog/CatalogFilterFields";
 
 const EMPTY_ITEMS: ChassisFan[] = [];
 const columnHelper = createColumnHelper<typeof dataTableFeatures, ChassisFan>();
@@ -48,6 +53,19 @@ export function ChassisFanListPage() {
   const query = useChassisFans(params);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const items = query.data?.items ?? EMPTY_ITEMS;
+  const bulkDelete = useBulkDelete({
+    items,
+    rowSelection,
+    setRowSelection,
+    queryKey: chassisFanKeys.all,
+    singular: "chassis fan",
+    plural: "chassis fans",
+    deleteByIds: deleteChassisFans,
+  });
+  const excelImport = useExcelImport({
+    queryKey: chassisFanKeys.all,
+    importFile: importChassisFans,
+  });
   const totalCount = query.data?.totalCount ?? 0;
   const pageIndex = params.pageIndex;
   const pageSize = params.pageSize;
@@ -66,7 +84,11 @@ export function ChassisFanListPage() {
         ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
         columnHelper.accessor("name", {
           header: "Name",
-          cell: nameCell,
+          cell: (info) =>
+            catalogNameCell(
+              `/catalog/chassis-fans/${info.row.original.id}`,
+              info.getValue(),
+            ),
         }),
         columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
         columnHelper.accessor("diameterMm", {
@@ -197,6 +219,10 @@ export function ChassisFanListPage() {
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
+            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
+            deleting={bulkDelete.isDeleting}
+            deleteError={bulkDelete.deleteError}
+            onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
             totalCount={totalCount}
@@ -205,16 +231,7 @@ export function ChassisFanListPage() {
           />
         </div>
       </div>
+      {excelImport.importDialog}
     </section>
-  );
-}
-
-function nameCell(
-  info: CellContext<typeof dataTableFeatures, ChassisFan, string>,
-) {
-  return (
-    <Link to={`/catalog/chassis-fans/${info.row.original.id}`}>
-      {info.getValue()}
-    </Link>
   );
 }

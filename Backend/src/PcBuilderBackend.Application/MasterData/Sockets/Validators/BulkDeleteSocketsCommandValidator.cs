@@ -7,6 +7,6 @@ public class BulkDeleteSocketsCommandValidator: AbstractValidator<BulkDeleteSock
 {
     public BulkDeleteSocketsCommandValidator()
     {
-        RuleFor(x => x.SocketIds).NotEmpty().WithMessage("SocketIds list cannot be empty.");
+        RuleFor(x => x.Ids).NotEmpty().WithMessage("SocketIds list cannot be empty.");
     }
 }

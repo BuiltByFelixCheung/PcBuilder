@@ -16,14 +16,14 @@ public class BulkDeleteSocketsHandler(
 {
     public async Task<bool> Handle(BulkDeleteSocketsCommand request, CancellationToken cancellationToken)
     {
-        var entities = await sockets.GetByIdsAsync(request.SocketIds, cancellationToken);
+        var entities = await sockets.GetByIdsAsync(request.Ids, cancellationToken);
 
-        if (entities.Count != request.SocketIds.Count) return false;
+        if (entities.Count != request.Ids.Count) return false;
 
         foreach (var socket in entities) socket.Deactivate();
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        EntityLog.BulkDeleted(logger, request.SocketIds.Count, EntityLog.Socket);
+        EntityLog.BulkDeleted(logger, request.Ids.Count, EntityLog.Socket);
         await cache.RemoveByPrefixAsync(MasterDataCacheKeys.Sockets.Prefix, cancellationToken);
         return true;
     }

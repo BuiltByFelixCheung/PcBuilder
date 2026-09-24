@@ -1,9 +1,11 @@
-import { screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CpuListItem } from "@/api/catalog/cpus.ts";
 
 const listCpus = vi.fn();
+const deleteCpus = vi.fn();
+const importCpus = vi.fn();
 const listManufacturersByProductType = vi.fn();
 const listSockets = vi.fn();
 const listCpuSeries = vi.fn();
@@ -15,6 +17,14 @@ vi.mock("@/api/catalog/cpus", async () => {
     );
   return { ...actual, listCpus: (...args: unknown[]) => listCpus(...args) };
 });
+
+vi.mock("@/api/catalog/bulk-delete", () => ({
+  deleteCpus: (...args: unknown[]) => deleteCpus(...args),
+}));
+
+vi.mock("@/api/catalog/import-excel", () => ({
+  importCpus: (...args: unknown[]) => importCpus(...args),
+}));
 
 vi.mock("@/api/master-data.ts", async () => {
   const actual = await vi.importActual<typeof import("@/api/master-data.ts")>(
@@ -51,6 +61,9 @@ const cpu: CpuListItem = {
 describe("CpuListPage", () => {
   beforeEach(() => {
     listCpus.mockReset();
+    deleteCpus.mockReset().mockResolvedValue(undefined);
+    importCpus.mockReset().mockResolvedValue(undefined);
+    vi.spyOn(window, "confirm").mockReturnValue(true);
     listManufacturersByProductType
       .mockReset()
       .mockResolvedValue([{ id: "amd", name: "AMD" }]);
@@ -262,5 +275,68 @@ describe("CpuListPage", () => {
         filter: expect.objectContaining({ motherboardId: expect.anything() }),
       }),
     );
+  });
+
+  it("deletes the selected CPU", async () => {
+    listCpus.mockResolvedValue({
+      items: [cpu],
+      totalCount: 1,
+      pageIndex: 0,
+      pageSize: 10,
+    });
+    const user = userEvent.setup();
+    renderWithQuery(<CpuListPage />, { route: "/catalog/cpus", isAdmin: true });
+
+    const row = await screen.findByRole("row", { name: /Ryzen 7 7800X3D/ });
+    await user.click(within(row).getByRole("checkbox"));
+    await user.click(screen.getByRole("button", { name: "Delete Selected" }));
+
+    await waitFor(() => {
+      expect(deleteCpus).toHaveBeenCalledWith(["cpu-1"]);
+    });
+    expect(window.confirm).toHaveBeenCalledWith("Delete 1 CPU?");
+  });
+
+  it("imports an Excel workbook", async () => {
+    listCpus.mockResolvedValue({
+      items: [cpu],
+      totalCount: 1,
+      pageIndex: 0,
+      pageSize: 10,
+    });
+    const user = userEvent.setup();
+    renderWithQuery(<CpuListPage />, { route: "/catalog/cpus", isAdmin: true });
+
+    await user.click(await screen.findByRole("button", { name: "Import" }));
+    const dialog = await screen.findByRole("dialog", { name: "Import from Excel" });
+    const file = new File(["sheet"], "cpus.xlsx");
+    await user.upload(within(dialog).getByLabelText("Excel file"), file);
+    await user.click(within(dialog).getByRole("button", { name: "Import" }));
+
+    await waitFor(() => {
+      expect(importCpus).toHaveBeenCalledWith(file);
+    });
+  });
+
+  it("rejects a file that is not an Excel workbook", async () => {
+    listCpus.mockResolvedValue({
+      items: [cpu],
+      totalCount: 1,
+      pageIndex: 0,
+      pageSize: 10,
+    });
+    const user = userEvent.setup();
+    renderWithQuery(<CpuListPage />, { route: "/catalog/cpus", isAdmin: true });
+
+    await user.click(await screen.findByRole("button", { name: "Import" }));
+    const dialog = await screen.findByRole("dialog", { name: "Import from Excel" });
+    fireEvent.change(within(dialog).getByLabelText("Excel file"), {
+      target: { files: [new File(["notes"], "cpus.csv", { type: "text/csv" })] },
+    });
+
+    expect(within(dialog).getByRole("alert")).toHaveTextContent(
+      "Choose an .xls or .xlsx file.",
+    );
+    expect(importCpus).not.toHaveBeenCalled();
   });
 });

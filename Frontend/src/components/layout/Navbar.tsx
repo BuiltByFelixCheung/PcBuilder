@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu-trigger-style";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 
 export function Navbar() {
   const { isAdmin } = useAuth();
@@ -21,7 +21,6 @@ export function Navbar() {
     { name: "Graphics Cards", href: "/catalog/graphics-cards" },
     { name: "PSUs", href: "/catalog/psus" },
     { name: "Storage", href: "/catalog/storage" },
-    { name: "Storage Drives", href: "/catalog/storage-drives" },
     { name: "Chassis Fans", href: "/catalog/chassis-fans" },
     { name: "Wired Network Adapters", href: "/catalog/wired-network-adapters" },
     {

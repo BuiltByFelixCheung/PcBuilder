@@ -1,16 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   listChipsets,
-  listManufacturersByProductType,
   listSockets,
   masterDataKeys,
 } from "@/api/master-data.ts";
+import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 
 export function useMotherboardFilterOptions() {
-  const manufacturers = useQuery({
-    queryKey: masterDataKeys.manufacturersByProductType("motherboard"),
-    queryFn: () => listManufacturersByProductType("motherboard"),
-  });
+  const manufacturers = useCatalogManufacturers("motherboard");
   const sockets = useQuery({
     queryKey: masterDataKeys.sockets,
     queryFn: listSockets,
@@ -21,7 +18,7 @@ export function useMotherboardFilterOptions() {
   });
 
   return {
-    manufacturers: manufacturers.data ?? [],
+    manufacturers,
     sockets: sockets.data ?? [],
     chipsets: chipsets.data ?? [],
   };

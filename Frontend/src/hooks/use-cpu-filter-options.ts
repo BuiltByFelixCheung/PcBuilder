@@ -1,16 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   listCpuSeries,
-  listManufacturersByProductType,
   listSockets,
   masterDataKeys,
 } from "@/api/master-data.ts";
+import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 
 export function useCpuFilterOptions() {
-  const manufacturers = useQuery({
-    queryKey: masterDataKeys.manufacturersByProductType("cpu"),
-    queryFn: () => listManufacturersByProductType("cpu"),
-  });
+  const manufacturers = useCatalogManufacturers("cpu");
   const sockets = useQuery({
     queryKey: masterDataKeys.sockets,
     queryFn: listSockets,
@@ -21,7 +18,7 @@ export function useCpuFilterOptions() {
   });
 
   return {
-    manufacturers: manufacturers.data ?? [],
+    manufacturers,
     sockets: sockets.data ?? [],
     series: series.data ?? [],
   };

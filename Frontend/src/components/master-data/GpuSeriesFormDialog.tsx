@@ -5,6 +5,7 @@ import { z } from "zod";
 import { parseApiError } from "@/api/errors.ts";
 import {
   createGpuSeries,
+  deleteGpuSeries,
   listManufacturersByProductType,
   masterDataKeys,
   updateGpuSeries,
@@ -26,8 +27,9 @@ import {
   applyApiFieldErrors,
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
-import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
-import { newMasterDataEditValue } from "@/pages/master-data/master-data-edit";
+import { formSelectClassName } from "@/components/filters/ListFilters";
+import { newMasterDataEditValue } from "@/lib/master-data-edit";
+import { useState } from "react";
 
 const gpuSeriesFormSchema = z.object({
   name: z
@@ -163,6 +165,7 @@ function GpuSeriesFields({
       manufacturerId: gpuSeries?.manufacturerId ?? "",
     },
   });
+  const [isDeleting, setIsDeleting] = useState(false);
   const {
     register,
     handleSubmit,
@@ -193,6 +196,21 @@ function GpuSeriesFields({
     }
   }
 
+  async function onDelete() {
+    if (!gpuSeries || !window.confirm(`Delete ${gpuSeries.name}?`)) return;
+    setIsDeleting(true);
+    try {
+      await deleteGpuSeries(gpuSeries.id);
+      await queryClient.invalidateQueries({
+        queryKey: masterDataKeys.gpuSeries,
+      });
+      onClose();
+    } catch (error) {
+      applyApiFormError(setError, parseApiError(error));
+      setIsDeleting(false);
+    }
+  }
+
   return (
     <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
       <DialogHeader>
@@ -219,7 +237,7 @@ function GpuSeriesFields({
           </FieldLabel>
           <select
             id="gpu-series-edit-manufacturer"
-            className={catalogSelectClassName}
+            className={formSelectClassName}
             aria-invalid={errors.manufacturerId ? true : undefined}
             {...manufacturerRegistration}
             onChange={(event) => {
@@ -236,6 +254,17 @@ function GpuSeriesFields({
         </Field>
       </FieldGroup>
       <DialogFooter>
+        {gpuSeries ? (
+          <Button
+            type="button"
+            variant="destructive"
+            className="sm:mr-auto"
+            onClick={() => void onDelete()}
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Deleting…" : "Delete"}
+          </Button>
+        ) : null}
         <Button
           type="button"
           variant="outline"

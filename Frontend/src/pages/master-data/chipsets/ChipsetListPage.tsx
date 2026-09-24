@@ -1,15 +1,19 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
+  deleteChipsets,
   listChipsets,
   masterDataKeys,
   type ChipsetOption,
+  importChipsets,
 } from "@/api/master-data";
-import { ChipsetFormDialog } from "@/pages/master-data/chipsets/ChipsetFormDialog";
+import { ChipsetFormDialog } from "@/components/master-data/ChipsetFormDialog";
 import {
   chipsetEditPath,
+  closeMasterDataEditor,
   newMasterDataEditValue,
-} from "@/pages/master-data/master-data-edit";
+} from "@/lib/master-data-edit";
+import { uniqueById } from "@/lib/unique-by-id";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   createColumnHelper,
@@ -18,13 +22,15 @@ import {
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useQuery } from "@tanstack/react-query";
-import { catalogSelectClassName } from "@/pages/catalog/catalog-ui.ts";
-import { MasterDataResults } from "@/pages/catalog/catalog-results";
 import {
-  CatalogFilterActions,
-  CatalogNameField,
-  CatalogIdSelectField,
-} from "@/pages/catalog/catalog-filter-fields";
+  FilterActions,
+  formSelectClassName,
+  IdSelectField,
+  NameField,
+} from "@/components/filters/ListFilters";
+import { MasterDataResults } from "@/components/master-data/MasterDataResults";
+import { useBulkDelete } from "@/hooks/use-bulk-delete";
+import { useExcelImport } from "@/hooks/use-excel-import";
 
 const EMPTY_ITEMS: ChipsetOption[] = [];
 const columnHelper = createColumnHelper<
@@ -53,15 +59,6 @@ const emptyChipsetFilter: ChipsetFilter = {};
 
 function isChipsetFilterActive(filter: ChipsetFilter) {
   return Boolean(filter.name || filter.manufacturerId || filter.socketId);
-}
-
-function uniqueById<T extends { id: string }>(items: T[]) {
-  const seen = new Set<string>();
-  return items.filter((item) => {
-    if (seen.has(item.id)) return false;
-    seen.add(item.id);
-    return true;
-  });
 }
 
 export function ChipsetListPage() {
@@ -113,6 +110,19 @@ export function ChipsetListPage() {
       return true;
     });
   }, [applied, items]);
+  const bulkDelete = useBulkDelete({
+    items: visibleItems,
+    rowSelection,
+    setRowSelection,
+    queryKey: masterDataKeys.chipsets,
+    singular: "chipset",
+    plural: "chipsets",
+    deleteByIds: (ids) => deleteChipsets({ ids }),
+  });
+  const excelImport = useExcelImport({
+    queryKey: masterDataKeys.chipsets,
+    importFile: importChipsets,
+  });
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -124,12 +134,6 @@ export function ChipsetListPage() {
     setApplied(emptyChipsetFilter);
   }
 
-  function closeEditor() {
-    const next = new URLSearchParams(searchParams);
-    next.delete("edit");
-    setSearchParams(next, { replace: true });
-  }
-
   return (
     <section className="catalog-page">
       <h1>Chipsets</h1>
@@ -139,7 +143,7 @@ export function ChipsetListPage() {
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <FieldGroup className="catalog-filter-grid">
-            <CatalogNameField
+            <NameField
               id="chipset-name"
               value={draft.name}
               onChange={(name) => setDraft((current) => ({ ...current, name }))}
@@ -150,7 +154,7 @@ export function ChipsetListPage() {
               </FieldLabel>
               <select
                 id="chipset-manufacturer"
-                className={catalogSelectClassName}
+                className={formSelectClassName}
                 value={draft.manufacturerId ?? ""}
                 onChange={(event) =>
                   setDraft((current) => ({
@@ -168,7 +172,7 @@ export function ChipsetListPage() {
                 ))}
               </select>
             </Field>
-            <CatalogIdSelectField
+            <IdSelectField
               id="chipset-socket"
               label="Socket"
               value={draft.socketId}
@@ -181,7 +185,7 @@ export function ChipsetListPage() {
               }
             />
           </FieldGroup>
-          <CatalogFilterActions onClear={clearFilters} />
+          <FilterActions onClear={clearFilters} />
         </form>
         <div className="catalog-results">
           <MasterDataResults
@@ -196,6 +200,10 @@ export function ChipsetListPage() {
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
+            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
+            deleting={bulkDelete.isDeleting}
+            deleteError={bulkDelete.deleteError}
+            onImport={excelImport.openImport}
             newItemTo={chipsetEditPath(newMasterDataEditValue)}
             newItemLabel="New Chipset"
           />
@@ -207,9 +215,10 @@ export function ChipsetListPage() {
           editingId={editingId}
           chipsets={items}
           chipsetsSettled={query.isSuccess || query.isError}
-          onClose={closeEditor}
+          onClose={() => closeMasterDataEditor(searchParams, setSearchParams)}
         />
       ) : null}
+      {excelImport.importDialog}
     </section>
   );
 }

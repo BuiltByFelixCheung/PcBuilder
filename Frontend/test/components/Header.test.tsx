@@ -4,9 +4,9 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import type { CurrentUser } from "@/auth/types.ts";
 import { testUser } from "../helpers/auth.ts";
-import { Header } from "@/components/header";
-import { AppHeader } from "@/components/AppHeader.tsx";
-import { AppLayout } from "@/components/AppLayout.tsx";
+import { Header } from "@/components/layout/header";
+import { AppHeader } from "@/components/layout/AppHeader.tsx";
+import { AppLayout } from "@/components/layout/AppLayout.tsx";
 import { PageStatus } from "@/components/PageStatus.tsx";
 import { HomePage } from "@/pages/HomePage.tsx";
 
@@ -26,7 +26,7 @@ const auth: {
   logout: vi.fn().mockResolvedValue(undefined),
 };
 
-vi.mock("@/auth/useAuth.ts", () => ({
+vi.mock("@/auth/use-auth.ts", () => ({
   useAuth: () => auth,
 }));
 

@@ -1,6 +1,8 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { deleteWiredNetworkAdapters } from "@/api/catalog/bulk-delete";
 import {
+  wiredNetworkAdapterKeys,
   isWiredNetworkAdapterFilterActive,
   type WiredNetworkAdapter,
   type WiredNetworkAdapterFilter,
@@ -8,12 +10,11 @@ import {
 import { FieldGroup } from "@/components/ui/field";
 import {
   createColumnHelper,
-  type CellContext,
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
-import { useAuth } from "@/auth/useAuth";
+import { useAuth } from "@/auth/use-auth";
 import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import { useWiredNetworkAdapters } from "@/hooks/use-wired-network-adapters.ts";
 import {
@@ -27,16 +28,20 @@ import {
   USB_VERSIONS,
   WIRED_HOST_INTERFACES,
 } from "@/api/enums";
-import { CatalogCompatibleCheckbox } from "@/pages/catalog/catalog-filter-fields.tsx";
-import { usePcBuild } from "@/builds/usePcBuild";
-import { CatalogPagedResults } from "@/pages/catalog/catalog-results";
+import { CatalogCompatibleCheckbox } from "@/components/catalog/CatalogFilterFields.tsx";
+import { usePcBuild } from "@/builds/use-pc-build";
+import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { useBulkDelete } from "@/hooks/use-bulk-delete";
+import { importWiredNetworkAdapters } from "@/api/catalog/import-excel";
+import { useExcelImport } from "@/hooks/use-excel-import";
+import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
   CatalogEnumField,
   CatalogIdSelectField,
   CatalogRangeField,
-} from "@/pages/catalog/catalog-filter-fields";
+} from "@/components/catalog/CatalogFilterFields";
 
 const EMPTY_ITEMS: WiredNetworkAdapter[] = [];
 const columnHelper = createColumnHelper<
@@ -65,7 +70,11 @@ export function WiredNetworkAdapterListPage() {
         ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
         columnHelper.accessor("name", {
           header: "Name",
-          cell: nameCell,
+          cell: (info) =>
+            catalogNameCell(
+              `/catalog/wired-network-adapters/${info.row.original.id}`,
+              info.getValue(),
+            ),
         }),
         columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
         columnHelper.accessor("hostInterface", { header: "Interface" }),
@@ -77,6 +86,19 @@ export function WiredNetworkAdapterListPage() {
     [isAdmin],
   );
   const items = query.data?.items ?? EMPTY_ITEMS;
+  const bulkDelete = useBulkDelete({
+    items,
+    rowSelection,
+    setRowSelection,
+    queryKey: wiredNetworkAdapterKeys.all,
+    singular: "wired network adapter",
+    plural: "wired network adapters",
+    deleteByIds: deleteWiredNetworkAdapters,
+  });
+  const excelImport = useExcelImport({
+    queryKey: wiredNetworkAdapterKeys.all,
+    importFile: importWiredNetworkAdapters,
+  });
   const totalCount = query.data?.totalCount ?? 0;
   const pageIndex = params.pageIndex;
   const pageSize = params.pageSize;
@@ -231,6 +253,10 @@ export function WiredNetworkAdapterListPage() {
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
+            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
+            deleting={bulkDelete.isDeleting}
+            deleteError={bulkDelete.deleteError}
+            onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
             totalCount={totalCount}
@@ -239,16 +265,7 @@ export function WiredNetworkAdapterListPage() {
           />
         </div>
       </div>
+      {excelImport.importDialog}
     </section>
-  );
-}
-
-function nameCell(
-  info: CellContext<typeof dataTableFeatures, WiredNetworkAdapter, string>,
-) {
-  return (
-    <Link to={`/catalog/wired-network-adapters/${info.row.original.id}`}>
-      {info.getValue()}
-    </Link>
   );
 }

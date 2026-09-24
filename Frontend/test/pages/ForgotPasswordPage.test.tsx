@@ -5,7 +5,7 @@ import { authValue } from "../helpers/auth.ts";
 
 const auth = authValue();
 
-vi.mock("@/auth/useAuth.ts", () => ({
+vi.mock("@/auth/use-auth.ts", () => ({
   useAuth: () => auth,
 }));
 
