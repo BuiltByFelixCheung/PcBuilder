@@ -2,20 +2,14 @@ import { toOptionalNumber } from "@/api/helper";
 import type { RangeFilter } from "@/api/paging";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  formSelectClassName,
-  IdSelectField,
-  FilterActions,
-  NameField,
-  SelectField,
-} from "@/components/filters/ListFilters";
+import { formSelectClassName, SelectField } from "@/components/filters/ListFilters";
 
 export {
   FilterActions as CatalogFilterActions,
   NameField as CatalogNameField,
   SelectField as CatalogSelectField,
   IdSelectField as CatalogIdSelectField,
-};
+} from "@/components/filters/ListFilters";
 
 export function CatalogCompatibleCheckbox({
   checked,

@@ -5,16 +5,7 @@ import { toInteger, toOptionalNumber } from "@/api/helper";
 
 type Named = { id: string; name: string };
 type IdOption = { id: string; name: string };
-
-type StringKey<T> = {
-  [K in keyof T]-?: NonNullable<T[K]> extends string ? K : never;
-}[keyof T];
-
-type NumberKey<T> = {
-  [K in keyof T]-?: NonNullable<T[K]> extends number ? K : never;
-}[keyof T];
-
-type ValueKey<T> = StringKey<T> | NumberKey<T>;
+type FieldKey<T> = keyof T & string;
 
 export function nameBulkColumn<T extends Named>(): BulkEditColumn<T> {
   return {
@@ -31,7 +22,7 @@ export function nameBulkColumn<T extends Named>(): BulkEditColumn<T> {
 
 export function idSelectBulkColumn<T extends Named>(
   header: string,
-  field: StringKey<T>,
+  field: FieldKey<T>,
   options: readonly IdOption[],
   blankLabel?: string,
 ): BulkEditColumn<T> {
@@ -68,7 +59,7 @@ export function enumSelectBulkColumn<
   V extends string | number,
 >(
   header: string,
-  field: ValueKey<T>,
+  field: FieldKey<T>,
   values: readonly V[],
   options?: EnumSelectOptions<V>,
 ): BulkEditColumn<T> {
@@ -113,7 +104,7 @@ type NumberColumnOptions = {
 
 export function numberBulkColumn<T extends Named>(
   header: string,
-  field: NumberKey<T>,
+  field: FieldKey<T>,
   options: NumberColumnOptions,
 ): BulkEditColumn<T> {
   const label = options.label ?? header;
@@ -142,7 +133,7 @@ export function numberBulkColumn<T extends Named>(
 
 export function optionalNumberColumn<T extends Named>(
   header: string,
-  field: NumberKey<T>,
+  field: FieldKey<T>,
 ) {
   return numberBulkColumn(header, field, {
     parse: toOptionalNumber,
@@ -162,7 +153,7 @@ type IntegerColumnOptions = {
 
 export function integerColumn<T extends Named>(
   header: string,
-  field: NumberKey<T>,
+  field: FieldKey<T>,
   options?: IntegerColumnOptions,
 ) {
   return numberBulkColumn(header, field, {
