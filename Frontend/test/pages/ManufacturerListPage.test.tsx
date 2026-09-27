@@ -204,6 +204,11 @@ describe("ManufacturerListPage", () => {
       expect(deleteManufacturers).toHaveBeenCalledWith({ ids: ["amd", "intel"] });
     });
     expect(window.confirm).toHaveBeenCalledWith("Delete 2 manufacturers?");
+    const fresh = await screen.findAllByRole("checkbox");
+    expect({
+      same: checkboxes[1] === fresh[1],
+      connected: checkboxes[1].isConnected,
+    }).toEqual({ same: true, connected: true });
 
     deleteManufacturers.mockRejectedValueOnce(new Error("nope"));
     await user.click(checkboxes[1]);
