@@ -164,3 +164,7 @@ function toChassisFilterBody(filter: ChassisFilter): ChassisFilter {
     maxSupportedMbFormFactor: filter.maxSupportedMbFormFactor,
   };
 }
+
+export function updateMultipleChassis(chassis: ChassisListItem[]) {
+  return api.put("/catalog/chassis/bulk", { items: chassis });
+}

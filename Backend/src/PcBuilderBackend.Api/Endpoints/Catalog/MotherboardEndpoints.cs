@@ -7,6 +7,7 @@ using PcBuilderBackend.Application.Catalog.Motherboards.Commands.BulkUpdateMothe
 using PcBuilderBackend.Application.Catalog.Motherboards.Commands.BulkUpdateMotherboardPcieSlots;
 using PcBuilderBackend.Application.Catalog.Motherboards.Commands.BulkUpdateMotherboardUsbPorts;
 using PcBuilderBackend.Application.Catalog.Motherboards.Commands.BulkDeleteMotherboards;
+using PcBuilderBackend.Application.Catalog.Motherboards.Commands.BulkUpdateMotherboards;
 using PcBuilderBackend.Application.Catalog.Motherboards.Commands.CreateMotherboard;
 using PcBuilderBackend.Application.Catalog.Motherboards.Commands.DeleteMotherboard;
 using PcBuilderBackend.Application.Catalog.Motherboards.Commands.ImportMotherboards;
@@ -70,6 +71,13 @@ public static class MotherboardEndpoints
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Delete multiple Motherboards")
             .WithDescription("\n    DELETE /catalog/motherboard/bulk");
+
+        subgroup.MapPut("/bulk", BulkUpdateMotherboards)
+            .Produces<List<MotherboardDto>>()
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status500InternalServerError)
+            .WithSummary("Update multiple Motherboards")
+            .WithDescription("\n    PUT /catalog/motherboard/bulk");
 
         subgroup.MapPost("/import", ImportMotherboards)
             .Produces<List<MotherboardDto>>()
@@ -267,6 +275,15 @@ public static class MotherboardEndpoints
             new BulkUpdateMotherboardUsbPortsCommand(motherboardId, usbPorts),
             cancellationToken);
 
+        return result is null ? TypedResults.NotFound() : TypedResults.Ok(result);
+    }
+
+    private static async Task<Results<Ok<List<MotherboardDto>>, NotFound>> BulkUpdateMotherboards(
+        [FromBody] BulkUpdateMotherboardsCommand command,
+        [FromServices] ISender sender,
+        CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(command, cancellationToken);
         return result is null ? TypedResults.NotFound() : TypedResults.Ok(result);
     }
 }

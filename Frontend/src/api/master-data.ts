@@ -253,6 +253,36 @@ export function updateSockets(sockets: SocketOption[]) {
     .then((response) => response.data);
 }
 
+export function updateChipsets(chipsets: ChipsetOption[]) {
+  return api
+    .put<ChipsetOption[]>("/master-data/chipset/bulk", { chipsets })
+    .then((response) => response.data);
+}
+
+export function updateManufacturers(manufacturers: NamedMasterData[]) {
+  return api
+    .put<NamedMasterData[]>("/master-data/manufacturer/bulk", { manufacturers })
+    .then((response) => response.data);
+}
+
+export function updateMultipleCpuSeries(cpuSeries: CpuSeriesOption[]) {
+  return api
+    .put<CpuSeriesOption[]>("/master-data/cpu-series/bulk", { cpuSeries })
+    .then((response) => response.data);
+  }
+
+export function updateMultipleGpuSeries(gpuSeries: GpuSeriesOption[]) {
+  return api
+    .put<GpuSeriesOption[]>("/master-data/gpu-series/bulk", { gpuSeries })
+    .then((response) => response.data);
+}
+
+export function updateGpus(gpus: GpuOption[]) {
+  return api
+    .put<GpuOption[]>("/master-data/gpu/bulk", { gpus })
+    .then((response) => response.data);
+}
+
 export function deleteManufacturers(body: BulkDeleteWrite) {
   return api.delete(`/master-data/manufacturer/bulk`, { data: body });
 }

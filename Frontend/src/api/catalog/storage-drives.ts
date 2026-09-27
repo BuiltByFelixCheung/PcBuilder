@@ -121,3 +121,9 @@ function toStorageDriveFilterBody(
     chassisId: filter.chassisId,
   };
 }
+
+export function updateStorageDrives(storageDrives: StorageDrive[]) {
+  return api
+    .put("/catalog/storage-drive/bulk", { drives: storageDrives })
+    .then((response) => response.data);
+}

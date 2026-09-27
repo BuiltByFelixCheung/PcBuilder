@@ -108,3 +108,9 @@ export function getWiredNetworkAdapterById(id: string) {
     .get<WiredNetworkAdapter>(`/catalog/wired-network-adapter/${id}`)
     .then((response) => response.data);
 }
+
+export function updateWiredNetworkAdapters(wiredNetworkAdapters: WiredNetworkAdapter[]) {
+  return api
+    .put("/catalog/wired-network-adapter/bulk", { adapters: wiredNetworkAdapters })
+    .then((response) => response.data);
+}

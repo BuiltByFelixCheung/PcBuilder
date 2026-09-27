@@ -142,3 +142,9 @@ export function getWirelessNetworkAdapterById(id: string) {
     .get<WirelessNetworkAdapter>(`/catalog/wireless-network-adapter/${id}`)
     .then((response) => response.data);
 }
+
+export function updateWirelessNetworkAdapters(wirelessNetworkAdapters: WirelessNetworkAdapter[]) {
+  return api
+    .put("/catalog/wireless-network-adapter/bulk", { adapters: wirelessNetworkAdapters })
+    .then((response) => response.data);
+}

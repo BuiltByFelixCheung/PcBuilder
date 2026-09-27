@@ -4,6 +4,7 @@ import { deleteCpus } from "@/api/catalog/bulk-delete";
 import {
   cpuKeys,
   isCpuFilterActive,
+  updateCpus,
   type CpuFilter,
   type CpuListItem,
 } from "@/api/catalog/cpus";
@@ -35,6 +36,14 @@ import {
   CatalogIdSelectField,
   CatalogRangeField,
 } from "@/components/catalog/CatalogFilterFields";
+import {
+  BulkEditDialog,
+  type BulkEditColumn,
+} from "@/components/BulkEditDialog";
+import { useQueryClient } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toInteger } from "@/api/helper";
 
 const EMPTY_ITEMS: CpuListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -44,7 +53,139 @@ const columnHelper = createColumnHelper<
 const selectClassName =
   "h-10 w-full min-w-0 rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
+function cpuEditColumns(
+  manufacturers: { id: string; name: string }[],
+  series: { id: string; name: string }[],
+  sockets: { id: string; name: string }[],
+): BulkEditColumn<CpuListItem>[] {
+  return [
+    {
+      header: "Name",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Name for ${row.name}`}
+          value={row.name}
+          onChange={(event) => update({ ...row, name: event.target.value })}
+        />
+      ),
+    },
+    {
+      header: "Manufacturer",
+      cell: (row, update) => (
+        <select
+          aria-label={`Manufacturer for ${row.name}`}
+          className={selectClassName}
+          value={row.manufacturerId}
+          onChange={(event) =>
+            update({ ...row, manufacturerId: event.target.value })
+          }
+        >
+          {manufacturers.map((manufacturer) => (
+            <option key={manufacturer.id} value={manufacturer.id}>
+              {manufacturer.name}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "Series",
+      cell: (row, update) => (
+        <select
+          aria-label={`Series for ${row.name}`}
+          className={selectClassName}
+          value={row.seriesId}
+          onChange={(event) => update({ ...row, seriesId: event.target.value })}
+        >
+          {series.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "Socket",
+      cell: (row, update) => (
+        <select
+          aria-label={`Socket for ${row.name}`}
+          className={selectClassName}
+          value={row.socketId}
+          onChange={(event) => update({ ...row, socketId: event.target.value })}
+        >
+          {sockets.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "TDP (W)",
+      cell: (row, update) => (
+        <Input
+          aria-label={`TDP for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.thermalDesignPower.toString()}
+          onChange={(event) =>
+            update({
+              ...row,
+              thermalDesignPower: toInteger(event.target.value) ?? 0,
+            })
+          }
+        />
+      ),
+    },
+    {
+      header: "Power Consumption (W)",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Power for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.powerConsumptionWatts.toString()}
+          onChange={(event) =>
+            update({
+              ...row,
+              powerConsumptionWatts: toInteger(event.target.value) ?? 0,
+            })
+          }
+        />
+      ),
+    },
+    {
+      header: "Max RAM (GB)",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Max RAM for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.maxMemoryGb.toString()}
+          onChange={(event) =>
+            update({ ...row, maxMemoryGb: toInteger(event.target.value) ?? 0 })
+          }
+        />
+      ),
+    },
+    {
+      header: "Has iGPU",
+      cell: (row, update) => (
+        <Checkbox
+          checked={row.integratedGraphics}
+          onCheckedChange={(checked) =>
+            update({ ...row, integratedGraphics: checked as boolean })
+          }
+        />
+      ),
+    },
+  ];
+}
+
 export function CpuListPage() {
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(
     () => cpuListParamsFromSearch(searchParams),
@@ -54,6 +195,7 @@ export function CpuListPage() {
   const { manufacturers, sockets, series } = useCpuFilterOptions();
   const query = useCpus(params);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [editRows, setEditRows] = useState<CpuListItem[] | null>(null);
 
   const { isAdmin } = useAuth();
 
@@ -99,7 +241,7 @@ export function CpuListPage() {
     queryKey: cpuKeys.all,
     singular: "CPU",
     plural: "CPUs",
-    deleteByIds: deleteCpus,
+    deleteByIds: (ids) => deleteCpus({ ids }),
   });
   const excelImport = useExcelImport({
     queryKey: cpuKeys.all,
@@ -123,6 +265,12 @@ export function CpuListPage() {
   const [showOnlyCompatible, setShowOnlyCompatible] = useState(() =>
     Boolean(params.filter.motherboardId),
   );
+
+  function startEditing() {
+    const selected = items.filter((item) => rowSelection[item.id]);
+    if (selected.length === 0) return;
+    setEditRows(selected);
+  }
 
   function applyCompatibleFilter(checked: boolean) {
     const motherboardId = checked ? currentBuild.motherboardId : undefined;
@@ -279,6 +427,7 @@ export function CpuListPage() {
             deleting={bulkDelete.isDeleting}
             deleteError={bulkDelete.deleteError}
             onImport={excelImport.openImport}
+            onEditSelected={startEditing}
             pageIndex={pageIndex}
             pageCount={pageCount}
             totalCount={totalCount}
@@ -287,6 +436,21 @@ export function CpuListPage() {
           />
         </div>
       </div>
+      {editRows ? (
+        <BulkEditDialog
+          title="Edit CPUs"
+          rows={editRows}
+          columns={cpuEditColumns(manufacturers, series, sockets)}
+          onClose={() => setEditRows(null)}
+          onSave={async (rows) => {
+            await updateCpus(rows);
+            await queryClient.invalidateQueries({
+              queryKey: cpuKeys.all,
+            });
+            setRowSelection({});
+          }}
+        />
+      ) : null}
       {excelImport.importDialog}
     </section>
   );

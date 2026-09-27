@@ -114,3 +114,9 @@ function toMemoryFilterBody(filter: MemoryFilter): MemoryFilter {
     motherboardId: filter.motherboardId,
   };
 }
+
+export function updateMemories(memories: MemoryDetail[]) {
+  return api
+    .put("/catalog/ram/bulk", { memories })
+    .then((response) => response.data);
+}

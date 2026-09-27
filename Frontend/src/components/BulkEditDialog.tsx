@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import axios from "axios";
+import { cn } from "cn";
 import { parseApiError } from "@/api/errors.ts";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +23,8 @@ type Identified = { id: string };
 
 export type BulkEditColumn<T extends Identified> = {
   header: string;
+  numeric?: boolean;
+  className?: string;
   cell: (row: T, update: (next: T) => void) => ReactNode;
 };
 
@@ -29,6 +32,7 @@ type BulkEditDialogProps<T extends Identified> = {
   title: string;
   rows: readonly T[];
   columns: readonly BulkEditColumn<T>[];
+  className?: string;
   onClose: () => void;
   onSave: (rows: T[]) => Promise<void>;
 };
@@ -37,6 +41,7 @@ export function BulkEditDialog<T extends Identified>({
   title,
   rows,
   columns,
+  className,
   onClose,
   onSave,
 }: Readonly<BulkEditDialogProps<T>>) {
@@ -72,36 +77,51 @@ export function BulkEditDialog<T extends Identified>({
         if (!open && !saving) onClose();
       }}
     >
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
+      <DialogContent
+        className={cn(
+          "flex max-h-[calc(100dvh-2rem)] w-full flex-col overflow-hidden sm:max-w-[calc(100%-2rem)]",
+          className,
+        )}
+      >
+        <DialogHeader className="shrink-0">
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         {error ? (
-          <p className="form-error" role="alert">
+          <p className="form-error shrink-0" role="alert">
             {error}
           </p>
         ) : null}
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {columns.map((column) => (
-                <TableHead key={column.header}>{column.header}</TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {drafts.map((row) => (
-              <TableRow key={row.id}>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <Table className="w-max min-w-full">
+            <TableHeader>
+              <TableRow>
                 {columns.map((column) => (
-                  <TableCell key={column.header}>
-                    {column.cell(row, (next) => updateRow(row.id, next))}
-                  </TableCell>
+                  <TableHead
+                    key={column.header}
+                    className={columnClassName(column)}
+                  >
+                    {column.header}
+                  </TableHead>
                 ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <DialogFooter>
+            </TableHeader>
+            <TableBody>
+              {drafts.map((row) => (
+                <TableRow key={row.id}>
+                  {columns.map((column) => (
+                    <TableCell
+                      key={column.header}
+                      className={columnClassName(column)}
+                    >
+                      {column.cell(row, (next) => updateRow(row.id, next))}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <DialogFooter className="shrink-0">
           <Button
             type="button"
             variant="outline"
@@ -116,6 +136,16 @@ export function BulkEditDialog<T extends Identified>({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function columnClassName(column: {
+  numeric?: boolean;
+  className?: string;
+}) {
+  return cn(
+    column.numeric ? "w-28 whitespace-normal" : "min-w-48",
+    column.className,
   );
 }
 

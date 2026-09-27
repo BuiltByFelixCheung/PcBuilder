@@ -75,3 +75,9 @@ export function getChassisFanById(id: string) {
     .get<ChassisFan>(`/catalog/chassis-fan/${id}`)
     .then((response) => response.data);
 }
+
+export function updateChassisFans(fans: ChassisFan[]) {
+  return api
+    .put<ChassisFan[]>("/catalog/chassis-fan/bulk", { fans })
+    .then((response) => response.data);
+}

@@ -2,6 +2,7 @@ import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   deleteMultipleGpuSeries,
+  updateMultipleGpuSeries,
   listGpuSeries,
   masterDataKeys,
   type GpuSeriesOption,
@@ -21,7 +22,7 @@ import {
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   FilterActions,
   formSelectClassName,
@@ -30,6 +31,8 @@ import {
 import { MasterDataResults } from "@/components/master-data/MasterDataResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
+import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
+import { Input } from "@/components/ui/input";
 
 const EMPTY_ITEMS: GpuSeriesOption[] = [];
 const columnHelper = createColumnHelper<
@@ -49,6 +52,39 @@ const columns = columnHelper.columns([
   columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
 ]);
 
+function gpuSeriesEditColumns(
+  manufacturers: { id: string; name: string }[],
+): BulkEditColumn<GpuSeriesOption>[] {
+  return [
+    {
+      header: "Name",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Name for ${row.name}`}
+          value={row.name}
+          onChange={(event) => update({ ...row, name: event.target.value })}
+        />
+      ),
+    },
+    {
+      header: "Manufacturer",
+      cell: (row, update) => (
+        <select
+          aria-label={`Manufacturer for ${row.name}`}
+          className={formSelectClassName}
+          value={row.manufacturerId}
+          onChange={(event) => update({ ...row, manufacturerId: event.target.value })}
+        >
+          {manufacturers.map((manufacturer) => (
+            <option key={manufacturer.id} value={manufacturer.id}>
+              {manufacturer.name}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+  ];
+}
 type GpuSeriesFilter = {
   name?: string;
   manufacturerId?: string;
@@ -61,6 +97,7 @@ function isGpuSeriesFilterActive(filter: GpuSeriesFilter) {
 }
 
 export function GpuSeriesListPage() {
+  const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: masterDataKeys.gpuSeries,
     queryFn: listGpuSeries,
@@ -72,6 +109,7 @@ export function GpuSeriesListPage() {
   const [applied, setApplied] = useState<GpuSeriesFilter>(emptyGpuSeriesFilter);
   const filtering = isGpuSeriesFilterActive(applied);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [editRows, setEditRows] = useState<GpuSeriesOption[] | null>(null);
   const manufacturers = useMemo(
     () =>
       uniqueById(
@@ -108,7 +146,11 @@ export function GpuSeriesListPage() {
     queryKey: masterDataKeys.gpuSeries,
     importFile: importGpuSeries,
   });
-
+  function startEditing() {
+    const selected = visibleItems.filter((item) => rowSelection[item.id]);
+    if (selected.length === 0) return;
+    setEditRows(selected);
+  }
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     setApplied(draft);
@@ -173,12 +215,28 @@ export function GpuSeriesListPage() {
             onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
             deleting={bulkDelete.isDeleting}
             deleteError={bulkDelete.deleteError}
+            onEditSelected={startEditing}
             onImport={excelImport.openImport}
             newItemTo={gpuSeriesEditPath(newMasterDataEditValue)}
             newItemLabel="New GPU Series"
           />
         </div>
       </div>
+      {editRows ? (
+        <BulkEditDialog
+          title="Edit GPU Series"
+          rows={editRows}
+          columns={gpuSeriesEditColumns(manufacturers)}
+          onClose={() => setEditRows(null)}
+          onSave={async (rows) => {
+            await updateMultipleGpuSeries(rows);
+            await queryClient.invalidateQueries({
+              queryKey: masterDataKeys.gpuSeries,
+            });
+            setRowSelection({});
+          }}
+        />
+      ) : null}
       {editingId ? (
         <GpuSeriesFormDialog
           key={editingId}

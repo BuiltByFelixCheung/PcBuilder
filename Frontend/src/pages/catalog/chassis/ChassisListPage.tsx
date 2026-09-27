@@ -4,6 +4,7 @@ import { deleteChassis } from "@/api/catalog/bulk-delete";
 import {
   chassisKeys,
   isChassisFilterActive,
+  updateMultipleChassis,
   type ChassisFilter,
   type ChassisListItem,
 } from "@/api/catalog/chassis";
@@ -36,6 +37,12 @@ import {
   CatalogNameField,
   CatalogIdSelectField,
 } from "@/components/catalog/CatalogFilterFields";
+import {
+  BulkEditDialog,
+  type BulkEditColumn,
+} from "@/components/BulkEditDialog";
+import { useQueryClient } from "@tanstack/react-query";
+import { formSelectClassName } from "@/components/filters/ListFilters";
 
 const EMPTY_ITEMS: ChassisListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -43,7 +50,189 @@ const columnHelper = createColumnHelper<
   ChassisListItem
 >();
 
+function chassisEditColumns(
+  manufacturers: { id: string; name: string }[],
+): BulkEditColumn<ChassisListItem>[] {
+  return [
+    {
+      header: "Name",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Name for ${row.name}`}
+          value={row.name}
+          onChange={(event) => update({ ...row, name: event.target.value })}
+        />
+      ),
+    },
+    {
+      header: "Manufacturer",
+      cell: (row, update) => (
+        <select
+          aria-label={`Manufacturer for ${row.name}`}
+          className={formSelectClassName}
+          value={row.manufacturerId}
+          onChange={(event) =>
+            update({ ...row, manufacturerId: event.target.value })
+          }
+        >
+          {manufacturers.map((manufacturer) => (
+            <option key={manufacturer.id} value={manufacturer.id}>
+              {manufacturer.name}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "Length (mm)",
+      numeric: true,
+      cell: (row, update) => (
+        <Input
+          aria-label={`Length (mm) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.lengthMm?.toString() ?? ""}
+          onChange={(event) =>
+            update({
+              ...row,
+              lengthMm: toOptionalNumber(event.target.value) ?? 0,
+            })
+          }
+        />
+      ),
+    },
+    {
+      header: "Width (mm)",
+      numeric: true,
+      cell: (row, update) => (
+        <Input
+          aria-label={`Width (mm) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.widthMm?.toString() ?? ""}
+          onChange={(event) =>
+            update({
+              ...row,
+              widthMm: toOptionalNumber(event.target.value) ?? 0,
+            })
+          }
+        />
+      ),
+    },
+    {
+      header: "Height (mm)",
+      numeric: true,
+      cell: (row, update) => (
+        <Input
+          aria-label={`Height (mm) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.heightMm?.toString() ?? ""}
+          onChange={(event) =>
+            update({
+              ...row,
+              heightMm: toOptionalNumber(event.target.value) ?? 0,
+            })
+          }
+        />
+      ),
+    },
+    {
+      header: "Motherboard Max Width (mm)",
+      numeric: true,
+      cell: (row, update) => (
+        <Input
+          aria-label={`Motherboard Max Width (mm) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.motherboardMaxWidthMm?.toString() ?? ""}
+          onChange={(event) =>
+            update({
+              ...row,
+              motherboardMaxWidthMm: toOptionalNumber(event.target.value) ?? 0,
+            })
+          }
+        />
+      ),
+    },
+    {
+      header: "Motherboard Max Height (mm)",
+      numeric: true,
+      cell: (row, update) => (
+        <Input
+          aria-label={`Motherboard Max Height (mm) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.motherboardMaxHeightMm?.toString() ?? ""}
+          onChange={(event) =>
+            update({
+              ...row,
+              motherboardMaxHeightMm: toOptionalNumber(event.target.value) ?? 0,
+            })
+          }
+        />
+      ),
+    },
+    {
+      header: "Max CPU Cooler Height (mm)",
+      numeric: true,
+      cell: (row, update) => (
+        <Input
+          aria-label={`Max CPU Cooler Height (mm) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.maxCpuCoolerHeightMm?.toString() ?? ""}
+          onChange={(event) =>
+            update({
+              ...row,
+              maxCpuCoolerHeightMm: toOptionalNumber(event.target.value) ?? 0,
+            })
+          }
+        />
+      ),
+    },
+    {
+      header: "Max Graphics Card Length (mm)",
+      numeric: true,
+      cell: (row, update) => (
+        <Input
+          aria-label={`Max Graphics Card Length (mm) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.maxGraphicsCardLengthMm?.toString() ?? ""}
+          onChange={(event) =>
+            update({
+              ...row,
+              maxGraphicsCardLengthMm:
+                toOptionalNumber(event.target.value) ?? 0,
+            })
+          }
+        />
+      ),
+    },
+    {
+      header: "Max PSU Length (mm)",
+      numeric: true,
+      cell: (row, update) => (
+        <Input
+          aria-label={`Max PSU Length (mm) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.maxPsuLengthMm?.toString() ?? ""}
+          onChange={(event) =>
+            update({
+              ...row,
+              maxPsuLengthMm: toOptionalNumber(event.target.value) ?? 0,
+            })
+          }
+        />
+      ),
+    },
+  ];
+}
+
 export function ChassisListPage() {
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(
     () => chassisListParamsFromSearch(searchParams),
@@ -52,7 +241,7 @@ export function ChassisListPage() {
   const [draft, setDraft] = useState<ChassisFilter>(() => params.filter);
   const query = useChassis(params);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-
+  const [editRows, setEditRows] = useState<ChassisListItem[] | null>(null);
   const { isAdmin } = useAuth();
 
   const columns = useMemo(
@@ -97,7 +286,7 @@ export function ChassisListPage() {
     queryKey: chassisKeys.all,
     singular: "chassis",
     plural: "chassis",
-    deleteByIds: deleteChassis,
+    deleteByIds: (ids) => deleteChassis({ ids }),
   });
   const excelImport = useExcelImport({
     queryKey: chassisKeys.all,
@@ -132,6 +321,12 @@ export function ChassisListPage() {
     setSearchParams(
       chassisListSearchFromParams({ ...params, pageIndex: nextIndex }),
     );
+  }
+
+  function startEditing() {
+    const selected = items.filter((item) => rowSelection[item.id]);
+    if (selected.length === 0) return;
+    setEditRows(selected);
   }
 
   return (
@@ -530,15 +725,31 @@ export function ChassisListPage() {
             onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
             deleting={bulkDelete.isDeleting}
             deleteError={bulkDelete.deleteError}
+            onEditSelected={startEditing}
             onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
             totalCount={totalCount}
-            countLabel="CPUs"
+            countLabel="Chassis"
             onPageChange={goToPage}
           />
         </div>
       </div>
+      {editRows ? (
+        <BulkEditDialog
+          title="Edit Chassis"
+          rows={editRows}
+          columns={chassisEditColumns(manufacturers)}
+          onClose={() => setEditRows(null)}
+          onSave={async (rows) => {
+            await updateMultipleChassis(rows);
+            await queryClient.invalidateQueries({
+              queryKey: chassisKeys.all,
+            });
+            setRowSelection({});
+          }}
+        />
+      ) : null}
       {excelImport.importDialog}
     </section>
   );

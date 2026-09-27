@@ -118,3 +118,7 @@ function toCpuFilterBody(filter: CpuFilter): CpuFilter {
       : undefined,
   };
 }
+
+export function updateCpus(cpus: CpuListItem[]) {
+  return api.put("/catalog/cpu/bulk", { cpus }).then((response) => response.data);
+}

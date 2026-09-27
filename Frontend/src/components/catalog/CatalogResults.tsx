@@ -44,6 +44,7 @@ export function CatalogPagedResults<TData extends RowData>({
   deleting = false,
   deleteError = null,
   onImport,
+  onEditSelected,
   pageIndex,
   pageCount,
   totalCount,
@@ -53,6 +54,7 @@ export function CatalogPagedResults<TData extends RowData>({
   CatalogResultsBase<TData> & {
     isAdmin: boolean;
     onDeleteSelected: () => void;
+    onEditSelected?: () => void;
     deleting?: boolean;
     deleteError?: string | null;
     onImport: () => void;
@@ -79,7 +81,11 @@ export function CatalogPagedResults<TData extends RowData>({
         </p>
       ) : null}
       <div className="catalog-results-actions">
-        <Button type="button" disabled={!hasSelection}>
+        <Button 
+          type="button" 
+          disabled={!hasSelection}
+          onClick={onEditSelected}
+        >
           Edit Selected
         </Button>
         <Button

@@ -4,6 +4,7 @@ import { deleteCpuCoolers } from "@/api/catalog/bulk-delete";
 import {
   cpuCoolerKeys,
   isCpuCoolerFilterActive,
+  updateCpuCoolers,
   type CpuCoolerFilter,
   type CpuCoolerListItem,
 } from "@/api/catalog/cpu-coolers";
@@ -31,6 +32,7 @@ import {
   CPU_COOLER_TYPES,
   RADIATOR_LENGTHS,
   formatRadiatorLength,
+  type CpuCoolerType,
 } from "@/api/enums";
 import { usePcBuild } from "@/builds/use-pc-build";
 import type { RangeFilter } from "@/api/paging";
@@ -46,6 +48,12 @@ import {
   CatalogEnumField,
   CatalogIdSelectField,
 } from "@/components/catalog/CatalogFilterFields";
+import {
+  BulkEditDialog,
+  type BulkEditColumn,
+} from "@/components/BulkEditDialog";
+import { useQueryClient } from "@tanstack/react-query";
+import { formSelectClassName } from "@/components/filters/ListFilters";
 
 const EMPTY_ITEMS: CpuCoolerListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -53,7 +61,142 @@ const columnHelper = createColumnHelper<
   CpuCoolerListItem
 >();
 
+function cpuCoolerEditColumns(
+  manufacturers: { id: string; name: string }[],
+): BulkEditColumn<CpuCoolerListItem>[] {
+  return [
+    {
+      header: "Name",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Name for ${row.name}`}
+          value={row.name}
+          onChange={(event) => update({ ...row, name: event.target.value })}
+        />
+      ),
+    },
+    {
+      header: "Manufacturer",
+      cell: (row, update) => (
+        <select
+          aria-label={`Manufacturer for ${row.name}`}
+          className={formSelectClassName}
+          value={row.manufacturerId}
+          onChange={(event) =>
+            update({ ...row, manufacturerId: event.target.value })
+          }
+        >
+          {manufacturers.map((manufacturer) => (
+            <option key={manufacturer.id} value={manufacturer.id}>
+              {manufacturer.name}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "Type",
+      cell: (row, update) => (
+        <select
+          aria-label={`Type for ${row.name}`}
+          className={formSelectClassName}
+          value={row.type}
+          onChange={(event) =>
+            update({ ...row, type: event.target.value as CpuCoolerType })
+          }
+        >
+          {CPU_COOLER_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {type}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "Max TDP",
+      numeric: true,
+      cell: (row, update) => (
+        <Input
+          aria-label={`Max TDP for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.maxTdp?.toString() ?? ""}
+          onChange={(event) =>
+            update({
+              ...row,
+              maxTdp: toOptionalNumber(event.target.value) ?? 0,
+            })
+          }
+        />
+      ),
+    },
+    {
+      header: "Height (mm)",
+      numeric: true,
+      cell: (row, update) => (
+        <Input
+          aria-label={`Height (mm) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.coolerHeightMm?.toString() ?? ""}
+          onChange={(event) =>
+            update({
+              ...row,
+              coolerHeightMm: toOptionalNumber(event.target.value) ?? 0,
+            })
+          }
+        />
+      ),
+    },
+    {
+      header: "Max RAM height (mm)",
+      numeric: true,
+      cell: (row, update) => (
+        <Input
+          aria-label={`Max RAM height (mm) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.maxRamHeightMm?.toString() ?? ""}
+          onChange={(event) =>
+            update({
+              ...row,
+              maxRamHeightMm: toOptionalNumber(event.target.value) ?? 0,
+            })
+          }
+        />
+      ),
+    },
+    {
+      header: "Radiator length",
+      cell: (row, update) => (
+        <select
+          aria-label={`Radiator length for ${row.name}`}
+          className={formSelectClassName}
+          value={row.radiatorLength ?? ""}
+          onChange={(event) =>
+            update({
+              ...row,
+              radiatorLength:
+                RADIATOR_LENGTHS.find((length) => length === event.target.value) ??
+                null,
+            })
+          }
+        >
+          <option value="">N/A</option>
+          {RADIATOR_LENGTHS.map((length) => (
+            <option key={length} value={length}>
+              {formatRadiatorLength(length)}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+  ];
+}
+
 export function CpuCoolerListPage() {
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(
     () => cpuCoolerListParamsFromSearch(searchParams),
@@ -64,6 +207,7 @@ export function CpuCoolerListPage() {
   const sockets = useCatalogSockets();
   const query = useCpuCoolers(params);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [editRows, setEditRows] = useState<CpuCoolerListItem[] | null>(null);
 
   const { isAdmin } = useAuth();
 
@@ -117,7 +261,7 @@ export function CpuCoolerListPage() {
     queryKey: cpuCoolerKeys.all,
     singular: "CPU cooler",
     plural: "CPU coolers",
-    deleteByIds: deleteCpuCoolers,
+    deleteByIds: (ids) => deleteCpuCoolers({ ids }),
   });
   const excelImport = useExcelImport({
     queryKey: cpuCoolerKeys.all,
@@ -145,6 +289,12 @@ export function CpuCoolerListPage() {
       ramId: checked ? currentBuild.ramKitId : undefined,
       motherboardId: checked ? currentBuild.motherboardId : undefined,
     };
+  }
+
+  function startEditing() {
+    const selected = items.filter((item) => rowSelection[item.id]);
+    if (selected.length === 0) return;
+    setEditRows(selected);
   }
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
@@ -383,6 +533,7 @@ export function CpuCoolerListPage() {
             onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
             deleting={bulkDelete.isDeleting}
             deleteError={bulkDelete.deleteError}
+            onEditSelected={startEditing}
             onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
@@ -392,6 +543,21 @@ export function CpuCoolerListPage() {
           />
         </div>
       </div>
+      {editRows ? (
+        <BulkEditDialog
+          title="Edit CPU Coolers"
+          rows={editRows}
+          columns={cpuCoolerEditColumns(manufacturers)}
+          onClose={() => setEditRows(null)}
+          onSave={async (rows) => {
+            await updateCpuCoolers(rows);
+            await queryClient.invalidateQueries({
+              queryKey: cpuCoolerKeys.all,
+            });
+            setRowSelection({});
+          }}
+        />
+      ) : null}
       {excelImport.importDialog}
     </section>
   );

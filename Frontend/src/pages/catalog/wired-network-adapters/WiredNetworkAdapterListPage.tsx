@@ -4,6 +4,7 @@ import { deleteWiredNetworkAdapters } from "@/api/catalog/bulk-delete";
 import {
   wiredNetworkAdapterKeys,
   isWiredNetworkAdapterFilterActive,
+  updateWiredNetworkAdapters,
   type WiredNetworkAdapter,
   type WiredNetworkAdapterFilter,
 } from "@/api/catalog/wired-network-adapters";
@@ -27,6 +28,10 @@ import {
   USB_TYPES,
   USB_VERSIONS,
   WIRED_HOST_INTERFACES,
+  type PcieSlotType,
+  type UsbType,
+  type UsbVersion,
+  type WiredHostInterface,
 } from "@/api/enums";
 import { CatalogCompatibleCheckbox } from "@/components/catalog/CatalogFilterFields.tsx";
 import { usePcBuild } from "@/builds/use-pc-build";
@@ -42,6 +47,11 @@ import {
   CatalogIdSelectField,
   CatalogRangeField,
 } from "@/components/catalog/CatalogFilterFields";
+import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
+import { useQueryClient } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { formSelectClassName } from "@/components/filters/ListFilters";
+import { toInteger } from "@/api/helper";
 
 const EMPTY_ITEMS: WiredNetworkAdapter[] = [];
 const columnHelper = createColumnHelper<
@@ -49,7 +59,132 @@ const columnHelper = createColumnHelper<
   WiredNetworkAdapter
 >();
 
+function bulkEditColumns(
+  manufacturers: {id: string, name: string}[],
+): BulkEditColumn<WiredNetworkAdapter>[] {
+  return [
+    {
+      header: "Name",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Name for ${row.name}`}
+          value={row.name}
+          onChange={(event) => update({ ...row, name: event.target.value })}
+        />
+      ),
+    },
+    {
+      header: "Manufacturer",
+      cell: (row, update) => (
+        <select
+          aria-label={`Manufacturer for ${row.name}`}
+          className={formSelectClassName}
+          value={row.manufacturerId}
+          onChange={(event) =>
+            update({ ...row, manufacturerId: event.target.value })
+          }
+        >
+          {manufacturers.map((manufacturer) => (
+            <option key={manufacturer.id} value={manufacturer.id}>
+              {manufacturer.name}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "Interface",
+      cell: (row, update) => (
+        <select
+          aria-label={`Interface for ${row.name}`}
+          className={formSelectClassName}
+          value={row.hostInterface}
+          onChange={(event) => update({ ...row, hostInterface: event.target.value as WiredHostInterface })}
+        >
+          {WIRED_HOST_INTERFACES.map((hostInterface) => (
+            <option key={hostInterface} value={hostInterface}>
+              {hostInterface}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "Max speed (Mbps)",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Max speed (Mbps) for ${row.name}`}
+          value={row.maxSpeedMbps}
+          onChange={(event) => update({ ...row, maxSpeedMbps: toInteger(event.target.value) ?? 0 })}
+        />
+      ),
+    },
+    {
+      header: "USB version",
+      cell: (row, update) => (
+        <select
+          aria-label={`USB version for ${row.name}`}
+          className={formSelectClassName}
+          value={row.usbVersion ?? ""}
+          onChange={(event) =>
+            update({
+              ...row,
+              usbVersion: event.target.value
+                ? (event.target.value as UsbVersion)
+                : null,
+            })
+          }
+        >
+          <option value=""></option>
+          {USB_VERSIONS.map((usbVersion) => (
+            <option key={usbVersion} value={usbVersion}>
+              {usbVersion}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "USB type",
+      cell: (row, update) => (
+        <select
+          aria-label={`USB type for ${row.name}`}
+          className={formSelectClassName}
+          value={row.usbType ?? ""}
+          onChange={(event) => update({ ...row, usbType: event.target.value as UsbType })}
+        >
+          <option value=""></option>
+          {USB_TYPES.map((usbType) => (
+            <option key={usbType} value={usbType}>
+              {usbType}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "PCIe slot",
+      cell: (row, update) => (
+        <select
+          aria-label={`PCIe slot for ${row.name}`}
+          className={formSelectClassName}
+          value={row.pcieSlotType ?? ""}
+          onChange={(event) => update({ ...row, pcieSlotType: event.target.value as PcieSlotType })}
+        >
+          <option value=""></option>
+          {PCIE_SLOT_TYPES.map((pcieSlotType) => (
+            <option key={pcieSlotType} value={pcieSlotType}>
+              {pcieSlotType}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+  ];
+}
+
 export function WiredNetworkAdapterListPage() {
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(
     () => wiredNetworkAdapterListParamsFromSearch(searchParams),
@@ -61,6 +196,7 @@ export function WiredNetworkAdapterListPage() {
   const manufacturers = useCatalogManufacturers("wirednetworkadapter");
   const query = useWiredNetworkAdapters(params);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [editRows, setEditRows] = useState<WiredNetworkAdapter[]|null>(null);
 
   const { isAdmin } = useAuth();
 
@@ -93,7 +229,7 @@ export function WiredNetworkAdapterListPage() {
     queryKey: wiredNetworkAdapterKeys.all,
     singular: "wired network adapter",
     plural: "wired network adapters",
-    deleteByIds: deleteWiredNetworkAdapters,
+    deleteByIds: (ids) => deleteWiredNetworkAdapters({ ids }),
   });
   const excelImport = useExcelImport({
     queryKey: wiredNetworkAdapterKeys.all,
@@ -113,6 +249,12 @@ export function WiredNetworkAdapterListPage() {
     return {
       motherboardId: checked ? currentBuild.motherboardId : undefined,
     };
+  }
+
+  function startEditing() {
+    const selected = items.filter((item) => rowSelection[item.id]);
+    if (selected.length === 0) return;
+    setEditRows(selected);
   }
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
@@ -256,6 +398,7 @@ export function WiredNetworkAdapterListPage() {
             onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
             deleting={bulkDelete.isDeleting}
             deleteError={bulkDelete.deleteError}
+            onEditSelected={startEditing}
             onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
@@ -265,6 +408,21 @@ export function WiredNetworkAdapterListPage() {
           />
         </div>
       </div>
+      {editRows ? (
+        <BulkEditDialog
+          title="Edit Wired Network Adapters"
+          rows={editRows}
+          columns={bulkEditColumns(manufacturers)}
+          onClose={() => setEditRows(null)}
+          onSave={async (rows) => {
+            await updateWiredNetworkAdapters(rows);
+            await queryClient.invalidateQueries({
+              queryKey: wiredNetworkAdapterKeys.all,
+            });
+            setRowSelection({});
+          }}
+        />
+      ) : null}
       {excelImport.importDialog}
     </section>
   );

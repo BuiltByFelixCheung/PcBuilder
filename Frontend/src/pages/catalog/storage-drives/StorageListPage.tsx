@@ -6,6 +6,7 @@ import {
   isStorageDriveFilterActive,
   type StorageDrive,
   type StorageDriveFilter,
+  updateStorageDrives,
 } from "@/api/catalog/storage-drives";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
@@ -29,6 +30,9 @@ import {
   STORAGE_MEDIAS,
   formatStorageFormFactor,
   type PcieGeneration,
+  type StorageFormFactor,
+  type StorageInterface,
+  type StorageMedia,
 } from "@/api/enums";
 import { formSelectClassName } from "@/components/filters/ListFilters";
 import {
@@ -47,6 +51,13 @@ import {
   CatalogEnumField,
   CatalogIdSelectField,
 } from "@/components/catalog/CatalogFilterFields";
+import {
+  BulkEditDialog,
+  type BulkEditColumn,
+} from "@/components/BulkEditDialog";
+import { useQueryClient } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { toInteger } from "@/api/helper";
 
 const EMPTY_ITEMS: StorageDrive[] = [];
 const columnHelper = createColumnHelper<
@@ -54,7 +65,155 @@ const columnHelper = createColumnHelper<
   StorageDrive
 >();
 
+function storageDriveEditColumns(
+  manufacturers: { id: string; name: string }[],
+): BulkEditColumn<StorageDrive>[] {
+  return [
+    {
+      header: "Name",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Name for ${row.name}`}
+          value={row.name}
+          onChange={(event) => update({ ...row, name: event.target.value })}
+        />
+      ),
+    },
+    {
+      header: "Manufacturer",
+      cell: (row, update) => (
+        <select
+          aria-label={`Manufacturer for ${row.name}`}
+          className={formSelectClassName}
+          value={row.manufacturerId}
+          onChange={(event) =>
+            update({ ...row, manufacturerId: event.target.value })
+          }
+        >
+          {manufacturers.map((manufacturer) => (
+            <option key={manufacturer.id} value={manufacturer.id}>
+              {manufacturer.name}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "Media",
+      cell: (row, update) => (
+        <select
+          aria-label={`Media for ${row.name}`}
+          className={formSelectClassName}
+          value={row.media}
+          onChange={(event) =>
+            update({ ...row, media: event.target.value as StorageMedia })
+          }
+        >
+          {STORAGE_MEDIAS.map((media) => (
+            <option key={media} value={media}>
+              {media}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "Interface",
+      cell: (row, update) => (
+        <select
+          aria-label={`Interface for ${row.name}`}
+          className={formSelectClassName}
+          value={row.interface}
+          onChange={(event) =>
+            update({
+              ...row,
+              interface: event.target.value as StorageInterface,
+            })
+          }
+        >
+          {STORAGE_INTERFACES.map((storageInterface) => (
+            <option key={storageInterface} value={storageInterface}>
+              {storageInterface}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "Form factor",
+      cell: (row, update) => (
+        <select
+          aria-label={`Form factor for ${row.name}`}
+          className={formSelectClassName}
+          value={row.formFactor}
+          onChange={(event) =>
+            update({
+              ...row,
+              formFactor: event.target.value as StorageFormFactor,
+            })
+          }
+        >
+          {STORAGE_FORM_FACTORS.map((formFactor) => (
+            <option key={formFactor} value={formFactor}>
+              {formFactor}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "Capacity (GB)",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Capacity (GB) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.capacityGb}
+          onChange={(event) =>
+            update({ ...row, capacityGb: toInteger(event.target.value) ?? 0 })
+          }
+        />
+      ),
+    },
+    {
+      header: "PCIe generation",
+      cell: (row, update) => (
+        <select
+          aria-label={`PCIe generation for ${row.name}`}
+          className={formSelectClassName}
+          value={row.pcieGeneration ?? ""}
+          onChange={(event) =>
+            update({
+              ...row,
+              pcieGeneration: event.target.value as PcieGeneration,
+            })
+          }
+        >
+          {PCIE_GENERATIONS.map((generation) => (
+            <option key={generation} value={generation}>
+              {generation.replace("Gen", "PCIe ")}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "RPM",
+      cell: (row, update) => (
+        <Input
+          aria-label={`RPM for ${row.name}`}
+          type="number"
+          value={row.rpm ?? ""}
+          onChange={(event) =>
+            update({ ...row, rpm: toInteger(event.target.value) ?? undefined })
+          }
+        />
+      ),
+    },
+  ];
+}
 export function StorageListPage() {
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(
     () => storageDriveListParamsFromSearch(searchParams),
@@ -64,7 +223,7 @@ export function StorageListPage() {
   const manufacturers = useCatalogManufacturers("storagedrive");
   const query = useStorageDrives(params);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-
+  const [editRows, setEditRows] = useState<StorageDrive[] | null>(null);
   const { isAdmin } = useAuth();
 
   const columns = useMemo(
@@ -101,7 +260,7 @@ export function StorageListPage() {
     queryKey: storageDriveKeys.all,
     singular: "storage drive",
     plural: "storage drives",
-    deleteByIds: deleteStorageDrives,
+    deleteByIds: (ids) => deleteStorageDrives({ ids }),
   });
   const excelImport = useExcelImport({
     queryKey: storageDriveKeys.all,
@@ -122,6 +281,12 @@ export function StorageListPage() {
       motherboardId: checked ? currentBuild.motherboardId : undefined,
       chassisId: checked ? currentBuild.chassisId : undefined,
     };
+  }
+
+  function startEditing() {
+    const selected = items.filter((item) => rowSelection[item.id]);
+    if (selected.length === 0) return;
+    setEditRows(selected);
   }
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
@@ -287,6 +452,7 @@ export function StorageListPage() {
             deleting={bulkDelete.isDeleting}
             deleteError={bulkDelete.deleteError}
             onImport={excelImport.openImport}
+            onEditSelected={startEditing}
             pageIndex={pageIndex}
             pageCount={pageCount}
             totalCount={totalCount}
@@ -295,6 +461,21 @@ export function StorageListPage() {
           />
         </div>
       </div>
+      {editRows ? (
+        <BulkEditDialog
+          title="Edit Storage Drives"
+          rows={editRows}
+          columns={storageDriveEditColumns(manufacturers)}
+          onClose={() => setEditRows(null)}
+          onSave={async (rows) => {
+            await updateStorageDrives(rows);
+            await queryClient.invalidateQueries({
+              queryKey: storageDriveKeys.all,
+            });
+            setRowSelection({});
+          }}
+        />
+      ) : null}
       {excelImport.importDialog}
     </section>
   );

@@ -123,3 +123,7 @@ function toCpuCoolerFilterBody(filter: CpuCoolerFilter): CpuCoolerFilter {
     motherboardId: filter.motherboardId,
   };
 }
+
+export function updateCpuCoolers(cpuCoolers: CpuCoolerListItem[]) {
+  return api.put("/catalog/cpu-cooler/bulk", { cpuCoolers });
+}

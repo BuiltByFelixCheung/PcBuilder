@@ -6,6 +6,7 @@ import {
   isPsuFilterActive,
   type PsuFilter,
   type PsuListItem,
+  updatePsus,
 } from "@/api/catalog/psus";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
@@ -44,6 +45,10 @@ import {
   CatalogNameField,
   CatalogIdSelectField,
 } from "@/components/catalog/CatalogFilterFields";
+import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
+import { useQueryClient } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { toInteger } from "@/api/helper";
 
 const EMPTY_ITEMS: PsuListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -51,7 +56,125 @@ const columnHelper = createColumnHelper<
   PsuListItem
 >();
 
+function psuEditColumns(
+  manufacturers: { id: string; name: string }[],
+): BulkEditColumn<PsuListItem>[] {
+  return [
+    {
+      header: "Name",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Name for ${row.name}`}
+          value={row.name}
+          onChange={(event) => update({ ...row, name: event.target.value })}
+        />
+      )
+    },
+    {
+      header: "Manufacturer",
+      cell: (row, update) => (
+        <select
+          aria-label={`Manufacturer for ${row.name}`}
+          className={formSelectClassName}
+          value={row.manufacturerId}
+          onChange={(event) => update({ ...row, manufacturerId: event.target.value })}
+        >
+          <option value="">Any</option>
+          {manufacturers.map((manufacturer) => (
+            <option key={manufacturer.id} value={manufacturer.id}>
+              {manufacturer.name}
+            </option>
+          ))}
+        </select>
+      )
+    },
+    {
+      header: "Wattage",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Wattage for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.wattage}
+          onChange={(event) => update({ ...row, wattage: toInteger(event.target.value) ?? 0 })}
+        />
+      )
+    },
+    {
+      header: "Modularity",
+      cell: (row, update) => (
+        <select
+          aria-label={`Modularity for ${row.name}`}
+          className={formSelectClassName}
+          value={row.modularity}
+          onChange={(event) => update({ ...row, modularity: event.target.value as PsuModularity })}
+        >
+          {PSU_MODULARITIES.map((modularity) => (
+            <option key={modularity} value={modularity}>
+              {modularity}
+            </option>
+          ))}
+        </select>
+      )
+    },
+    {
+      header: "Form factor",
+      cell: (row, update) => (
+        <select
+          aria-label={`Form factor for ${row.name}`}
+          className={formSelectClassName}
+          value={row.formFactor}
+          onChange={(event) => update({ ...row, formFactor: event.target.value as PsuFormFactor })}
+        >
+          {PSU_FORM_FACTORS.map((formFactor) => (
+            <option key={formFactor} value={formFactor}>
+              {formFactor}
+            </option>
+          ))}
+        </select>
+      )
+    },
+    {
+      header: "Length (mm)",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Length (mm) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.lengthMm}
+          onChange={(event) => update({ ...row, lengthMm: toInteger(event.target.value) ?? 0 })}
+        />
+      )
+    },
+    {
+      header: "Width (mm)",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Width (mm) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.widthMm}
+          onChange={(event) => update({ ...row, widthMm: toInteger(event.target.value) ?? 0 })}
+        />
+      )
+    },
+    {
+      header: "Height (mm)",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Height (mm) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.heightMm}
+          onChange={(event) => update({ ...row, heightMm: toInteger(event.target.value) ?? 0 })}
+        />
+      )
+    }
+  ];
+}
+
 export function PsuListPage() {
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(
     () => psuListParamsFromSearch(searchParams),
@@ -61,7 +184,7 @@ export function PsuListPage() {
   const manufacturers = useCatalogManufacturers("psu");
   const query = usePsus(params);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-
+  const [editRows, setEditRows] = useState<PsuListItem[] | null>(null);
   const { isAdmin } = useAuth();
 
   const columns = useMemo(
@@ -94,7 +217,7 @@ export function PsuListPage() {
     queryKey: psuKeys.all,
     singular: "PSU",
     plural: "PSUs",
-    deleteByIds: deletePsus,
+    deleteByIds: (ids) => deletePsus({ ids }),
   });
   const excelImport = useExcelImport({
     queryKey: psuKeys.all,
@@ -122,6 +245,12 @@ export function PsuListPage() {
       graphicsCardId: checked ? currentBuild.graphicsCardId : undefined,
       cpuId: checked ? currentBuild.cpuId : undefined,
     };
+  }
+
+  function startEditing() {
+    const selected = items.filter((item) => rowSelection[item.id]);
+    if (selected.length === 0) return;
+    setEditRows(selected);
   }
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
@@ -293,6 +422,7 @@ export function PsuListPage() {
             onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
             deleting={bulkDelete.isDeleting}
             deleteError={bulkDelete.deleteError}
+            onEditSelected={startEditing}
             onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
@@ -302,6 +432,21 @@ export function PsuListPage() {
           />
         </div>
       </div>
+      {editRows ? (
+        <BulkEditDialog
+          title="Edit PSUs"
+          rows={editRows}
+          columns={psuEditColumns(manufacturers)}
+          onClose={() => setEditRows(null)}
+          onSave={async (rows) => {
+            await updatePsus(rows);
+            await queryClient.invalidateQueries({
+              queryKey: psuKeys.all,
+            });
+            setRowSelection({});
+          }}
+        />
+      ) : null}
       {excelImport.importDialog}
     </section>
   );

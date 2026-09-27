@@ -4,6 +4,7 @@ import { deleteMotherboards } from "@/api/catalog/bulk-delete";
 import {
   motherboardKeys,
   isMotherboardFilterActive,
+  updateMotherboards,
   type MotherboardFilter,
   type MotherboardListItem,
 } from "@/api/catalog/motherboards";
@@ -29,6 +30,8 @@ import {
   MB_FORM_FACTORS,
   RAM_FORM_FACTORS,
   type DdrGeneration,
+  type MbFormFactor,
+  type RamFormFactor,
 } from "@/api/enums";
 import { usePcBuild } from "@/builds";
 import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
@@ -44,6 +47,10 @@ import {
   CatalogIdSelectField,
   CatalogRangeField,
 } from "@/components/catalog/CatalogFilterFields";
+import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
+import { useQueryClient } from "@tanstack/react-query";
+import { formSelectClassName } from "@/components/filters/ListFilters";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const EMPTY_ITEMS: MotherboardListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -59,7 +66,244 @@ function optionalBooleanValue(value: boolean | undefined): string {
   return "";
 }
 
+function motherboardEditColumns(
+  manufacturers: { id: string; name: string }[],
+  sockets: { id: string; name: string }[],
+  chipsets: { id: string; name: string }[],
+): BulkEditColumn<MotherboardListItem>[] {
+  return [
+    {
+      header: "Name",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Name for ${row.name}`}
+          value={row.name}
+          onChange={(event) => update({ ...row, name: event.target.value })}
+        />
+      )
+    },
+    {
+      header: "Manufacturer",
+      cell: (row, update) => (
+        <select
+          aria-label={`Manufacturer for ${row.name}`}
+          className={formSelectClassName}
+          value={row.manufacturerId}
+          onChange={(event) => update({ ...row, manufacturerId: event.target.value })}
+        >
+          {manufacturers.map((manufacturer) => (
+            <option key={manufacturer.id} value={manufacturer.id}>
+              {manufacturer.name}
+            </option>
+          ))}
+        </select>
+      )
+    },
+    {
+      header: "Socket",
+      cell: (row, update) => (
+        <select
+          aria-label={`Socket for ${row.name}`}
+          className={formSelectClassName}
+          value={row.socketId}
+          onChange={(event) => update({ ...row, socketId: event.target.value })}
+        >
+          {sockets.map((socket) => (
+            <option key={socket.id} value={socket.id}>
+              {socket.name}
+            </option>
+          ))}
+        </select>
+      )
+    },
+    {
+      header: "Chipset",
+      cell: (row, update) => (
+        <select
+          aria-label={`Chipset for ${row.name}`}
+          className={formSelectClassName}
+          value={row.chipsetId}
+          onChange={(event) => update({ ...row, chipsetId: event.target.value })}
+        >
+          {chipsets.map((chipset) => (
+            <option key={chipset.id} value={chipset.id}>
+              {chipset.name}
+            </option>
+          ))}
+        </select>
+      )
+    },
+    {
+      header: "RAM slots",
+      cell: (row, update) => (
+        <Input
+          aria-label={`RAM slots for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.ramSlots}
+          onChange={(event) => update({ ...row, ramSlots: toInteger(event.target.value) ?? 0 })}
+        />
+      )
+    },
+    {
+      header: "Max memory (GB)",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Max memory (GB) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.maxMemoryGb}
+          onChange={(event) => update({ ...row, maxMemoryGb: toInteger(event.target.value) ?? 0 })}
+        />
+      )
+    },
+    {
+      header: "Max memory per slot (GB)",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Max memory per slot (GB) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.maxDimmSizeGb}
+          onChange={(event) => update({ ...row, maxDimmSizeGb: toInteger(event.target.value) ?? 0 })}
+        />
+      )
+    },
+    {
+      header: "SATA ports",
+      cell: (row, update) => (
+        <Input
+          aria-label={`SATA ports for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.sataPorts}
+          onChange={(event) => update({ ...row, sataPorts: toInteger(event.target.value) ?? 0 })}
+        />
+      ),
+    },
+    {
+      header: "Fan connectors",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Fan connectors for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.fanConnectors}
+          onChange={(event) => update({ ...row, fanConnectors: toInteger(event.target.value) ?? 0 })}
+        />
+      )
+    },
+    {
+      header: "EPS connectors",
+      cell: (row, update) => (
+        <Input
+          aria-label={`EPS connectors for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.epsConnectors}
+          onChange={(event) => update({ ...row, epsConnectors: toInteger(event.target.value) ?? 0 })}
+        />
+      )
+    },
+    {
+      header: "Width (mm)",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Width (mm) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.widthMm}
+          onChange={(event) => update({ ...row, widthMm: toInteger(event.target.value) ?? 0 })}
+        />
+      )
+    },
+    {
+      header: "Height (mm)",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Height (mm) for ${row.name}`}
+          type="number"
+          min={0}
+          value={row.heightMm}
+          onChange={(event) => update({ ...row, heightMm: toInteger(event.target.value) ?? 0 })}
+        />
+      )
+    },
+    {
+      header: "DDR Generation",
+      cell: (row, update) => (
+        <select
+          aria-label={`DDR Generation for ${row.name}`}
+          className={formSelectClassName}
+          value={row.ddrGeneration}
+          onChange={(event) => update({ ...row, ddrGeneration: event.target.value as DdrGeneration })}
+        >
+          {DDR_GENERATIONS.map((ddrGeneration) => (
+            <option key={ddrGeneration} value={ddrGeneration}>
+              {ddrGeneration.replace("Ddr", "DDR")}
+            </option>
+          ))}
+        </select>
+      )
+    },
+    {
+      header: "RAM form factor",
+      cell: (row, update) => (
+        <select
+          aria-label={`RAM form factor for ${row.name}`}
+          className={formSelectClassName}
+          value={row.ramFormFactor}
+          onChange={(event) => update({ ...row, ramFormFactor: event.target.value as RamFormFactor })}
+        >
+          {RAM_FORM_FACTORS.map((ramFormFactor) => (
+            <option key={ramFormFactor} value={ramFormFactor}>
+              {ramFormFactor}
+            </option>
+          ))}
+        </select>
+      )
+    },
+    {
+      header: "Form factor",
+      cell: (row, update) => (
+        <select
+          aria-label={`Form factor for ${row.name}`}
+          className={formSelectClassName}
+          value={row.formFactor}
+          onChange={(event) => update({ ...row, formFactor: event.target.value as MbFormFactor })}
+        >
+          {MB_FORM_FACTORS.map((formFactor) => (
+            <option key={formFactor} value={formFactor}>
+              {formFactor}
+            </option>
+          ))}
+        </select>
+      )
+    },
+    {
+      header: "Wi-Fi Enabled?",
+      cell: (row, update) => (
+        <Checkbox
+        checked={row.wifiEnabled}
+        onCheckedChange={(checked) => update({ ...row, wifiEnabled: checked as boolean })}
+        />
+      )
+    },
+    {
+      header: "Bluetooth Enabled?",
+      cell: (row, update) => (
+        <Checkbox
+          checked={row.bluetoothEnabled}
+          onCheckedChange={(checked) => update({ ...row, bluetoothEnabled: checked as boolean })}
+        />
+      )
+    }
+  ];
+}
+
+
 export function MotherboardListPage() {
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(
     () => motherboardListParamsFromSearch(searchParams),
@@ -69,7 +313,7 @@ export function MotherboardListPage() {
   const { manufacturers, sockets, chipsets } = useMotherboardFilterOptions();
   const query = useMotherboards(params);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-
+  const [editRows, setEditRows] = useState<MotherboardListItem[] | null>(null);
   const { isAdmin } = useAuth();
 
   const columns = useMemo(
@@ -108,7 +352,7 @@ export function MotherboardListPage() {
     queryKey: motherboardKeys.all,
     singular: "motherboard",
     plural: "motherboards",
-    deleteByIds: deleteMotherboards,
+    deleteByIds: (ids) => deleteMotherboards({ ids }),
   });
   const excelImport = useExcelImport({
     queryKey: motherboardKeys.all,
@@ -167,6 +411,12 @@ export function MotherboardListPage() {
     setSearchParams(
       motherboardListSearchFromParams({ ...params, pageIndex: nextIndex }),
     );
+  }
+
+  function startEditing() {
+    const selected = items.filter((item) => rowSelection[item.id]);
+    if (selected.length === 0) return;
+    setEditRows(selected);
   }
 
   return (
@@ -454,6 +704,7 @@ export function MotherboardListPage() {
             onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
             deleting={bulkDelete.isDeleting}
             deleteError={bulkDelete.deleteError}
+            onEditSelected={startEditing}
             onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
@@ -463,6 +714,21 @@ export function MotherboardListPage() {
           />
         </div>
       </div>
+      {editRows ? (
+        <BulkEditDialog
+          title="Edit Motherboards"
+          rows={editRows}
+          columns={motherboardEditColumns(manufacturers, sockets, chipsets)}
+          onClose={() => setEditRows(null)}
+          onSave={async (rows) => {
+            await updateMotherboards(rows);
+            await queryClient.invalidateQueries({
+              queryKey: motherboardKeys.all,
+            });
+            setRowSelection({});
+          }}
+        />
+      ) : null}
       {excelImport.importDialog}
     </section>
   );

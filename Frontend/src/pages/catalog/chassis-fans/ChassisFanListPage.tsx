@@ -4,6 +4,7 @@ import { deleteChassisFans } from "@/api/catalog/bulk-delete";
 import {
   chassisFanKeys,
   isChassisFanFilterActive,
+  updateChassisFans,
   type ChassisFan,
   type ChassisFanFilter,
 } from "@/api/catalog/chassis-fans";
@@ -23,7 +24,7 @@ import {
   emptyChassisFanFilter,
 } from "@/api/catalog/params/chassis-fan-list-params";
 import { toInteger } from "@/api/helper";
-import { FAN_DIAMETERS_MM, formatFanDiameterMm } from "@/api/enums";
+import { FAN_DIAMETERS_MM, formatFanDiameterMm, type FanDiameterMm } from "@/api/enums";
 import { CatalogCompatibleCheckbox } from "@/components/catalog/CatalogFilterFields.tsx";
 import { usePcBuild } from "@/builds/use-pc-build";
 import { useAuth } from "@/auth/use-auth";
@@ -38,11 +39,86 @@ import {
   CatalogEnumField,
   CatalogIdSelectField,
 } from "@/components/catalog/CatalogFilterFields";
+import { useQueryClient } from "@tanstack/react-query";
+import { formSelectClassName } from "@/components/filters/ListFilters";
+import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
 
 const EMPTY_ITEMS: ChassisFan[] = [];
 const columnHelper = createColumnHelper<typeof dataTableFeatures, ChassisFan>();
 
+function chassisFanEditColumns(
+  manufacturers: { id: string; name: string }[],
+): BulkEditColumn<ChassisFan>[] {
+  return [
+    {
+      header: "Name",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Name for ${row.name}`}
+          value={row.name}
+          onChange={(event) => update({ ...row, name: event.target.value })}
+        />
+      )
+    },
+    {
+      header: "Manufacturer",
+      cell: (row, update) => (
+        <select
+          aria-label={`Manufacturer for ${row.name}`}
+          className={formSelectClassName}
+          value={row.manufacturerId}
+          onChange={(event) =>
+            update({ ...row, manufacturerId: event.target.value })
+          }
+        >
+          {manufacturers.map((manufacturer) => (
+            <option key={manufacturer.id} value={manufacturer.id}>
+              {manufacturer.name}
+            </option>
+          ))}
+        </select>
+      )
+    },
+    {
+      header: "Diameter",
+      cell: (row, update) => (
+        <select
+          aria-label={`Diameter for ${row.name}`}
+          className={formSelectClassName}
+          value={row.diameterMm}
+          onChange={(event) => update({ ...row, diameterMm: event.target.value as FanDiameterMm })}
+        >
+          {FAN_DIAMETERS_MM.map((diameter) => (
+            <option key={diameter} value={diameter}>
+              {formatFanDiameterMm(diameter)}
+            </option>
+          ))}
+        </select>
+      )
+    },
+    {
+      header: "Pack size",
+      cell: (row, update) => (
+        <select 
+          aria-label={`Pack size for ${row.name}`}
+          className={formSelectClassName}
+          value={row.fansCountPerPack}
+          onChange={(event) => update({ ...row, fansCountPerPack: toInteger(event.target.value) ?? 0 })}
+        >
+          {Array.from({ length: 10 }, (_, index) => index + 1).map((size) => (
+            <option key={size} value={size}>
+              {size}
+            </option>
+          ))}
+        </select>
+      )
+    }
+  ];
+}
+
+
 export function ChassisFanListPage() {
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(
     () => chassisFanListParamsFromSearch(searchParams),
@@ -60,7 +136,7 @@ export function ChassisFanListPage() {
     queryKey: chassisFanKeys.all,
     singular: "chassis fan",
     plural: "chassis fans",
-    deleteByIds: deleteChassisFans,
+    deleteByIds: (ids) => deleteChassisFans({ ids }),
   });
   const excelImport = useExcelImport({
     queryKey: chassisFanKeys.all,
@@ -75,7 +151,7 @@ export function ChassisFanListPage() {
   const [showOnlyCompatible, setShowOnlyCompatible] = useState(() =>
     Boolean(params.filter.chassisId),
   );
-
+  const [editRows, setEditRows] = useState<ChassisFan[] | null>(null);
   const { isAdmin } = useAuth();
 
   const columns = useMemo(
@@ -102,6 +178,13 @@ export function ChassisFanListPage() {
 
   function compatibilityIds(checked: boolean) {
     return { chassisId: checked ? currentBuild.chassisId : undefined };
+  }
+
+
+  function startEditing() {
+    const selected = items.filter((item) => rowSelection[item.id]);
+    if (selected.length === 0) return;
+    setEditRows(selected);
   }
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
@@ -222,6 +305,7 @@ export function ChassisFanListPage() {
             onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
             deleting={bulkDelete.isDeleting}
             deleteError={bulkDelete.deleteError}
+            onEditSelected={startEditing}
             onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
@@ -231,6 +315,21 @@ export function ChassisFanListPage() {
           />
         </div>
       </div>
+      {editRows ? (
+        <BulkEditDialog
+          title="Edit Chassis Fans"
+          rows={editRows}
+          columns={chassisFanEditColumns(manufacturers)}
+          onClose={() => setEditRows(null)}
+          onSave={async (rows) => {
+            await updateChassisFans(rows);
+            await queryClient.invalidateQueries({
+              queryKey: chassisFanKeys.all,
+            });
+            setRowSelection({});
+          }}
+        />
+      ) : null}
       {excelImport.importDialog}
     </section>
   );

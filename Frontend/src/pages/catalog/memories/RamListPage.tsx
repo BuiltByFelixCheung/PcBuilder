@@ -4,6 +4,7 @@ import { deleteMemories } from "@/api/catalog/bulk-delete";
 import {
   memoryKeys,
   isMemoryFilterActive,
+  updateMemories,
   type MemoryFilter,
   type MemoryDetail,
 } from "@/api/catalog/memories";
@@ -50,6 +51,11 @@ import {
   CatalogNameField,
   CatalogCompatibleCheckbox,
 } from "@/components/catalog/CatalogFilterFields";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  BulkEditDialog,
+  type BulkEditColumn,
+} from "@/components/BulkEditDialog";
 
 const EMPTY_ITEMS: MemoryDetail[] = [];
 const columnHelper = createColumnHelper<
@@ -69,9 +75,255 @@ function optionsForDdr<T>(
   return [];
 }
 
+function valueInOptions(value: number, options: readonly number[]): number {
+  return options.includes(value) ? value : (options[0] ?? value);
+}
+
+function memoryEditColumns(
+  manufacturers: { id: string; name: string }[],
+): BulkEditColumn<MemoryDetail>[] {
+  return [
+    {
+      header: "Name",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Name for ${row.name}`}
+          value={row.name}
+          onChange={(event) => update({ ...row, name: event.target.value })}
+        />
+      ),
+    },
+    {
+      header: "Manufacturer",
+      cell: (row, update) => (
+        <select
+          aria-label={`Manufacturer for ${row.name}`}
+          className={selectClassName}
+          value={row.manufacturerId}
+          onChange={(event) =>
+            update({ ...row, manufacturerId: event.target.value })
+          }
+        >
+          {manufacturers.map((manufacturer) => (
+            <option key={manufacturer.id} value={manufacturer.id}>
+              {manufacturer.name}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "DDR Generation",
+      cell: (row, update) => (
+        <select
+          aria-label={`DDR Generation for ${row.name}`}
+          className={selectClassName}
+          value={row.ddrGeneration}
+          onChange={(event) => {
+            const ddrGeneration = event.target.value as DdrGeneration;
+            const moduleSizes = optionsForDdr(
+              ddrGeneration,
+              DDR4_MODULE_SIZE_GB,
+              DDR5_MODULE_SIZE_GB,
+            );
+            const kitSizes = optionsForDdr(
+              ddrGeneration,
+              DDR4_KIT_SIZE_GB,
+              DDR5_KIT_SIZE_GB,
+            );
+            const speeds = optionsForDdr(
+              ddrGeneration,
+              DDR4_SPEED_MT_S,
+              DDR5_SPEED_MT_S,
+            );
+            update({
+              ...row,
+              ddrGeneration,
+              memorySizePerStickGb: valueInOptions(
+                row.memorySizePerStickGb,
+                moduleSizes,
+              ),
+              totalMemorySizeGb: valueInOptions(
+                row.totalMemorySizeGb,
+                kitSizes,
+              ),
+              maxMemorySpeedMts: valueInOptions(row.maxMemorySpeedMts, speeds),
+            });
+          }}
+        >
+          {DDR_GENERATIONS.map((generation) => (
+            <option key={generation} value={generation}>
+              {generation}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "RAM Form Factor",
+      cell: (row, update) => (
+        <select
+          aria-label={`RAM Form Factor for ${row.name}`}
+          className={selectClassName}
+          value={row.ramFormFactor}
+          onChange={(event) =>
+            update({
+              ...row,
+              ramFormFactor: event.target.value as RamFormFactor,
+            })
+          }
+        >
+          {RAM_FORM_FACTORS.map((factor) => (
+            <option key={factor} value={factor}>
+              {factor}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "RAM Rank",
+      cell: (row, update) => (
+        <select
+          aria-label={`RAM Rank for ${row.name}`}
+          className={selectClassName}
+          value={row.ramRank}
+          onChange={(event) =>
+            update({ ...row, ramRank: event.target.value as RamRank })
+          }
+        >
+          {RAM_RANKS.map((rank) => (
+            <option key={rank} value={rank}>
+              {rank}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "Module Size",
+      cell: (row, update) => {
+        const moduleSizeOptions = optionsForDdr(
+          row.ddrGeneration,
+          DDR4_MODULE_SIZE_GB,
+          DDR5_MODULE_SIZE_GB,
+        );
+        return (
+          <select
+            aria-label={`Module Size for ${row.name}`}
+            className={selectClassName}
+            value={row.memorySizePerStickGb}
+            onChange={(event) =>
+              update({
+                ...row,
+                memorySizePerStickGb: toInteger(event.target.value) ?? 0,
+              })
+            }
+          >
+            {moduleSizeOptions.map((size) => (
+              <option key={size} value={size}>
+                {size} GB
+              </option>
+            ))}
+          </select>
+        );
+      },
+    },
+    {
+      header: "Kit Size",
+      cell: (row, update) => {
+        const kitSizeOptions = optionsForDdr(
+          row.ddrGeneration,
+          DDR4_KIT_SIZE_GB,
+          DDR5_KIT_SIZE_GB,
+        );
+        return (
+          <select
+            aria-label={`Kit Size for ${row.name}`}
+            className={selectClassName}
+            value={row.totalMemorySizeGb}
+            onChange={(event) =>
+              update({
+                ...row,
+                totalMemorySizeGb: toInteger(event.target.value) ?? 0,
+              })
+            }
+          >
+            {kitSizeOptions.map((size) => (
+              <option key={size} value={size}>
+                {size} GB
+              </option>
+            ))}
+          </select>
+        );
+      },
+    },
+    {
+      header: "Speed",
+      cell: (row, update) => {
+        const speedOptions = optionsForDdr(
+          row.ddrGeneration,
+          DDR4_SPEED_MT_S,
+          DDR5_SPEED_MT_S,
+        );
+        return (
+          <select
+            aria-label={`Speed for ${row.name}`}
+            className={selectClassName}
+            value={row.maxMemorySpeedMts}
+            onChange={(event) =>
+              update({
+                ...row,
+                maxMemorySpeedMts: toInteger(event.target.value) ?? 0,
+              })
+            }
+          >
+            {speedOptions.map((speed) => (
+              <option key={speed} value={speed}>
+                {speed} MT/s
+              </option>
+            ))}
+          </select>
+        );
+      },
+    },
+    {
+      header: "Modules Count",
+      cell: (row, update) => (
+        <select
+          aria-label={`Modules Count for ${row.name}`}
+          className={selectClassName}
+          value={row.modulesCount}
+          onChange={(event) =>
+            update({ ...row, modulesCount: toInteger(event.target.value) ?? 0 })
+          }
+        >
+          {MODULES_COUNT.map((count) => (
+            <option key={count} value={count}>
+              {count}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      header: "Height (mm)",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Height for ${row.name}`}
+          value={row.heightMm}
+          onChange={(event) =>
+            update({ ...row, heightMm: toInteger(event.target.value) ?? 0 })
+          }
+        />
+      ),
+    },
+  ];
+}
+
 export function RamListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-
+  const queryClient = useQueryClient();
   const params = useMemo(
     () => memoryListParamsFromSearch(searchParams),
     [searchParams],
@@ -79,7 +331,7 @@ export function RamListPage() {
   const [draft, setDraft] = useState<MemoryFilter>(() => params.filter);
   const query = useMemories(params);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-
+  const [editRows, setEditRows] = useState<MemoryDetail[] | null>(null);
   const { isAdmin } = useAuth();
 
   const columns = useMemo(
@@ -126,7 +378,7 @@ export function RamListPage() {
     queryKey: memoryKeys.all,
     singular: "RAM module",
     plural: "RAM modules",
-    deleteByIds: deleteMemories,
+    deleteByIds: (ids) => deleteMemories({ ids }),
   });
   const excelImport = useExcelImport({
     queryKey: memoryKeys.all,
@@ -167,6 +419,12 @@ export function RamListPage() {
       })),
     [manufacturers],
   );
+
+  function startEditing() {
+    const selected = items.filter((item) => rowSelection[item.id]);
+    if (selected.length === 0) return;
+    setEditRows(selected);
+  }
 
   function applyCompatibleFilter(checked: boolean) {
     const next = {
@@ -471,6 +729,7 @@ export function RamListPage() {
             onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
             deleting={bulkDelete.isDeleting}
             deleteError={bulkDelete.deleteError}
+            onEditSelected={startEditing}
             onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
@@ -480,6 +739,19 @@ export function RamListPage() {
           />
         </div>
       </div>
+      {editRows ? (
+        <BulkEditDialog
+          title="Edit Memories"
+          rows={editRows}
+          columns={memoryEditColumns(manufacturers)}
+          onClose={() => setEditRows(null)}
+          onSave={async (rows) => {
+            await updateMemories(rows);
+            queryClient.invalidateQueries({ queryKey: memoryKeys.all });
+            setEditRows(null);
+          }}
+        />
+      ) : null}
       {excelImport.importDialog}
     </section>
   );

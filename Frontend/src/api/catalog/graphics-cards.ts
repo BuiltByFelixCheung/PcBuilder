@@ -133,3 +133,9 @@ function toGraphicsCardFilterBody(
     motherboardId: filter.motherboardId,
   };
 }
+
+export function updateGraphicsCards(graphicsCards: GraphicsCardListItem[]) {
+  return api
+    .put("/catalog/graphics-card/bulk", { cards: graphicsCards })
+    .then((response) => response.data);
+}

@@ -118,3 +118,9 @@ function toPsuFilterBody(filter: PsuFilter): PsuFilter {
     cpuId: filter.cpuId,
   };
 }
+
+export function updatePsus(psus: PsuListItem[]) {
+  return api
+    .put("/catalog/psu/bulk", { psus: psus })
+    .then((response) => response.data);
+}

@@ -2,6 +2,7 @@ import { useMemo, useState, type SyntheticEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   deleteManufacturers,
+  updateManufacturers,
   listManufacturers,
   masterDataKeys,
   type NamedMasterData,
@@ -21,11 +22,12 @@ import {
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MasterDataResults } from "@/components/master-data/MasterDataResults";
 import { FilterActions } from "@/components/filters/ListFilters";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
+import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
 
 const EMPTY_ITEMS: NamedMasterData[] = [];
 const columnHelper = createColumnHelper<
@@ -44,6 +46,21 @@ const columns = columnHelper.columns([
   }),
 ]);
 
+function manufacturerEditColumns(): BulkEditColumn<NamedMasterData>[] {
+  return [
+    {
+      header: "Name",
+      cell: (row, update) =>
+        <Input
+          aria-label={`Name for ${row.name}`}
+          value={row.name}
+          onChange={(event) => update({ ...row, name: event.target.value })}
+        />
+      ,
+    },
+  ];
+}
+
 type ManufacturerFilter = {
   name?: string;
 };
@@ -55,6 +72,7 @@ function isManufacturerFilterActive(filter: ManufacturerFilter) {
 }
 
 export function ManufacturerListPage() {
+  const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: masterDataKeys.manufacturers,
     queryFn: listManufacturers,
@@ -70,6 +88,7 @@ export function ManufacturerListPage() {
   );
   const filtering = isManufacturerFilterActive(applied);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [editRows, setEditRows] = useState<NamedMasterData[] | null>(null);
   const visibleItems = useMemo(() => {
     const name = applied.name?.trim().toLowerCase();
     return items.filter((item) => {
@@ -90,6 +109,11 @@ export function ManufacturerListPage() {
     queryKey: masterDataKeys.manufacturers,
     importFile: importManufacturers,
   });
+  function startEditing() {
+    const selected = visibleItems.filter((item) => rowSelection[item.id]);
+    if (selected.length === 0) return;
+    setEditRows(selected);
+  }
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -140,12 +164,28 @@ export function ManufacturerListPage() {
             onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
             deleting={bulkDelete.isDeleting}
             deleteError={bulkDelete.deleteError}
+            onEditSelected={startEditing}
             onImport={excelImport.openImport}
             newItemTo={manufacturerEditPath(newMasterDataEditValue)}
             newItemLabel="New Manufacturer"
             keepTableWhenEmpty
           />
         </div>
+        {editRows ? (
+          <BulkEditDialog
+            title="Edit manufacturers"
+            rows={editRows}
+            columns={manufacturerEditColumns()}
+            onClose={() => setEditRows(null)}
+            onSave={async (rows) => {
+              await updateManufacturers(rows);
+              await queryClient.invalidateQueries({
+                queryKey: masterDataKeys.manufacturers,
+              });
+              setRowSelection({});
+            }}
+          />
+        ) : null}
         {editingId ? (
           <ManufacturerFormDialog
             key={editingId}

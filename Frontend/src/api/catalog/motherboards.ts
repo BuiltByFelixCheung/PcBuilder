@@ -178,3 +178,9 @@ function toMotherboardFilterBody(filter: MotherboardFilter): MotherboardFilter {
     chassisId: filter.chassisId,
   };
 }
+
+export function updateMotherboards(motherboards: MotherboardListItem[]) {
+  return api
+    .put("/catalog/motherboard/bulk", { motherboards: motherboards })
+    .then((response) => response.data);
+}
