@@ -28,7 +28,7 @@ describe("catalog bulk delete", () => {
   });
 
   it("posts each catalog resource to its bulk route", async () => {
-    const ids = ["a", "b"];
+    const ids = { ids: ["a", "b"] };
 
     await deleteCpus(ids);
     await deleteChassis(ids);
@@ -43,41 +43,41 @@ describe("catalog bulk delete", () => {
     await deleteWirelessNetworkAdapters(ids);
 
     expect(del).toHaveBeenNthCalledWith(1, "/catalog/cpu/bulk", {
-      data: { cpuIds: ids },
+      data: ids,
     });
     expect(del).toHaveBeenNthCalledWith(2, "/catalog/chassis/bulk", {
-      data: { ids },
+      data: ids,
     });
     expect(del).toHaveBeenNthCalledWith(3, "/catalog/chassis-fan/bulk", {
-      data: { ids },
+      data: ids,
     });
     expect(del).toHaveBeenNthCalledWith(4, "/catalog/cpu-cooler/bulk", {
-      data: { cpuCoolerIds: ids },
+      data: ids,
     });
     expect(del).toHaveBeenNthCalledWith(5, "/catalog/graphics-card/bulk", {
-      data: { ids },
+      data: ids,
     });
     expect(del).toHaveBeenNthCalledWith(6, "/catalog/ram/bulk", {
-      data: { memoryIds: ids },
+      data: ids,
     });
     expect(del).toHaveBeenNthCalledWith(7, "/catalog/motherboard/bulk", {
-      data: { motherboardIds: ids },
+      data: ids,
     });
     expect(del).toHaveBeenNthCalledWith(8, "/catalog/psu/bulk", {
-      data: { ids },
+      data: ids,
     });
     expect(del).toHaveBeenNthCalledWith(9, "/catalog/storage-drive/bulk", {
-      data: { ids },
+      data: ids,
     });
     expect(del).toHaveBeenNthCalledWith(
       10,
       "/catalog/wired-network-adapter/bulk",
-      { data: { ids } },
+      { data: ids },
     );
     expect(del).toHaveBeenNthCalledWith(
       11,
       "/catalog/wireless-network-adapter/bulk",
-      { data: { ids } },
+      { data: ids },
     );
   });
 });

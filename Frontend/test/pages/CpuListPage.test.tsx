@@ -292,7 +292,7 @@ describe("CpuListPage", () => {
     await user.click(screen.getByRole("button", { name: "Delete Selected" }));
 
     await waitFor(() => {
-      expect(deleteCpus).toHaveBeenCalledWith(["cpu-1"]);
+      expect(deleteCpus).toHaveBeenCalledWith({ ids: ["cpu-1"] });
     });
     expect(window.confirm).toHaveBeenCalledWith("Delete 1 CPU?");
   });
