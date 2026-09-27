@@ -9,12 +9,10 @@ import {
   masterDataKeys,
   updateManufacturer,
 } from "@/api/master-data";
-import { PageStatus } from "@/components/PageStatus";
+import { MasterDataEditorFrame } from "@/components/master-data/MasterDataEditorFrame";
 import { FormTextField } from "@/components/FormTextField";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -25,7 +23,6 @@ import {
   applyApiFieldErrors,
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
-import { newMasterDataEditValue } from "@/lib/master-data-edit";
 import { useState } from "react";
 
 const manufacturerFormSchema = z.object({
@@ -51,35 +48,20 @@ export function ManufacturerFormDialog({
   manufacturersSettled,
   onClose,
 }: Readonly<ManufacturerFormDialogProps>) {
-  const isNew = editingId === newMasterDataEditValue;
-  const manufacturer = isNew
-    ? undefined
-    : manufacturers.find((item) => item.id === editingId);
-  const missing = !isNew && manufacturersSettled && !manufacturer;
-  const loading = !isNew && !manufacturersSettled;
-
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
+    <MasterDataEditorFrame
+      editingId={editingId}
+      items={manufacturers}
+      settled={manufacturersSettled}
+      onClose={onClose}
+      editTitle="Edit Manufacturer"
+      loadingMessage="Loading Manufacturer…"
+      missing={<MissingManufacturer onClose={onClose} />}
     >
-      <DialogContent className="sm:max-w-md">
-        {loading ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Edit Manufacturer</DialogTitle>
-            </DialogHeader>
-            <PageStatus>Loading Manufacturer…</PageStatus>
-          </>
-        ) : null}
-        {missing ? <MissingManufacturer onClose={onClose} /> : null}
-        {isNew || manufacturer ? (
-          <ManufacturerForm manufacturer={manufacturer} onClose={onClose} />
-        ) : null}
-      </DialogContent>
-    </Dialog>
+      {(manufacturer) => (
+        <ManufacturerForm manufacturer={manufacturer} onClose={onClose} />
+      )}
+    </MasterDataEditorFrame>
   );
 }
 

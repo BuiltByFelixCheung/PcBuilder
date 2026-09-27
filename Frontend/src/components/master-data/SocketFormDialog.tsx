@@ -12,12 +12,11 @@ import {
   updateSocket,
   type SocketOption,
 } from "@/api/master-data";
+import { MasterDataEditorFrame } from "@/components/master-data/MasterDataEditorFrame";
 import { PageStatus } from "@/components/PageStatus";
 import { FormTextField } from "@/components/FormTextField";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -28,7 +27,6 @@ import {
   applyApiFieldErrors,
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
-import { newMasterDataEditValue } from "@/lib/master-data-edit";
 import { formSelectClassName } from "@/components/filters/ListFilters";
 
 const socketFormSchema = z.object({
@@ -55,35 +53,18 @@ export function SocketFormDialog({
   socketsSettled,
   onClose,
 }: Readonly<SocketFormDialogProps>) {
-  const isNew = editingId === newMasterDataEditValue;
-  const socket = isNew
-    ? undefined
-    : sockets.find((item) => item.id === editingId);
-  const missing = !isNew && socketsSettled && !socket;
-  const loading = !isNew && !socketsSettled;
-
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
+    <MasterDataEditorFrame
+      editingId={editingId}
+      items={sockets}
+      settled={socketsSettled}
+      onClose={onClose}
+      editTitle="Edit Socket"
+      loadingMessage="Loading Socket…"
+      missing={<MissingSocket onClose={onClose} />}
     >
-      <DialogContent className="sm:max-w-md">
-        {loading ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Edit Socket</DialogTitle>
-            </DialogHeader>
-            <PageStatus>Loading Socket…</PageStatus>
-          </>
-        ) : null}
-        {missing ? <MissingSocket onClose={onClose} /> : null}
-        {isNew || socket ? (
-          <SocketForm socket={socket} onClose={onClose} />
-        ) : null}
-      </DialogContent>
-    </Dialog>
+      {(socket) => <SocketForm socket={socket} onClose={onClose} />}
+    </MasterDataEditorFrame>
   );
 }
 

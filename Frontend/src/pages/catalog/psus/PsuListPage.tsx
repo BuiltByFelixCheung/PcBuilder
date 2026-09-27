@@ -1,5 +1,13 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
+import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import {
+  enumSelectBulkColumn,
+  idSelectBulkColumn,
+  integerColumn,
+  nameBulkColumn,
+} from "@/components/bulk-edit-columns";
 import { deletePsus } from "@/api/catalog/bulk-delete";
 import {
   psuKeys,
@@ -14,7 +22,6 @@ import {
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
-import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useAuth } from "@/auth/use-auth";
 import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import { usePsus } from "@/hooks/use-psus.ts";
@@ -39,7 +46,6 @@ import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importPsus } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
-import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
@@ -47,8 +53,6 @@ import {
 } from "@/components/catalog/CatalogFilterFields";
 import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
-import { toInteger } from "@/api/helper";
 
 const EMPTY_ITEMS: PsuListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -56,122 +60,25 @@ const columnHelper = createColumnHelper<
   PsuListItem
 >();
 
+
 function psuEditColumns(
   manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<PsuListItem>[] {
+  const millimeters = (header: string, field: "lengthMm" | "widthMm" | "heightMm") =>
+    integerColumn<PsuListItem>(header, field, { type: "number", min: 0 });
+
   return [
-    {
-      header: "Name",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      )
-    },
-    {
-      header: "Manufacturer",
-      cell: (row, update) => (
-        <select
-          aria-label={`Manufacturer for ${row.name}`}
-          className={formSelectClassName}
-          value={row.manufacturerId}
-          onChange={(event) => update({ ...row, manufacturerId: event.target.value })}
-        >
-          <option value="">Any</option>
-          {manufacturers.map((manufacturer) => (
-            <option key={manufacturer.id} value={manufacturer.id}>
-              {manufacturer.name}
-            </option>
-          ))}
-        </select>
-      )
-    },
-    {
-      header: "Wattage",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Wattage for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.wattage}
-          onChange={(event) => update({ ...row, wattage: toInteger(event.target.value) ?? 0 })}
-        />
-      )
-    },
-    {
-      header: "Modularity",
-      cell: (row, update) => (
-        <select
-          aria-label={`Modularity for ${row.name}`}
-          className={formSelectClassName}
-          value={row.modularity}
-          onChange={(event) => update({ ...row, modularity: event.target.value as PsuModularity })}
-        >
-          {PSU_MODULARITIES.map((modularity) => (
-            <option key={modularity} value={modularity}>
-              {modularity}
-            </option>
-          ))}
-        </select>
-      )
-    },
-    {
-      header: "Form factor",
-      cell: (row, update) => (
-        <select
-          aria-label={`Form factor for ${row.name}`}
-          className={formSelectClassName}
-          value={row.formFactor}
-          onChange={(event) => update({ ...row, formFactor: event.target.value as PsuFormFactor })}
-        >
-          {PSU_FORM_FACTORS.map((formFactor) => (
-            <option key={formFactor} value={formFactor}>
-              {formFactor}
-            </option>
-          ))}
-        </select>
-      )
-    },
-    {
-      header: "Length (mm)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Length (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.lengthMm}
-          onChange={(event) => update({ ...row, lengthMm: toInteger(event.target.value) ?? 0 })}
-        />
-      )
-    },
-    {
-      header: "Width (mm)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Width (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.widthMm}
-          onChange={(event) => update({ ...row, widthMm: toInteger(event.target.value) ?? 0 })}
-        />
-      )
-    },
-    {
-      header: "Height (mm)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Height (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.heightMm}
-          onChange={(event) => update({ ...row, heightMm: toInteger(event.target.value) ?? 0 })}
-        />
-      )
-    }
+    nameBulkColumn(),
+    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers, "Any"),
+    integerColumn("Wattage", "wattage", { type: "number", min: 0 }),
+    enumSelectBulkColumn("Modularity", "modularity", PSU_MODULARITIES),
+    enumSelectBulkColumn("Form factor", "formFactor", PSU_FORM_FACTORS),
+    millimeters("Length (mm)", "lengthMm"),
+    millimeters("Width (mm)", "widthMm"),
+    millimeters("Height (mm)", "heightMm"),
   ];
 }
+
 
 export function PsuListPage() {
   const queryClient = useQueryClient();
@@ -190,16 +97,11 @@ export function PsuListPage() {
   const columns = useMemo(
     () =>
       columnHelper.columns([
-        ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
-        columnHelper.accessor("name", {
-          header: "Name",
-          cell: (info) =>
-            catalogNameCell(
-              `/catalog/psus/${info.row.original.id}`,
-              info.getValue(),
-            ),
-        }),
-        columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
+        ...catalogLeadColumns(
+          columnHelper,
+          isAdmin,
+          (id) => `/catalog/psus/${id}`,
+        ),
         columnHelper.accessor("wattage", {
           header: "Wattage",
           cell: (info) => `${info.getValue()} W`,
@@ -248,9 +150,7 @@ export function PsuListPage() {
   }
 
   function startEditing() {
-    const selected = items.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(items, rowSelection, setEditRows);
   }
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {

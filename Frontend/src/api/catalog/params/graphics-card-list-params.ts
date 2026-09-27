@@ -2,7 +2,7 @@ import type {
   GraphicsCardFilter,
   GraphicsCardListParams,
 } from "../graphics-cards";
-import { hasCompleteRange } from "../../paging";
+import type { PcieGeneration } from "../../enums";
 import {
   toInteger,
   emptyToUndefined,
@@ -10,8 +10,7 @@ import {
   parseRange,
   setSearchFlag,
 } from "../../helper";
-import type { PcieGeneration } from "../../enums";
-import { catalogPagingFromSearch } from "./list-search";
+import { catalogPagingFromSearch, setSearchRange } from "./list-search";
 
 export const emptyGraphicsCardFilter: GraphicsCardFilter = {
   name: undefined,
@@ -44,28 +43,15 @@ export function graphicsCardListSearchFromParams(
   if (filter.pcieGeneration)
     search.set("pcieGeneration", filter.pcieGeneration);
   setSearchFlag(search, "isLowProfile", filter.isLowProfile);
-  if (hasCompleteRange(filter.lengthMm)) {
-    search.set("lengthMmMin", String(filter.lengthMm!.min));
-    search.set("lengthMmMax", String(filter.lengthMm!.max));
-  }
-  if (hasCompleteRange(filter.widthMm)) {
-    search.set("widthMmMin", String(filter.widthMm!.min));
-    search.set("widthMmMax", String(filter.widthMm!.max));
-  }
-  if (hasCompleteRange(filter.heightMm)) {
-    search.set("heightMmMin", String(filter.heightMm!.min));
-    search.set("heightMmMax", String(filter.heightMm!.max));
-  }
-  if (hasCompleteRange(filter.powerConsumptionWatts)) {
-    search.set(
-      "powerConsumptionWattsMin",
-      String(filter.powerConsumptionWatts!.min),
-    );
-    search.set(
-      "powerConsumptionWattsMax",
-      String(filter.powerConsumptionWatts!.max),
-    );
-  }
+  setSearchRange(search, filter.lengthMm, "lengthMmMin", "lengthMmMax");
+  setSearchRange(search, filter.widthMm, "widthMmMin", "widthMmMax");
+  setSearchRange(search, filter.heightMm, "heightMmMin", "heightMmMax");
+  setSearchRange(
+    search,
+    filter.powerConsumptionWatts,
+    "powerConsumptionWattsMin",
+    "powerConsumptionWattsMax",
+  );
   if (filter.chassisId) search.set("chassisId", filter.chassisId);
   if (filter.motherboardId) search.set("motherboardId", filter.motherboardId);
 

@@ -18,7 +18,15 @@ import {
   newMasterDataEditValue,
   socketEditPath,
 } from "@/lib/master-data-edit";
-import { uniqueById } from "@/lib/unique-by-id";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import {
+  filterByNameAndFields,
+  useIdNameChoices,
+} from "@/lib/named-list-filter";
+import {
+  idSelectBulkColumn,
+  nameBulkColumn,
+} from "@/components/bulk-edit-columns";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -29,7 +37,6 @@ import {
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
 import {
   FilterActions,
   formSelectClassName,
@@ -68,35 +75,8 @@ function socketEditColumns(
   manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<SocketOption>[] {
   return [
-    {
-      header: "Name",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      ),
-    },
-    {
-      header: "Manufacturer",
-      cell: (row, update) => (
-        <select
-          aria-label={`Manufacturer for ${row.name}`}
-          className={formSelectClassName}
-          value={row.manufacturerId}
-          onChange={(event) =>
-            update({ ...row, manufacturerId: event.target.value })
-          }
-        >
-          {manufacturers.map((manufacturer) => (
-            <option key={manufacturer.id} value={manufacturer.id}>
-              {manufacturer.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
+    nameBulkColumn(),
+    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
   ];
 }
 
@@ -114,29 +94,15 @@ export function SocketListPage() {
   const filtering = isSocketFilterActive(applied);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [editRows, setEditRows] = useState<SocketOption[] | null>(null);
-  const manufacturers = useMemo(
-    () =>
-      uniqueById(
-        items.map((item) => ({
-          id: item.manufacturerId,
-          name: item.manufacturerName,
-        })),
-      ),
-    [items],
+  const manufacturers = useIdNameChoices(
+    items,
+    "manufacturerId",
+    "manufacturerName",
   );
-
-  const visibleItems = useMemo(() => {
-    const name = applied.name?.trim().toLowerCase();
-    return items.filter((item) => {
-      if (name && !item.name.toLowerCase().includes(name)) return false;
-      if (
-        applied.manufacturerId &&
-        item.manufacturerId !== applied.manufacturerId
-      )
-        return false;
-      return true;
-    });
-  }, [items, applied]);
+  const visibleItems = useMemo(
+    () => filterByNameAndFields(items, applied, ["manufacturerId"]),
+    [items, applied],
+  );
   const bulkDelete = useBulkDelete({
     items: visibleItems,
     rowSelection,
@@ -151,9 +117,7 @@ export function SocketListPage() {
     importFile: importSockets,
   });
   function startEditing() {
-    const selected = visibleItems.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(visibleItems, rowSelection, setEditRows);
   }
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {

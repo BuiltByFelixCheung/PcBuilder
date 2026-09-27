@@ -1,5 +1,13 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
+import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import {
+  enumSelectBulkColumn,
+  idSelectBulkColumn,
+  nameBulkColumn,
+  optionalNumberColumn,
+} from "@/components/bulk-edit-columns";
 import { deleteCpuCoolers } from "@/api/catalog/bulk-delete";
 import {
   cpuCoolerKeys,
@@ -15,7 +23,6 @@ import {
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
-import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useAuth } from "@/auth/use-auth";
 import {
   useCatalogManufacturers,
@@ -32,7 +39,6 @@ import {
   CPU_COOLER_TYPES,
   RADIATOR_LENGTHS,
   formatRadiatorLength,
-  type CpuCoolerType,
 } from "@/api/enums";
 import { usePcBuild } from "@/builds/use-pc-build";
 import type { RangeFilter } from "@/api/paging";
@@ -40,7 +46,6 @@ import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importCpuCoolers } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
-import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
@@ -53,7 +58,6 @@ import {
   type BulkEditColumn,
 } from "@/components/BulkEditDialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { formSelectClassName } from "@/components/filters/ListFilters";
 
 const EMPTY_ITEMS: CpuCoolerListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -61,139 +65,25 @@ const columnHelper = createColumnHelper<
   CpuCoolerListItem
 >();
 
+
 function cpuCoolerEditColumns(
   manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<CpuCoolerListItem>[] {
   return [
-    {
-      header: "Name",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      ),
-    },
-    {
-      header: "Manufacturer",
-      cell: (row, update) => (
-        <select
-          aria-label={`Manufacturer for ${row.name}`}
-          className={formSelectClassName}
-          value={row.manufacturerId}
-          onChange={(event) =>
-            update({ ...row, manufacturerId: event.target.value })
-          }
-        >
-          {manufacturers.map((manufacturer) => (
-            <option key={manufacturer.id} value={manufacturer.id}>
-              {manufacturer.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Type",
-      cell: (row, update) => (
-        <select
-          aria-label={`Type for ${row.name}`}
-          className={formSelectClassName}
-          value={row.type}
-          onChange={(event) =>
-            update({ ...row, type: event.target.value as CpuCoolerType })
-          }
-        >
-          {CPU_COOLER_TYPES.map((type) => (
-            <option key={type} value={type}>
-              {type}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Max TDP",
-      numeric: true,
-      cell: (row, update) => (
-        <Input
-          aria-label={`Max TDP for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.maxTdp?.toString() ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              maxTdp: toOptionalNumber(event.target.value) ?? 0,
-            })
-          }
-        />
-      ),
-    },
-    {
-      header: "Height (mm)",
-      numeric: true,
-      cell: (row, update) => (
-        <Input
-          aria-label={`Height (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.coolerHeightMm?.toString() ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              coolerHeightMm: toOptionalNumber(event.target.value) ?? 0,
-            })
-          }
-        />
-      ),
-    },
-    {
-      header: "Max RAM height (mm)",
-      numeric: true,
-      cell: (row, update) => (
-        <Input
-          aria-label={`Max RAM height (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.maxRamHeightMm?.toString() ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              maxRamHeightMm: toOptionalNumber(event.target.value) ?? 0,
-            })
-          }
-        />
-      ),
-    },
-    {
-      header: "Radiator length",
-      cell: (row, update) => (
-        <select
-          aria-label={`Radiator length for ${row.name}`}
-          className={formSelectClassName}
-          value={row.radiatorLength ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              radiatorLength:
-                RADIATOR_LENGTHS.find((length) => length === event.target.value) ??
-                null,
-            })
-          }
-        >
-          <option value="">N/A</option>
-          {RADIATOR_LENGTHS.map((length) => (
-            <option key={length} value={length}>
-              {formatRadiatorLength(length)}
-            </option>
-          ))}
-        </select>
-      ),
-    },
+    nameBulkColumn(),
+    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
+    enumSelectBulkColumn("Type", "type", CPU_COOLER_TYPES),
+    optionalNumberColumn("Max TDP", "maxTdp"),
+    optionalNumberColumn("Height (mm)", "coolerHeightMm"),
+    optionalNumberColumn("Max RAM height (mm)", "maxRamHeightMm"),
+    enumSelectBulkColumn("Radiator length", "radiatorLength", RADIATOR_LENGTHS, {
+      empty: "null",
+      emptyLabel: "N/A",
+      label: formatRadiatorLength,
+    }),
   ];
 }
+
 
 export function CpuCoolerListPage() {
   const queryClient = useQueryClient();
@@ -214,16 +104,11 @@ export function CpuCoolerListPage() {
   const columns = useMemo(
     () =>
       columnHelper.columns([
-        ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
-        columnHelper.accessor("name", {
-          header: "Name",
-          cell: (info) =>
-            catalogNameCell(
-              `/catalog/cpu-coolers/${info.row.original.id}`,
-              info.getValue(),
-            ),
-        }),
-        columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
+        ...catalogLeadColumns(
+          columnHelper,
+          isAdmin,
+          (id) => `/catalog/cpu-coolers/${id}`,
+        ),
         columnHelper.accessor("type", { header: "Type" }),
         columnHelper.accessor("maxTdp", {
           header: "Max TDP",
@@ -292,9 +177,7 @@ export function CpuCoolerListPage() {
   }
 
   function startEditing() {
-    const selected = items.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(items, rowSelection, setEditRows);
   }
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {

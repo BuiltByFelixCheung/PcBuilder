@@ -14,7 +14,15 @@ import {
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
-import { createSelectionColumn } from "@/components/ui/selection-column";
+import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import {
+  enumSelectBulkColumn,
+  idSelectBulkColumn,
+  nameBulkColumn,
+  numberBulkColumn,
+} from "@/components/bulk-edit-columns";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import { useMotherboardOnlyCompatibility } from "@/hooks/use-motherboard-compatibility";
 import { useAuth } from "@/auth/use-auth";
 import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import { useWirelessNetworkAdapters } from "@/hooks/use-wireless-network-adapters.ts";
@@ -35,24 +43,15 @@ import {
   formatBluetoothVersion,
   formatM2FormFactor,
   formatWifiStandard,
-  type BluetoothVersion,
-  type M2FormFactor,
-  type M2Key,
-  type PcieSlotType,
-  type UsbVersion,
-  type WifiStandard,
-  type WirelessHostInterface,
 } from "@/api/enums";
 import {
   CatalogCompatibleCheckbox,
   CatalogRangeField,
 } from "@/components/catalog/CatalogFilterFields.tsx";
-import { usePcBuild } from "@/builds/use-pc-build";
 import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importWirelessNetworkAdapters } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
-import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
@@ -61,8 +60,6 @@ import {
 } from "@/components/catalog/CatalogFilterFields";
 import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
-import { formSelectClassName } from "@/components/filters/ListFilters";
 import { toInteger } from "@/api/helper";
 
 const EMPTY_ITEMS: WirelessNetworkAdapter[] = [];
@@ -72,209 +69,45 @@ const columnHelper = createColumnHelper<
 >();
 
 function bulkEditColumns(
-  manufacturers: {id: string, name: string}[],
+  manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<WirelessNetworkAdapter>[] {
   return [
-    {
-      header: "Name",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      ),
-    },
-    {
-      header: "Manufacturer",
-      cell: (row, update) => (
-        <select
-          aria-label={`Manufacturer for ${row.name}`}
-          className={formSelectClassName}
-          value={row.manufacturerId}
-          onChange={(event) => update({ ...row, manufacturerId: event.target.value })}
-        >
-          {manufacturers.map((manufacturer) => (
-            <option key={manufacturer.id} value={manufacturer.id}>
-              {manufacturer.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Wi-Fi",
-      cell: (row, update) => (
-        <select
-          aria-label={`Wi-Fi for ${row.name}`}
-          className={formSelectClassName}
-          value={row.wifiStandard}
-          onChange={(event) => update({ ...row, wifiStandard: event.target.value as WifiStandard })}
-        >
-          {WIFI_STANDARDS.map((wifiStandard) => (
-            <option key={wifiStandard} value={wifiStandard}>
-              {wifiStandard}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Host interface",
-      cell: (row, update) => (
-        <select
-          aria-label={`Host interface for ${row.name}`}
-          className={formSelectClassName}
-          value={row.hostInterface}
-          onChange={(event) => update({ ...row, hostInterface: event.target.value as WirelessHostInterface })}
-        >
-          {WIRELESS_HOST_INTERFACES.map((hostInterface) => (
-            <option key={hostInterface} value={hostInterface}>
-              {hostInterface}
-            </option>
-          ))}
-          </select>
-      ),
-    },
-    {
-      header: "Bluetooth",
-      cell: (row, update) => (
-        <select
-          aria-label={`Bluetooth for ${row.name}`}
-          className={formSelectClassName}
-          value={row.bluetoothVersion ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              bluetoothVersion: event.target.value
-                ? (event.target.value as BluetoothVersion)
-                : null,
-            })
-          }
-        >
-          <option value=""></option>
-          {BLUETOOTH_VERSIONS.map((bluetoothVersion) => (
-            <option key={bluetoothVersion} value={bluetoothVersion}>
-              {bluetoothVersion}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Max speed (Mbps)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Max speed (Mbps) for ${row.name}`}
-          value={row.maxSpeedMbps}
-          onChange={(event) => update({ ...row, maxSpeedMbps: toInteger(event.target.value) ?? 0 })}
-        />
-      ),
-    },
-    {
-      header: "5 GHz max speed (Mbps)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`5 GHz max speed (Mbps) for ${row.name}`}
-          value={row.maxSpeedMbps5G ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              maxSpeedMbps5G: toInteger(event.target.value) ?? null,
-            })
-          }
-        />
-      ),
-    },
-    {
-      header: "6 GHz max speed (Mbps)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`6 GHz max speed (Mbps) for ${row.name}`}
-          value={row.maxSpeedMbps6G ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              maxSpeedMbps6G: toInteger(event.target.value) ?? null,
-            })
-          }
-        />
-      ),
-    },
-    {
-      header: "PCIe slot",
-      cell: (row, update) => (
-        <select
-          aria-label={`PCIe slot for ${row.name}`}
-          className={formSelectClassName}
-          value={row.pcieSlotType ?? ""}
-          onChange={(event) => update({ ...row, pcieSlotType: event.target.value as PcieSlotType })}
-        >
-          <option value=""></option>
-          {PCIE_SLOT_TYPES.map((pcieSlotType) => (
-            <option key={pcieSlotType} value={pcieSlotType}>
-              {pcieSlotType}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "M.2 key",
-      cell: (row, update) => (
-        <select
-          aria-label={`M.2 key for ${row.name}`}
-          className={formSelectClassName}
-          value={row.key ?? ""}
-          onChange={(event) => update({ ...row, key: event.target.value as M2Key })}
-        >
-          <option value=""></option>
-          {M2_KEYS.map((key) => (
-            <option key={key} value={key}>
-              {key}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "M.2 form factor",
-      cell: (row, update) => (
-        <select
-          aria-label={`M.2 form factor for ${row.name}`}
-          className={formSelectClassName}
-          value={row.m2FormFactor ?? ""}
-          onChange={(event) => update({ ...row, m2FormFactor: event.target.value as M2FormFactor })}
-        >
-          <option value=""></option>
-          {M2_FORM_FACTORS.map((m2FormFactor) => (
-            <option key={m2FormFactor} value={m2FormFactor}>
-              {m2FormFactor}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "USB version",
-      cell: (row, update) => (
-        <select
-          aria-label={`USB version for ${row.name}`}
-          className={formSelectClassName}
-          value={row.usbVersion ?? ""}
-          onChange={(event) => update({ ...row, usbVersion: event.target.value as UsbVersion })}
-        >
-          <option value=""></option>
-          {USB_VERSIONS.map((usbVersion) => (
-            <option key={usbVersion} value={usbVersion}>
-              {usbVersion}
-            </option>
-          ))}
-        </select>
-      ),
-    }
+    nameBulkColumn(),
+    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
+    enumSelectBulkColumn("Wi-Fi", "wifiStandard", WIFI_STANDARDS),
+    enumSelectBulkColumn(
+      "Host interface",
+      "hostInterface",
+      WIRELESS_HOST_INTERFACES,
+    ),
+    enumSelectBulkColumn("Bluetooth", "bluetoothVersion", BLUETOOTH_VERSIONS, {
+      empty: "null",
+    }),
+    numberBulkColumn("Max speed (Mbps)", "maxSpeedMbps", {
+      parse: toInteger,
+      fallback: 0,
+    }),
+    numberBulkColumn("5 GHz max speed (Mbps)", "maxSpeedMbps5G", {
+      parse: toInteger,
+      fallback: null,
+    }),
+    numberBulkColumn("6 GHz max speed (Mbps)", "maxSpeedMbps6G", {
+      parse: toInteger,
+      fallback: null,
+    }),
+    enumSelectBulkColumn("PCIe slot", "pcieSlotType", PCIE_SLOT_TYPES, {
+      empty: "keep",
+    }),
+    enumSelectBulkColumn("M.2 key", "key", M2_KEYS, { empty: "keep" }),
+    enumSelectBulkColumn("M.2 form factor", "m2FormFactor", M2_FORM_FACTORS, {
+      empty: "keep",
+    }),
+    enumSelectBulkColumn("USB version", "usbVersion", USB_VERSIONS, {
+      empty: "keep",
+    }),
   ];
 }
+
 export function WirelessNetworkAdapterListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(
@@ -294,16 +127,11 @@ export function WirelessNetworkAdapterListPage() {
   const columns = useMemo(
     () =>
       columnHelper.columns([
-        ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
-        columnHelper.accessor("name", {
-          header: "Name",
-          cell: (info) =>
-            catalogNameCell(
-              `/catalog/wireless-network-adapters/${info.row.original.id}`,
-              info.getValue(),
-            ),
-        }),
-        columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
+        ...catalogLeadColumns(
+          columnHelper,
+          isAdmin,
+          (id) => `/catalog/wireless-network-adapters/${id}`,
+        ),
         columnHelper.accessor("wifiStandard", {
           header: "Wi-Fi",
           cell: (info) => formatWifiStandard(info.getValue()),
@@ -335,21 +163,11 @@ export function WirelessNetworkAdapterListPage() {
   const pageSize = params.pageSize;
   const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
   const filtering = isWirelessNetworkAdapterFilterActive(params.filter);
-  const currentBuild = usePcBuild();
-  const [showOnlyCompatible, setShowOnlyCompatible] = useState(() =>
-    Boolean(params.filter.motherboardId),
-  );
-
-  function compatibilityIds(checked: boolean) {
-    return {
-      motherboardId: checked ? currentBuild.motherboardId : undefined,
-    };
-  }
+  const { showOnlyCompatible, setShowOnlyCompatible, compatibilityIds } =
+    useMotherboardOnlyCompatibility(Boolean(params.filter.motherboardId));
 
   function startEditing() {
-    const selected = items.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(items, rowSelection, setEditRows);
   }
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {

@@ -1,8 +1,7 @@
 import type { MemoryFilter, MemoryListParams } from "../memories";
-import { hasCompleteRange } from "../../paging";
 import { toInteger, emptyToUndefined, parseRange } from "../../helper";
 import type { DdrGeneration, RamRank, RamFormFactor } from "../../enums";
-import { catalogPagingFromSearch } from "./list-search";
+import { catalogPagingFromSearch, setSearchRange } from "./list-search";
 
 export const emptyMemoryFilter: MemoryFilter = {
   name: undefined,
@@ -40,10 +39,7 @@ export function memoryListSearchFromParams(
     search.set("modulesCount", String(filter.modulesCount));
   if (filter.maxMemorySpeedMts)
     search.set("maxMemorySpeedMts", String(filter.maxMemorySpeedMts));
-  if (hasCompleteRange(filter.heightMm)) {
-    search.set("heightMmMin", String(filter.heightMm!.min));
-    search.set("heightMmMax", String(filter.heightMm!.max));
-  }
+  setSearchRange(search, filter.heightMm, "heightMmMin", "heightMmMax");
   if (filter.cpuId) search.set("cpuId", filter.cpuId);
   if (filter.motherboardId) search.set("motherboardId", filter.motherboardId);
 

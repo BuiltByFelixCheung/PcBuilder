@@ -1,8 +1,7 @@
 import type { MotherboardFilter, MotherboardListParams } from "../motherboards";
-import { hasCompleteRange, type RangeFilter } from "../../paging";
-import { toInteger, emptyToUndefined, parseRange } from "../../helper";
+import { toInteger, emptyToUndefined, parseRange, setSearchFlag } from "../../helper";
 import type { DdrGeneration, MbFormFactor, RamFormFactor } from "../../enums";
-import { catalogPagingFromSearch } from "./list-search";
+import { catalogPagingFromSearch, setSearchRange } from "./list-search";
 
 export const emptyMotherboardFilter: MotherboardFilter = {
   name: "",
@@ -57,26 +56,6 @@ function setSearchValue(
 ) {
   if (!value) return;
   search.set(key, String(value));
-}
-
-function setSearchFlag(
-  search: URLSearchParams,
-  key: string,
-  value: boolean | undefined,
-) {
-  if (value == null) return;
-  search.set(key, String(value));
-}
-
-function setSearchRange(
-  search: URLSearchParams,
-  range: RangeFilter | undefined,
-  minKey: string,
-  maxKey: string,
-) {
-  if (!hasCompleteRange(range)) return;
-  search.set(minKey, String(range.min));
-  search.set(maxKey, String(range.max));
 }
 
 function filterFromSearch(search: URLSearchParams): MotherboardFilter {

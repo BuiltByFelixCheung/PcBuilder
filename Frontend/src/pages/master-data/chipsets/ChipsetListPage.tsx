@@ -13,7 +13,12 @@ import {
   closeMasterDataEditor,
   newMasterDataEditValue,
 } from "@/lib/master-data-edit";
-import { uniqueById } from "@/lib/unique-by-id";
+import {
+  filterByNameAndFields,
+  socketsForManufacturer,
+  useIdNameChoices,
+  useSocketChoices,
+} from "@/lib/named-list-filter";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   createColumnHelper,
@@ -73,43 +78,18 @@ export function ChipsetListPage() {
   const [applied, setApplied] = useState<ChipsetFilter>(emptyChipsetFilter);
   const filtering = isChipsetFilterActive(applied);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const manufacturers = useMemo(
-    () =>
-      uniqueById(
-        items.map((item) => ({
-          id: item.manufacturerId,
-          name: item.manufacturerName,
-        })),
-      ),
-    [items],
+  const manufacturers = useIdNameChoices(
+    items,
+    "manufacturerId",
+    "manufacturerName",
   );
-  const sockets = useMemo(
+  const sockets = useSocketChoices(items);
+  const socketOptions = socketsForManufacturer(sockets, draft.manufacturerId);
+  const visibleItems = useMemo(
     () =>
-      uniqueById(
-        items.map((item) => ({
-          id: item.socketId,
-          name: item.socketName,
-          manufacturerId: item.manufacturerId,
-        })),
-      ),
-    [items],
+      filterByNameAndFields(items, applied, ["manufacturerId", "socketId"]),
+    [applied, items],
   );
-  const socketOptions = draft.manufacturerId
-    ? sockets.filter((item) => item.manufacturerId === draft.manufacturerId)
-    : sockets;
-  const visibleItems = useMemo(() => {
-    const name = applied.name?.trim().toLowerCase();
-    return items.filter((item) => {
-      if (name && !item.name.toLowerCase().includes(name)) return false;
-      if (
-        applied.manufacturerId &&
-        item.manufacturerId !== applied.manufacturerId
-      )
-        return false;
-      if (applied.socketId && item.socketId !== applied.socketId) return false;
-      return true;
-    });
-  }, [applied, items]);
   const bulkDelete = useBulkDelete({
     items: visibleItems,
     rowSelection,

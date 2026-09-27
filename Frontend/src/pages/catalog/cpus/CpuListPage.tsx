@@ -1,5 +1,12 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
+import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import {
+  idSelectBulkColumn,
+  integerColumn,
+  nameBulkColumn,
+} from "@/components/bulk-edit-columns";
 import { deleteCpus } from "@/api/catalog/bulk-delete";
 import {
   cpuKeys,
@@ -14,7 +21,6 @@ import {
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
-import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useAuth } from "@/auth/use-auth";
 import { useCpuFilterOptions } from "@/hooks/use-cpu-filter-options.ts";
 import { useCpus } from "@/hooks/use-cpus.ts";
@@ -28,7 +34,6 @@ import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importCpus } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
-import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
@@ -41,9 +46,7 @@ import {
   type BulkEditColumn,
 } from "@/components/BulkEditDialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { toInteger } from "@/api/helper";
 
 const EMPTY_ITEMS: CpuListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -53,123 +56,32 @@ const columnHelper = createColumnHelper<
 const selectClassName =
   "h-10 w-full min-w-0 rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
+
 function cpuEditColumns(
   manufacturers: { id: string; name: string }[],
   series: { id: string; name: string }[],
   sockets: { id: string; name: string }[],
 ): BulkEditColumn<CpuListItem>[] {
   return [
-    {
-      header: "Name",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      ),
-    },
-    {
-      header: "Manufacturer",
-      cell: (row, update) => (
-        <select
-          aria-label={`Manufacturer for ${row.name}`}
-          className={selectClassName}
-          value={row.manufacturerId}
-          onChange={(event) =>
-            update({ ...row, manufacturerId: event.target.value })
-          }
-        >
-          {manufacturers.map((manufacturer) => (
-            <option key={manufacturer.id} value={manufacturer.id}>
-              {manufacturer.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Series",
-      cell: (row, update) => (
-        <select
-          aria-label={`Series for ${row.name}`}
-          className={selectClassName}
-          value={row.seriesId}
-          onChange={(event) => update({ ...row, seriesId: event.target.value })}
-        >
-          {series.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Socket",
-      cell: (row, update) => (
-        <select
-          aria-label={`Socket for ${row.name}`}
-          className={selectClassName}
-          value={row.socketId}
-          onChange={(event) => update({ ...row, socketId: event.target.value })}
-        >
-          {sockets.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "TDP (W)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`TDP for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.thermalDesignPower.toString()}
-          onChange={(event) =>
-            update({
-              ...row,
-              thermalDesignPower: toInteger(event.target.value) ?? 0,
-            })
-          }
-        />
-      ),
-    },
-    {
-      header: "Power Consumption (W)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Power for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.powerConsumptionWatts.toString()}
-          onChange={(event) =>
-            update({
-              ...row,
-              powerConsumptionWatts: toInteger(event.target.value) ?? 0,
-            })
-          }
-        />
-      ),
-    },
-    {
-      header: "Max RAM (GB)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Max RAM for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.maxMemoryGb.toString()}
-          onChange={(event) =>
-            update({ ...row, maxMemoryGb: toInteger(event.target.value) ?? 0 })
-          }
-        />
-      ),
-    },
+    nameBulkColumn(),
+    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
+    idSelectBulkColumn("Series", "seriesId", series),
+    idSelectBulkColumn("Socket", "socketId", sockets),
+    integerColumn("TDP (W)", "thermalDesignPower", {
+      type: "number",
+      min: 0,
+      label: "TDP",
+    }),
+    integerColumn("Power Consumption (W)", "powerConsumptionWatts", {
+      type: "number",
+      min: 0,
+      label: "Power",
+    }),
+    integerColumn("Max RAM (GB)", "maxMemoryGb", {
+      type: "number",
+      min: 0,
+      label: "Max RAM",
+    }),
     {
       header: "Has iGPU",
       cell: (row, update) => (
@@ -183,6 +95,7 @@ function cpuEditColumns(
     },
   ];
 }
+
 
 export function CpuListPage() {
   const queryClient = useQueryClient();
@@ -202,16 +115,11 @@ export function CpuListPage() {
   const columns = useMemo(
     () =>
       columnHelper.columns([
-        ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
-        columnHelper.accessor("name", {
-          header: "Name",
-          cell: (info) =>
-            catalogNameCell(
-              `/catalog/cpus/${info.row.original.id}`,
-              info.getValue(),
-            ),
-        }),
-        columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
+        ...catalogLeadColumns(
+          columnHelper,
+          isAdmin,
+          (id) => `/catalog/cpus/${id}`,
+        ),
         columnHelper.accessor("seriesName", { header: "Series" }),
         columnHelper.accessor("socketName", { header: "Socket" }),
         columnHelper.accessor("thermalDesignPower", {
@@ -267,9 +175,7 @@ export function CpuListPage() {
   );
 
   function startEditing() {
-    const selected = items.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(items, rowSelection, setEditRows);
   }
 
   function applyCompatibleFilter(checked: boolean) {

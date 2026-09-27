@@ -1,5 +1,13 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
+import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import {
+  enumSelectBulkColumn,
+  idSelectBulkColumn,
+  integerColumn,
+  nameBulkColumn,
+} from "@/components/bulk-edit-columns";
 import { deleteMemories } from "@/api/catalog/bulk-delete";
 import {
   memoryKeys,
@@ -15,7 +23,6 @@ import {
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
-import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useAuth } from "@/auth/use-auth";
 import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import { useMemories } from "@/hooks/use-memories";
@@ -45,7 +52,6 @@ import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importMemories } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
-import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
@@ -83,35 +89,8 @@ function memoryEditColumns(
   manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<MemoryDetail>[] {
   return [
-    {
-      header: "Name",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      ),
-    },
-    {
-      header: "Manufacturer",
-      cell: (row, update) => (
-        <select
-          aria-label={`Manufacturer for ${row.name}`}
-          className={selectClassName}
-          value={row.manufacturerId}
-          onChange={(event) =>
-            update({ ...row, manufacturerId: event.target.value })
-          }
-        >
-          {manufacturers.map((manufacturer) => (
-            <option key={manufacturer.id} value={manufacturer.id}>
-              {manufacturer.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
+    nameBulkColumn(),
+    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
     {
       header: "DDR Generation",
       cell: (row, update) => (
@@ -159,47 +138,8 @@ function memoryEditColumns(
         </select>
       ),
     },
-    {
-      header: "RAM Form Factor",
-      cell: (row, update) => (
-        <select
-          aria-label={`RAM Form Factor for ${row.name}`}
-          className={selectClassName}
-          value={row.ramFormFactor}
-          onChange={(event) =>
-            update({
-              ...row,
-              ramFormFactor: event.target.value as RamFormFactor,
-            })
-          }
-        >
-          {RAM_FORM_FACTORS.map((factor) => (
-            <option key={factor} value={factor}>
-              {factor}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "RAM Rank",
-      cell: (row, update) => (
-        <select
-          aria-label={`RAM Rank for ${row.name}`}
-          className={selectClassName}
-          value={row.ramRank}
-          onChange={(event) =>
-            update({ ...row, ramRank: event.target.value as RamRank })
-          }
-        >
-          {RAM_RANKS.map((rank) => (
-            <option key={rank} value={rank}>
-              {rank}
-            </option>
-          ))}
-        </select>
-      ),
-    },
+    enumSelectBulkColumn("RAM Form Factor", "ramFormFactor", RAM_FORM_FACTORS),
+    enumSelectBulkColumn("RAM Rank", "ramRank", RAM_RANKS),
     {
       header: "Module Size",
       cell: (row, update) => {
@@ -306,18 +246,7 @@ function memoryEditColumns(
         </select>
       ),
     },
-    {
-      header: "Height (mm)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Height for ${row.name}`}
-          value={row.heightMm}
-          onChange={(event) =>
-            update({ ...row, heightMm: toInteger(event.target.value) ?? 0 })
-          }
-        />
-      ),
-    },
+    integerColumn("Height (mm)", "heightMm", { label: "Height" }),
   ];
 }
 
@@ -337,16 +266,11 @@ export function RamListPage() {
   const columns = useMemo(
     () =>
       columnHelper.columns([
-        ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
-        columnHelper.accessor("name", {
-          header: "Name",
-          cell: (info) =>
-            catalogNameCell(
-              `/catalog/memories/${info.row.original.id}`,
-              info.getValue(),
-            ),
-        }),
-        columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
+        ...catalogLeadColumns(
+          columnHelper,
+          isAdmin,
+          (id) => `/catalog/memories/${id}`,
+        ),
         columnHelper.accessor("ddrGeneration", { header: "DDR Generation" }),
         columnHelper.accessor("ramFormFactor", { header: "RAM Form Factor" }),
         columnHelper.accessor("ramRank", { header: "RAM Rank" }),
@@ -421,9 +345,7 @@ export function RamListPage() {
   );
 
   function startEditing() {
-    const selected = items.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(items, rowSelection, setEditRows);
   }
 
   function applyCompatibleFilter(checked: boolean) {

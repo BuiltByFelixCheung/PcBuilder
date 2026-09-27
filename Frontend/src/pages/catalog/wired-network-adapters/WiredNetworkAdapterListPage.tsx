@@ -14,7 +14,15 @@ import {
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
-import { createSelectionColumn } from "@/components/ui/selection-column";
+import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import {
+  enumSelectBulkColumn,
+  idSelectBulkColumn,
+  nameBulkColumn,
+  numberBulkColumn,
+} from "@/components/bulk-edit-columns";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import { useMotherboardOnlyCompatibility } from "@/hooks/use-motherboard-compatibility";
 import { useAuth } from "@/auth/use-auth";
 import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import { useWiredNetworkAdapters } from "@/hooks/use-wired-network-adapters.ts";
@@ -28,18 +36,12 @@ import {
   USB_TYPES,
   USB_VERSIONS,
   WIRED_HOST_INTERFACES,
-  type PcieSlotType,
-  type UsbType,
-  type UsbVersion,
-  type WiredHostInterface,
 } from "@/api/enums";
 import { CatalogCompatibleCheckbox } from "@/components/catalog/CatalogFilterFields.tsx";
-import { usePcBuild } from "@/builds/use-pc-build";
 import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importWiredNetworkAdapters } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
-import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
@@ -49,8 +51,6 @@ import {
 } from "@/components/catalog/CatalogFilterFields";
 import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
-import { formSelectClassName } from "@/components/filters/ListFilters";
 import { toInteger } from "@/api/helper";
 
 const EMPTY_ITEMS: WiredNetworkAdapter[] = [];
@@ -60,126 +60,23 @@ const columnHelper = createColumnHelper<
 >();
 
 function bulkEditColumns(
-  manufacturers: {id: string, name: string}[],
+  manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<WiredNetworkAdapter>[] {
   return [
-    {
-      header: "Name",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      ),
-    },
-    {
-      header: "Manufacturer",
-      cell: (row, update) => (
-        <select
-          aria-label={`Manufacturer for ${row.name}`}
-          className={formSelectClassName}
-          value={row.manufacturerId}
-          onChange={(event) =>
-            update({ ...row, manufacturerId: event.target.value })
-          }
-        >
-          {manufacturers.map((manufacturer) => (
-            <option key={manufacturer.id} value={manufacturer.id}>
-              {manufacturer.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Interface",
-      cell: (row, update) => (
-        <select
-          aria-label={`Interface for ${row.name}`}
-          className={formSelectClassName}
-          value={row.hostInterface}
-          onChange={(event) => update({ ...row, hostInterface: event.target.value as WiredHostInterface })}
-        >
-          {WIRED_HOST_INTERFACES.map((hostInterface) => (
-            <option key={hostInterface} value={hostInterface}>
-              {hostInterface}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Max speed (Mbps)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Max speed (Mbps) for ${row.name}`}
-          value={row.maxSpeedMbps}
-          onChange={(event) => update({ ...row, maxSpeedMbps: toInteger(event.target.value) ?? 0 })}
-        />
-      ),
-    },
-    {
-      header: "USB version",
-      cell: (row, update) => (
-        <select
-          aria-label={`USB version for ${row.name}`}
-          className={formSelectClassName}
-          value={row.usbVersion ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              usbVersion: event.target.value
-                ? (event.target.value as UsbVersion)
-                : null,
-            })
-          }
-        >
-          <option value=""></option>
-          {USB_VERSIONS.map((usbVersion) => (
-            <option key={usbVersion} value={usbVersion}>
-              {usbVersion}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "USB type",
-      cell: (row, update) => (
-        <select
-          aria-label={`USB type for ${row.name}`}
-          className={formSelectClassName}
-          value={row.usbType ?? ""}
-          onChange={(event) => update({ ...row, usbType: event.target.value as UsbType })}
-        >
-          <option value=""></option>
-          {USB_TYPES.map((usbType) => (
-            <option key={usbType} value={usbType}>
-              {usbType}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "PCIe slot",
-      cell: (row, update) => (
-        <select
-          aria-label={`PCIe slot for ${row.name}`}
-          className={formSelectClassName}
-          value={row.pcieSlotType ?? ""}
-          onChange={(event) => update({ ...row, pcieSlotType: event.target.value as PcieSlotType })}
-        >
-          <option value=""></option>
-          {PCIE_SLOT_TYPES.map((pcieSlotType) => (
-            <option key={pcieSlotType} value={pcieSlotType}>
-              {pcieSlotType}
-            </option>
-          ))}
-        </select>
-      ),
-    },
+    nameBulkColumn(),
+    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
+    enumSelectBulkColumn("Interface", "hostInterface", WIRED_HOST_INTERFACES),
+    numberBulkColumn("Max speed (Mbps)", "maxSpeedMbps", {
+      parse: toInteger,
+      fallback: 0,
+    }),
+    enumSelectBulkColumn("USB version", "usbVersion", USB_VERSIONS, {
+      empty: "null",
+    }),
+    enumSelectBulkColumn("USB type", "usbType", USB_TYPES, { empty: "keep" }),
+    enumSelectBulkColumn("PCIe slot", "pcieSlotType", PCIE_SLOT_TYPES, {
+      empty: "keep",
+    }),
   ];
 }
 
@@ -203,16 +100,11 @@ export function WiredNetworkAdapterListPage() {
   const columns = useMemo(
     () =>
       columnHelper.columns([
-        ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
-        columnHelper.accessor("name", {
-          header: "Name",
-          cell: (info) =>
-            catalogNameCell(
-              `/catalog/wired-network-adapters/${info.row.original.id}`,
-              info.getValue(),
-            ),
-        }),
-        columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
+        ...catalogLeadColumns(
+          columnHelper,
+          isAdmin,
+          (id) => `/catalog/wired-network-adapters/${id}`,
+        ),
         columnHelper.accessor("hostInterface", { header: "Interface" }),
         columnHelper.accessor("maxSpeedMbps", {
           header: "Max speed",
@@ -240,21 +132,11 @@ export function WiredNetworkAdapterListPage() {
   const pageSize = params.pageSize;
   const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
   const filtering = isWiredNetworkAdapterFilterActive(params.filter);
-  const currentBuild = usePcBuild();
-  const [showOnlyCompatible, setShowOnlyCompatible] = useState(() =>
-    Boolean(params.filter.motherboardId),
-  );
-
-  function compatibilityIds(checked: boolean) {
-    return {
-      motherboardId: checked ? currentBuild.motherboardId : undefined,
-    };
-  }
+  const { showOnlyCompatible, setShowOnlyCompatible, compatibilityIds } =
+    useMotherboardOnlyCompatibility(Boolean(params.filter.motherboardId));
 
   function startEditing() {
-    const selected = items.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(items, rowSelection, setEditRows);
   }
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {

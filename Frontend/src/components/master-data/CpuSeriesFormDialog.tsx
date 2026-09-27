@@ -13,12 +13,11 @@ import {
   type CpuSeriesOption,
   type SocketOption,
 } from "@/api/master-data";
+import { MasterDataEditorFrame } from "@/components/master-data/MasterDataEditorFrame";
 import { PageStatus } from "@/components/PageStatus";
 import { FormTextField } from "@/components/FormTextField";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -30,10 +29,7 @@ import {
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
 import { formSelectClassName } from "@/components/filters/ListFilters";
-import {
-  clearSocketFromAnotherManufacturer,
-  newMasterDataEditValue,
-} from "@/lib/master-data-edit";
+import { clearSocketFromAnotherManufacturer } from "@/lib/master-data-edit";
 import { useState } from "react";
 
 const cpuSeriesFormSchema = z.object({
@@ -61,35 +57,18 @@ export function CpuSeriesFormDialog({
   cpuSeriesSettled,
   onClose,
 }: Readonly<CpuSeriesFormDialogProps>) {
-  const isNew = editingId === newMasterDataEditValue;
-  const editing = isNew
-    ? undefined
-    : cpuSeries.find((item) => item.id === editingId);
-  const missing = !isNew && cpuSeriesSettled && !editing;
-  const loading = !isNew && !cpuSeriesSettled;
-
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
+    <MasterDataEditorFrame
+      editingId={editingId}
+      items={cpuSeries}
+      settled={cpuSeriesSettled}
+      onClose={onClose}
+      editTitle="Edit CPU Series"
+      loadingMessage="Loading CPU Series…"
+      missing={<MissingCpuSeries onClose={onClose} />}
     >
-      <DialogContent className="sm:max-w-md">
-        {loading ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Edit CPU Series</DialogTitle>
-            </DialogHeader>
-            <PageStatus>Loading CPU Series…</PageStatus>
-          </>
-        ) : null}
-        {missing ? <MissingCpuSeries onClose={onClose} /> : null}
-        {isNew || editing ? (
-          <CpuSeriesForm cpuSeries={editing} onClose={onClose} />
-        ) : null}
-      </DialogContent>
-    </Dialog>
+      {(editing) => <CpuSeriesForm cpuSeries={editing} onClose={onClose} />}
+    </MasterDataEditorFrame>
   );
 }
 

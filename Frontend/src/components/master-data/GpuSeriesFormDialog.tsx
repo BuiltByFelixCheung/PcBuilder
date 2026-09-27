@@ -11,12 +11,11 @@ import {
   updateGpuSeries,
   type GpuSeriesOption,
 } from "@/api/master-data";
+import { MasterDataEditorFrame } from "@/components/master-data/MasterDataEditorFrame";
 import { PageStatus } from "@/components/PageStatus";
 import { FormTextField } from "@/components/FormTextField";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -28,7 +27,6 @@ import {
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
 import { formSelectClassName } from "@/components/filters/ListFilters";
-import { newMasterDataEditValue } from "@/lib/master-data-edit";
 import { useState } from "react";
 
 const gpuSeriesFormSchema = z.object({
@@ -55,35 +53,18 @@ export function GpuSeriesFormDialog({
   gpuSeriesSettled,
   onClose,
 }: Readonly<GpuSeriesFormDialogProps>) {
-  const isNew = editingId === newMasterDataEditValue;
-  const editing = isNew
-    ? undefined
-    : gpuSeries.find((item) => item.id === editingId);
-  const missing = !isNew && gpuSeriesSettled && !editing;
-  const loading = !isNew && !gpuSeriesSettled;
-
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
+    <MasterDataEditorFrame
+      editingId={editingId}
+      items={gpuSeries}
+      settled={gpuSeriesSettled}
+      onClose={onClose}
+      editTitle="Edit GPU series"
+      loadingMessage="Loading GPU series…"
+      missing={<MissingGpuSeries onClose={onClose} />}
     >
-      <DialogContent className="sm:max-w-md">
-        {loading ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Edit GPU series</DialogTitle>
-            </DialogHeader>
-            <PageStatus>Loading GPU series…</PageStatus>
-          </>
-        ) : null}
-        {missing ? <MissingGpuSeries onClose={onClose} /> : null}
-        {isNew || editing ? (
-          <GpuSeriesForm gpuSeries={editing} onClose={onClose} />
-        ) : null}
-      </DialogContent>
-    </Dialog>
+      {(editing) => <GpuSeriesForm gpuSeries={editing} onClose={onClose} />}
+    </MasterDataEditorFrame>
   );
 }
 

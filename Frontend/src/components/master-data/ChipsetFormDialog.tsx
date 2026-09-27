@@ -13,12 +13,11 @@ import {
   type ChipsetOption,
   type SocketOption,
 } from "@/api/master-data";
+import { MasterDataEditorFrame } from "@/components/master-data/MasterDataEditorFrame";
 import { PageStatus } from "@/components/PageStatus";
 import { FormTextField } from "@/components/FormTextField";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -35,10 +34,7 @@ import {
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
 import { formSelectClassName } from "@/components/filters/ListFilters";
-import {
-  clearSocketFromAnotherManufacturer,
-  newMasterDataEditValue,
-} from "@/lib/master-data-edit";
+import { clearSocketFromAnotherManufacturer } from "@/lib/master-data-edit";
 import { useState } from "react";
 
 const chipsetFormSchema = z.object({
@@ -66,35 +62,18 @@ export function ChipsetFormDialog({
   chipsetsSettled,
   onClose,
 }: Readonly<ChipsetFormDialogProps>) {
-  const isNew = editingId === newMasterDataEditValue;
-  const chipset = isNew
-    ? undefined
-    : chipsets.find((item) => item.id === editingId);
-  const missing = !isNew && chipsetsSettled && !chipset;
-  const loading = !isNew && !chipsetsSettled;
-
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
+    <MasterDataEditorFrame
+      editingId={editingId}
+      items={chipsets}
+      settled={chipsetsSettled}
+      onClose={onClose}
+      editTitle="Edit chipset"
+      loadingMessage="Loading chipset…"
+      missing={<MissingChipset onClose={onClose} />}
     >
-      <DialogContent className="sm:max-w-md">
-        {loading ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Edit chipset</DialogTitle>
-            </DialogHeader>
-            <PageStatus>Loading chipset…</PageStatus>
-          </>
-        ) : null}
-        {missing ? <MissingChipset onClose={onClose} /> : null}
-        {isNew || chipset ? (
-          <ChipsetForm chipset={chipset} onClose={onClose} />
-        ) : null}
-      </DialogContent>
-    </Dialog>
+      {(chipset) => <ChipsetForm chipset={chipset} onClose={onClose} />}
+    </MasterDataEditorFrame>
   );
 }
 

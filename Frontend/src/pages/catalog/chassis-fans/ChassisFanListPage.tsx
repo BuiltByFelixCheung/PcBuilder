@@ -1,5 +1,12 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
+import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import {
+  enumSelectBulkColumn,
+  idSelectBulkColumn,
+  nameBulkColumn,
+} from "@/components/bulk-edit-columns";
 import { deleteChassisFans } from "@/api/catalog/bulk-delete";
 import {
   chassisFanKeys,
@@ -15,7 +22,6 @@ import {
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
-import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import { useChassisFans } from "@/hooks/use-chassis-fans.ts";
 import {
@@ -24,7 +30,7 @@ import {
   emptyChassisFanFilter,
 } from "@/api/catalog/params/chassis-fan-list-params";
 import { toInteger } from "@/api/helper";
-import { FAN_DIAMETERS_MM, formatFanDiameterMm, type FanDiameterMm } from "@/api/enums";
+import { FAN_DIAMETERS_MM, formatFanDiameterMm } from "@/api/enums";
 import { CatalogCompatibleCheckbox } from "@/components/catalog/CatalogFilterFields.tsx";
 import { usePcBuild } from "@/builds/use-pc-build";
 import { useAuth } from "@/auth/use-auth";
@@ -32,7 +38,6 @@ import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importChassisFans } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
-import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
@@ -46,60 +51,20 @@ import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog
 const EMPTY_ITEMS: ChassisFan[] = [];
 const columnHelper = createColumnHelper<typeof dataTableFeatures, ChassisFan>();
 
+
 function chassisFanEditColumns(
   manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<ChassisFan>[] {
   return [
-    {
-      header: "Name",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      )
-    },
-    {
-      header: "Manufacturer",
-      cell: (row, update) => (
-        <select
-          aria-label={`Manufacturer for ${row.name}`}
-          className={formSelectClassName}
-          value={row.manufacturerId}
-          onChange={(event) =>
-            update({ ...row, manufacturerId: event.target.value })
-          }
-        >
-          {manufacturers.map((manufacturer) => (
-            <option key={manufacturer.id} value={manufacturer.id}>
-              {manufacturer.name}
-            </option>
-          ))}
-        </select>
-      )
-    },
-    {
-      header: "Diameter",
-      cell: (row, update) => (
-        <select
-          aria-label={`Diameter for ${row.name}`}
-          className={formSelectClassName}
-          value={row.diameterMm}
-          onChange={(event) => update({ ...row, diameterMm: event.target.value as FanDiameterMm })}
-        >
-          {FAN_DIAMETERS_MM.map((diameter) => (
-            <option key={diameter} value={diameter}>
-              {formatFanDiameterMm(diameter)}
-            </option>
-          ))}
-        </select>
-      )
-    },
+    nameBulkColumn(),
+    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
+    enumSelectBulkColumn("Diameter", "diameterMm", FAN_DIAMETERS_MM, {
+      label: formatFanDiameterMm,
+    }),
     {
       header: "Pack size",
       cell: (row, update) => (
-        <select 
+        <select
           aria-label={`Pack size for ${row.name}`}
           className={formSelectClassName}
           value={row.fansCountPerPack}
@@ -111,10 +76,11 @@ function chassisFanEditColumns(
             </option>
           ))}
         </select>
-      )
-    }
+      ),
+    },
   ];
 }
+
 
 
 export function ChassisFanListPage() {
@@ -157,16 +123,11 @@ export function ChassisFanListPage() {
   const columns = useMemo(
     () =>
       columnHelper.columns([
-        ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
-        columnHelper.accessor("name", {
-          header: "Name",
-          cell: (info) =>
-            catalogNameCell(
-              `/catalog/chassis-fans/${info.row.original.id}`,
-              info.getValue(),
-            ),
-        }),
-        columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
+        ...catalogLeadColumns(
+          columnHelper,
+          isAdmin,
+          (id) => `/catalog/chassis-fans/${id}`,
+        ),
         columnHelper.accessor("diameterMm", {
           header: "Diameter",
           cell: (info) => formatFanDiameterMm(info.getValue()),
@@ -182,9 +143,7 @@ export function ChassisFanListPage() {
 
 
   function startEditing() {
-    const selected = items.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(items, rowSelection, setEditRows);
   }
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {

@@ -1,8 +1,7 @@
 import type { ChassisFilter, ChassisListParams } from "../chassis";
-import { hasCompleteRange } from "../../paging";
 import { emptyToUndefined, parseRange } from "../../helper";
 import { MB_FORM_FACTORS, type MbFormFactor } from "../../enums";
-import { catalogPagingFromSearch } from "./list-search";
+import { catalogPagingFromSearch, setSearchRange } from "./list-search";
 
 export const emptyChassisFilter: ChassisFilter = {
   name: undefined,
@@ -27,62 +26,39 @@ export function chassisListSearchFromParams(
   if (filter.name?.trim()) search.set("name", filter.name.trim());
   if (filter.manufacturerId)
     search.set("manufacturerId", filter.manufacturerId);
-  if (hasCompleteRange(filter.lengthMm)) {
-    search.set("lengthMmMin", String(filter.lengthMm!.min));
-    search.set("lengthMmMax", String(filter.lengthMm!.max));
-  }
-  if (hasCompleteRange(filter.widthMm)) {
-    search.set("widthMmMin", String(filter.widthMm!.min));
-    search.set("widthMmMax", String(filter.widthMm!.max));
-  }
-  if (hasCompleteRange(filter.heightMm)) {
-    search.set("heightMmMin", String(filter.heightMm!.min));
-    search.set("heightMmMax", String(filter.heightMm!.max));
-  }
-  if (hasCompleteRange(filter.motherboardMaxWidthMm)) {
-    search.set(
-      "motherboardMaxWidthMmMin",
-      String(filter.motherboardMaxWidthMm!.min),
-    );
-    search.set(
-      "motherboardMaxWidthMmMax",
-      String(filter.motherboardMaxWidthMm!.max),
-    );
-  }
-  if (hasCompleteRange(filter.motherboardMaxHeightMm)) {
-    search.set(
-      "motherboardMaxHeightMmMin",
-      String(filter.motherboardMaxHeightMm!.min),
-    );
-    search.set(
-      "motherboardMaxHeightMmMax",
-      String(filter.motherboardMaxHeightMm!.max),
-    );
-  }
-  if (hasCompleteRange(filter.maxCpuCoolerHeightMm)) {
-    search.set(
-      "maxCpuCoolerHeightMmMin",
-      String(filter.maxCpuCoolerHeightMm!.min),
-    );
-    search.set(
-      "maxCpuCoolerHeightMmMax",
-      String(filter.maxCpuCoolerHeightMm!.max),
-    );
-  }
-  if (hasCompleteRange(filter.maxGraphicsCardLengthMm)) {
-    search.set(
-      "maxGraphicsCardLengthMmMin",
-      String(filter.maxGraphicsCardLengthMm!.min),
-    );
-    search.set(
-      "maxGraphicsCardLengthMmMax",
-      String(filter.maxGraphicsCardLengthMm!.max),
-    );
-  }
-  if (hasCompleteRange(filter.maxPsuLengthMm)) {
-    search.set("maxPsuLengthMmMin", String(filter.maxPsuLengthMm!.min));
-    search.set("maxPsuLengthMmMax", String(filter.maxPsuLengthMm!.max));
-  }
+  setSearchRange(search, filter.lengthMm, "lengthMmMin", "lengthMmMax");
+  setSearchRange(search, filter.widthMm, "widthMmMin", "widthMmMax");
+  setSearchRange(search, filter.heightMm, "heightMmMin", "heightMmMax");
+  setSearchRange(
+    search,
+    filter.motherboardMaxWidthMm,
+    "motherboardMaxWidthMmMin",
+    "motherboardMaxWidthMmMax",
+  );
+  setSearchRange(
+    search,
+    filter.motherboardMaxHeightMm,
+    "motherboardMaxHeightMmMin",
+    "motherboardMaxHeightMmMax",
+  );
+  setSearchRange(
+    search,
+    filter.maxCpuCoolerHeightMm,
+    "maxCpuCoolerHeightMmMin",
+    "maxCpuCoolerHeightMmMax",
+  );
+  setSearchRange(
+    search,
+    filter.maxGraphicsCardLengthMm,
+    "maxGraphicsCardLengthMmMin",
+    "maxGraphicsCardLengthMmMax",
+  );
+  setSearchRange(
+    search,
+    filter.maxPsuLengthMm,
+    "maxPsuLengthMmMin",
+    "maxPsuLengthMmMax",
+  );
   if (filter.maxSupportedMbFormFactor) {
     search.set("maxSupportedMbFormFactor", filter.maxSupportedMbFormFactor);
   }

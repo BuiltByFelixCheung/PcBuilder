@@ -1,5 +1,13 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
+import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import {
+  enumSelectBulkColumn,
+  idSelectBulkColumn,
+  integerColumn,
+  nameBulkColumn,
+} from "@/components/bulk-edit-columns";
 import { deleteMotherboards } from "@/api/catalog/bulk-delete";
 import {
   motherboardKeys,
@@ -15,7 +23,6 @@ import {
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
-import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useAuth } from "@/auth/use-auth";
 import { useMotherboardFilterOptions } from "@/hooks/use-motherboard-filter-options.ts";
 import { useMotherboards } from "@/hooks/use-motherboards.ts";
@@ -30,15 +37,12 @@ import {
   MB_FORM_FACTORS,
   RAM_FORM_FACTORS,
   type DdrGeneration,
-  type MbFormFactor,
-  type RamFormFactor,
 } from "@/api/enums";
 import { usePcBuild } from "@/builds";
 import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importMotherboards } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
-import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
@@ -49,7 +53,6 @@ import {
 } from "@/components/catalog/CatalogFilterFields";
 import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { formSelectClassName } from "@/components/filters/ListFilters";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const EMPTY_ITEMS: MotherboardListItem[] = [];
@@ -66,228 +69,51 @@ function optionalBooleanValue(value: boolean | undefined): string {
   return "";
 }
 
+
 function motherboardEditColumns(
   manufacturers: { id: string; name: string }[],
   sockets: { id: string; name: string }[],
   chipsets: { id: string; name: string }[],
 ): BulkEditColumn<MotherboardListItem>[] {
+  const counted = (
+    header: string,
+    field:
+      | "ramSlots"
+      | "maxMemoryGb"
+      | "maxDimmSizeGb"
+      | "sataPorts"
+      | "fanConnectors"
+      | "epsConnectors"
+      | "widthMm"
+      | "heightMm",
+  ) => integerColumn<MotherboardListItem>(header, field, { type: "number", min: 0 });
+
   return [
-    {
-      header: "Name",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      )
-    },
-    {
-      header: "Manufacturer",
-      cell: (row, update) => (
-        <select
-          aria-label={`Manufacturer for ${row.name}`}
-          className={formSelectClassName}
-          value={row.manufacturerId}
-          onChange={(event) => update({ ...row, manufacturerId: event.target.value })}
-        >
-          {manufacturers.map((manufacturer) => (
-            <option key={manufacturer.id} value={manufacturer.id}>
-              {manufacturer.name}
-            </option>
-          ))}
-        </select>
-      )
-    },
-    {
-      header: "Socket",
-      cell: (row, update) => (
-        <select
-          aria-label={`Socket for ${row.name}`}
-          className={formSelectClassName}
-          value={row.socketId}
-          onChange={(event) => update({ ...row, socketId: event.target.value })}
-        >
-          {sockets.map((socket) => (
-            <option key={socket.id} value={socket.id}>
-              {socket.name}
-            </option>
-          ))}
-        </select>
-      )
-    },
-    {
-      header: "Chipset",
-      cell: (row, update) => (
-        <select
-          aria-label={`Chipset for ${row.name}`}
-          className={formSelectClassName}
-          value={row.chipsetId}
-          onChange={(event) => update({ ...row, chipsetId: event.target.value })}
-        >
-          {chipsets.map((chipset) => (
-            <option key={chipset.id} value={chipset.id}>
-              {chipset.name}
-            </option>
-          ))}
-        </select>
-      )
-    },
-    {
-      header: "RAM slots",
-      cell: (row, update) => (
-        <Input
-          aria-label={`RAM slots for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.ramSlots}
-          onChange={(event) => update({ ...row, ramSlots: toInteger(event.target.value) ?? 0 })}
-        />
-      )
-    },
-    {
-      header: "Max memory (GB)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Max memory (GB) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.maxMemoryGb}
-          onChange={(event) => update({ ...row, maxMemoryGb: toInteger(event.target.value) ?? 0 })}
-        />
-      )
-    },
-    {
-      header: "Max memory per slot (GB)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Max memory per slot (GB) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.maxDimmSizeGb}
-          onChange={(event) => update({ ...row, maxDimmSizeGb: toInteger(event.target.value) ?? 0 })}
-        />
-      )
-    },
-    {
-      header: "SATA ports",
-      cell: (row, update) => (
-        <Input
-          aria-label={`SATA ports for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.sataPorts}
-          onChange={(event) => update({ ...row, sataPorts: toInteger(event.target.value) ?? 0 })}
-        />
-      ),
-    },
-    {
-      header: "Fan connectors",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Fan connectors for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.fanConnectors}
-          onChange={(event) => update({ ...row, fanConnectors: toInteger(event.target.value) ?? 0 })}
-        />
-      )
-    },
-    {
-      header: "EPS connectors",
-      cell: (row, update) => (
-        <Input
-          aria-label={`EPS connectors for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.epsConnectors}
-          onChange={(event) => update({ ...row, epsConnectors: toInteger(event.target.value) ?? 0 })}
-        />
-      )
-    },
-    {
-      header: "Width (mm)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Width (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.widthMm}
-          onChange={(event) => update({ ...row, widthMm: toInteger(event.target.value) ?? 0 })}
-        />
-      )
-    },
-    {
-      header: "Height (mm)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Height (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.heightMm}
-          onChange={(event) => update({ ...row, heightMm: toInteger(event.target.value) ?? 0 })}
-        />
-      )
-    },
-    {
-      header: "DDR Generation",
-      cell: (row, update) => (
-        <select
-          aria-label={`DDR Generation for ${row.name}`}
-          className={formSelectClassName}
-          value={row.ddrGeneration}
-          onChange={(event) => update({ ...row, ddrGeneration: event.target.value as DdrGeneration })}
-        >
-          {DDR_GENERATIONS.map((ddrGeneration) => (
-            <option key={ddrGeneration} value={ddrGeneration}>
-              {ddrGeneration.replace("Ddr", "DDR")}
-            </option>
-          ))}
-        </select>
-      )
-    },
-    {
-      header: "RAM form factor",
-      cell: (row, update) => (
-        <select
-          aria-label={`RAM form factor for ${row.name}`}
-          className={formSelectClassName}
-          value={row.ramFormFactor}
-          onChange={(event) => update({ ...row, ramFormFactor: event.target.value as RamFormFactor })}
-        >
-          {RAM_FORM_FACTORS.map((ramFormFactor) => (
-            <option key={ramFormFactor} value={ramFormFactor}>
-              {ramFormFactor}
-            </option>
-          ))}
-        </select>
-      )
-    },
-    {
-      header: "Form factor",
-      cell: (row, update) => (
-        <select
-          aria-label={`Form factor for ${row.name}`}
-          className={formSelectClassName}
-          value={row.formFactor}
-          onChange={(event) => update({ ...row, formFactor: event.target.value as MbFormFactor })}
-        >
-          {MB_FORM_FACTORS.map((formFactor) => (
-            <option key={formFactor} value={formFactor}>
-              {formFactor}
-            </option>
-          ))}
-        </select>
-      )
-    },
+    nameBulkColumn(),
+    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
+    idSelectBulkColumn("Socket", "socketId", sockets),
+    idSelectBulkColumn("Chipset", "chipsetId", chipsets),
+    counted("RAM slots", "ramSlots"),
+    counted("Max memory (GB)", "maxMemoryGb"),
+    counted("Max memory per slot (GB)", "maxDimmSizeGb"),
+    counted("SATA ports", "sataPorts"),
+    counted("Fan connectors", "fanConnectors"),
+    counted("EPS connectors", "epsConnectors"),
+    counted("Width (mm)", "widthMm"),
+    counted("Height (mm)", "heightMm"),
+    enumSelectBulkColumn("DDR Generation", "ddrGeneration", DDR_GENERATIONS, {
+      label: (generation) => generation.replace("Ddr", "DDR"),
+    }),
+    enumSelectBulkColumn("RAM form factor", "ramFormFactor", RAM_FORM_FACTORS),
+    enumSelectBulkColumn("Form factor", "formFactor", MB_FORM_FACTORS),
     {
       header: "Wi-Fi Enabled?",
       cell: (row, update) => (
         <Checkbox
-        checked={row.wifiEnabled}
-        onCheckedChange={(checked) => update({ ...row, wifiEnabled: checked as boolean })}
+          checked={row.wifiEnabled}
+          onCheckedChange={(checked) => update({ ...row, wifiEnabled: checked as boolean })}
         />
-      )
+      ),
     },
     {
       header: "Bluetooth Enabled?",
@@ -296,10 +122,11 @@ function motherboardEditColumns(
           checked={row.bluetoothEnabled}
           onCheckedChange={(checked) => update({ ...row, bluetoothEnabled: checked as boolean })}
         />
-      )
-    }
+      ),
+    },
   ];
 }
+
 
 
 export function MotherboardListPage() {
@@ -319,16 +146,11 @@ export function MotherboardListPage() {
   const columns = useMemo(
     () =>
       columnHelper.columns([
-        ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
-        columnHelper.accessor("name", {
-          header: "Name",
-          cell: (info) =>
-            catalogNameCell(
-              `/catalog/motherboards/${info.row.original.id}`,
-              info.getValue(),
-            ),
-        }),
-        columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
+        ...catalogLeadColumns(
+          columnHelper,
+          isAdmin,
+          (id) => `/catalog/motherboards/${id}`,
+        ),
         columnHelper.accessor("socketName", { header: "Socket" }),
         columnHelper.accessor("chipsetName", { header: "Chipset" }),
         columnHelper.accessor("formFactor", { header: "Form factor" }),
@@ -414,9 +236,7 @@ export function MotherboardListPage() {
   }
 
   function startEditing() {
-    const selected = items.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(items, rowSelection, setEditRows);
   }
 
   return (

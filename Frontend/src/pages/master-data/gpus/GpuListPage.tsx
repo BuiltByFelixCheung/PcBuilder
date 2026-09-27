@@ -14,7 +14,15 @@ import {
   gpuEditPath,
   newMasterDataEditValue,
 } from "@/lib/master-data-edit";
-import { uniqueById } from "@/lib/unique-by-id";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import {
+  filterByNameAndFields,
+  useIdNameChoices,
+} from "@/lib/named-list-filter";
+import {
+  idSelectBulkColumn,
+  nameBulkColumn,
+} from "@/components/bulk-edit-columns";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   createColumnHelper,
@@ -32,7 +40,6 @@ import { MasterDataResults } from "@/components/master-data/MasterDataResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
-import { Input } from "@/components/ui/input";
 
 const EMPTY_ITEMS: GpuOption[] = [];
 const columnHelper = createColumnHelper<typeof dataTableFeatures, GpuOption>();
@@ -56,53 +63,12 @@ const columns = columnHelper.columns([
 
 function gpuEditColumns(
   manufacturers: { id: string; name: string }[],
-  series: { id: string; name: string }[]
+  series: { id: string; name: string }[],
 ): BulkEditColumn<GpuOption>[] {
   return [
-    {
-      header: "Name",
-      cell: (row, update) =>
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      ,
-    },
-    {
-      header: "Manufacturer",
-      cell: (row, update) => (
-        <select
-          aria-label={`Manufacturer for ${row.name}`}
-          className={formSelectClassName}
-          value={row.manufacturerId}
-          onChange={(event) => update({ ...row, manufacturerId: event.target.value })}
-        >
-          {manufacturers.map((manufacturer) => (
-            <option key={manufacturer.id} value={manufacturer.id}>
-              {manufacturer.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Series",
-      cell: (row, update) => (
-        <select
-          aria-label={`Series for ${row.name}`}
-          className={formSelectClassName}
-          value={row.gpuSeriesId}
-          onChange={(event) => update({ ...row, gpuSeriesId: event.target.value })}
-        >
-          {series.map((series) => (
-            <option key={series.id} value={series.id}>
-              {series.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
+    nameBulkColumn(),
+    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
+    idSelectBulkColumn("Series", "gpuSeriesId", series),
   ];
 }
 
@@ -132,40 +98,17 @@ export function GpuListPage() {
   const filtering = isGpuFilterActive(applied);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [editRows, setEditRows] = useState<GpuOption[] | null>(null);
-  const manufacturers = useMemo(
-    () =>
-      uniqueById(
-        items.map((item) => ({
-          id: item.manufacturerId,
-          name: item.manufacturerName,
-        })),
-      ),
-    [items],
+  const manufacturers = useIdNameChoices(
+    items,
+    "manufacturerId",
+    "manufacturerName",
   );
-  const series = useMemo(
+  const series = useIdNameChoices(items, "gpuSeriesId", "gpuSeriesName");
+  const visibleItems = useMemo(
     () =>
-      uniqueById(
-        items.map((item) => ({
-          id: item.gpuSeriesId,
-          name: item.gpuSeriesName,
-        })),
-      ),
-    [items],
+      filterByNameAndFields(items, applied, ["manufacturerId", "gpuSeriesId"]),
+    [applied, items],
   );
-  const visibleItems = useMemo(() => {
-    const name = applied.name?.trim().toLowerCase();
-    return items.filter((item) => {
-      if (name && !item.name.toLowerCase().includes(name)) return false;
-      if (
-        applied.manufacturerId &&
-        item.manufacturerId !== applied.manufacturerId
-      )
-        return false;
-      if (applied.gpuSeriesId && item.gpuSeriesId !== applied.gpuSeriesId)
-        return false;
-      return true;
-    });
-  }, [applied, items]);
   const bulkDelete = useBulkDelete({
     items: visibleItems,
     rowSelection,
@@ -180,9 +123,7 @@ export function GpuListPage() {
     importFile: importGpus,
   });
   function startEditing() {
-    const selected = visibleItems.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(visibleItems, rowSelection, setEditRows);
   }
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();

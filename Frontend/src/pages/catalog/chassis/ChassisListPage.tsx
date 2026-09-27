@@ -1,5 +1,12 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
+import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import {
+  idSelectBulkColumn,
+  nameBulkColumn,
+  optionalNumberColumn,
+} from "@/components/bulk-edit-columns";
 import { deleteChassis } from "@/api/catalog/bulk-delete";
 import {
   chassisKeys,
@@ -15,9 +22,7 @@ import {
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
-import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useAuth } from "@/auth/use-auth";
-
 import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import { useChassis } from "@/hooks/use-chassis.ts";
 import {
@@ -31,7 +36,6 @@ import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importChassis } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
-import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
@@ -42,7 +46,6 @@ import {
   type BulkEditColumn,
 } from "@/components/BulkEditDialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { formSelectClassName } from "@/components/filters/ListFilters";
 
 const EMPTY_ITEMS: ChassisListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -50,186 +53,24 @@ const columnHelper = createColumnHelper<
   ChassisListItem
 >();
 
+
 function chassisEditColumns(
   manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<ChassisListItem>[] {
   return [
-    {
-      header: "Name",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      ),
-    },
-    {
-      header: "Manufacturer",
-      cell: (row, update) => (
-        <select
-          aria-label={`Manufacturer for ${row.name}`}
-          className={formSelectClassName}
-          value={row.manufacturerId}
-          onChange={(event) =>
-            update({ ...row, manufacturerId: event.target.value })
-          }
-        >
-          {manufacturers.map((manufacturer) => (
-            <option key={manufacturer.id} value={manufacturer.id}>
-              {manufacturer.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Length (mm)",
-      numeric: true,
-      cell: (row, update) => (
-        <Input
-          aria-label={`Length (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.lengthMm?.toString() ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              lengthMm: toOptionalNumber(event.target.value) ?? 0,
-            })
-          }
-        />
-      ),
-    },
-    {
-      header: "Width (mm)",
-      numeric: true,
-      cell: (row, update) => (
-        <Input
-          aria-label={`Width (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.widthMm?.toString() ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              widthMm: toOptionalNumber(event.target.value) ?? 0,
-            })
-          }
-        />
-      ),
-    },
-    {
-      header: "Height (mm)",
-      numeric: true,
-      cell: (row, update) => (
-        <Input
-          aria-label={`Height (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.heightMm?.toString() ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              heightMm: toOptionalNumber(event.target.value) ?? 0,
-            })
-          }
-        />
-      ),
-    },
-    {
-      header: "Motherboard Max Width (mm)",
-      numeric: true,
-      cell: (row, update) => (
-        <Input
-          aria-label={`Motherboard Max Width (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.motherboardMaxWidthMm?.toString() ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              motherboardMaxWidthMm: toOptionalNumber(event.target.value) ?? 0,
-            })
-          }
-        />
-      ),
-    },
-    {
-      header: "Motherboard Max Height (mm)",
-      numeric: true,
-      cell: (row, update) => (
-        <Input
-          aria-label={`Motherboard Max Height (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.motherboardMaxHeightMm?.toString() ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              motherboardMaxHeightMm: toOptionalNumber(event.target.value) ?? 0,
-            })
-          }
-        />
-      ),
-    },
-    {
-      header: "Max CPU Cooler Height (mm)",
-      numeric: true,
-      cell: (row, update) => (
-        <Input
-          aria-label={`Max CPU Cooler Height (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.maxCpuCoolerHeightMm?.toString() ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              maxCpuCoolerHeightMm: toOptionalNumber(event.target.value) ?? 0,
-            })
-          }
-        />
-      ),
-    },
-    {
-      header: "Max Graphics Card Length (mm)",
-      numeric: true,
-      cell: (row, update) => (
-        <Input
-          aria-label={`Max Graphics Card Length (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.maxGraphicsCardLengthMm?.toString() ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              maxGraphicsCardLengthMm:
-                toOptionalNumber(event.target.value) ?? 0,
-            })
-          }
-        />
-      ),
-    },
-    {
-      header: "Max PSU Length (mm)",
-      numeric: true,
-      cell: (row, update) => (
-        <Input
-          aria-label={`Max PSU Length (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.maxPsuLengthMm?.toString() ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              maxPsuLengthMm: toOptionalNumber(event.target.value) ?? 0,
-            })
-          }
-        />
-      ),
-    },
+    nameBulkColumn(),
+    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
+    optionalNumberColumn("Length (mm)", "lengthMm"),
+    optionalNumberColumn("Width (mm)", "widthMm"),
+    optionalNumberColumn("Height (mm)", "heightMm"),
+    optionalNumberColumn("Motherboard Max Width (mm)", "motherboardMaxWidthMm"),
+    optionalNumberColumn("Motherboard Max Height (mm)", "motherboardMaxHeightMm"),
+    optionalNumberColumn("Max CPU Cooler Height (mm)", "maxCpuCoolerHeightMm"),
+    optionalNumberColumn("Max Graphics Card Length (mm)", "maxGraphicsCardLengthMm"),
+    optionalNumberColumn("Max PSU Length (mm)", "maxPsuLengthMm"),
   ];
 }
+
 
 export function ChassisListPage() {
   const queryClient = useQueryClient();
@@ -247,16 +88,11 @@ export function ChassisListPage() {
   const columns = useMemo(
     () =>
       columnHelper.columns([
-        ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
-        columnHelper.accessor("name", {
-          header: "Name",
-          cell: (info) =>
-            catalogNameCell(
-              `/catalog/chassis/${info.row.original.id}`,
-              info.getValue(),
-            ),
-        }),
-        columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
+        ...catalogLeadColumns(
+          columnHelper,
+          isAdmin,
+          (id) => `/catalog/chassis/${id}`,
+        ),
         columnHelper.accessor("lengthMm", { header: "Length (mm)" }),
         columnHelper.accessor("widthMm", { header: "Width (mm)" }),
         columnHelper.accessor("heightMm", { header: "Height (mm)" }),
@@ -324,9 +160,7 @@ export function ChassisListPage() {
   }
 
   function startEditing() {
-    const selected = items.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(items, rowSelection, setEditRows);
   }
 
   return (

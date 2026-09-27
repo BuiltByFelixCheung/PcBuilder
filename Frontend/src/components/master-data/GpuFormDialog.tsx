@@ -13,12 +13,11 @@ import {
   type GpuOption,
   type GpuSeriesOption,
 } from "@/api/master-data";
+import { MasterDataEditorFrame } from "@/components/master-data/MasterDataEditorFrame";
 import { PageStatus } from "@/components/PageStatus";
 import { FormTextField } from "@/components/FormTextField";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -35,7 +34,6 @@ import {
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
 import { formSelectClassName } from "@/components/filters/ListFilters";
-import { newMasterDataEditValue } from "@/lib/master-data-edit";
 import { useState } from "react";
 
 const gpuFormSchema = z.object({
@@ -63,31 +61,18 @@ export function GpuFormDialog({
   gpusSettled,
   onClose,
 }: Readonly<GpuFormDialogProps>) {
-  const isNew = editingId === newMasterDataEditValue;
-  const gpu = isNew ? undefined : gpus.find((item) => item.id === editingId);
-  const missing = !isNew && gpusSettled && !gpu;
-  const loading = !isNew && !gpusSettled;
-
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
+    <MasterDataEditorFrame
+      editingId={editingId}
+      items={gpus}
+      settled={gpusSettled}
+      onClose={onClose}
+      editTitle="Edit GPU"
+      loadingMessage="Loading GPU…"
+      missing={<MissingGpu onClose={onClose} />}
     >
-      <DialogContent className="sm:max-w-md">
-        {loading ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Edit GPU</DialogTitle>
-            </DialogHeader>
-            <PageStatus>Loading GPU…</PageStatus>
-          </>
-        ) : null}
-        {missing ? <MissingGpu onClose={onClose} /> : null}
-        {isNew || gpu ? <GpuForm gpu={gpu} onClose={onClose} /> : null}
-      </DialogContent>
-    </Dialog>
+      {(gpu) => <GpuForm gpu={gpu} onClose={onClose} />}
+    </MasterDataEditorFrame>
   );
 }
 

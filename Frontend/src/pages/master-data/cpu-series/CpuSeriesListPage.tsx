@@ -14,7 +14,17 @@ import {
   cpuSeriesEditPath,
   newMasterDataEditValue,
 } from "@/lib/master-data-edit";
-import { uniqueById } from "@/lib/unique-by-id";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import {
+  filterByNameAndFields,
+  socketsForManufacturer,
+  useIdNameChoices,
+  useSocketChoices,
+} from "@/lib/named-list-filter";
+import {
+  idSelectBulkColumn,
+  nameBulkColumn,
+} from "@/components/bulk-edit-columns";
 import { FieldGroup } from "@/components/ui/field";
 import {
   createColumnHelper,
@@ -28,12 +38,10 @@ import {
   FilterActions,
   NameField,
   IdSelectField,
-  formSelectClassName,
 } from "@/components/filters/ListFilters";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
-import { Input } from "@/components/ui/input";
 
 const EMPTY_ITEMS: CpuSeriesOption[] = [];
 const columnHelper = createColumnHelper<
@@ -57,53 +65,12 @@ const columns = columnHelper.columns([
 
 function cpuSeriesEditColumns(
   manufacturers: { id: string; name: string }[],
-  sockets: { id: string; name: string; manufacturerId: string }[]
+  sockets: { id: string; name: string; manufacturerId: string }[],
 ): BulkEditColumn<CpuSeriesOption>[] {
   return [
-    {
-      header: "Name",
-      cell: (row, update) => 
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      ,
-    },
-    {
-      header: "Manufacturer",
-      cell: (row, update) => (
-        <select
-          aria-label={`Manufacturer for ${row.name}`}
-          className={formSelectClassName}
-          value={row.manufacturerId}
-          onChange={(event) => update({ ...row, manufacturerId: event.target.value })}
-        >
-          {manufacturers.map((manufacturer) => (
-            <option key={manufacturer.id} value={manufacturer.id}>
-              {manufacturer.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Socket",
-      cell: (row, update) => (
-        <select
-          aria-label={`Socket for ${row.name}`}
-          className={formSelectClassName}
-          value={row.socketId}
-          onChange={(event) => update({ ...row, socketId: event.target.value })}
-        >
-          {sockets.map((socket) => (
-            <option key={socket.id} value={socket.id}>
-              {socket.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
+    nameBulkColumn(),
+    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
+    idSelectBulkColumn("Socket", "socketId", sockets),
   ];
 }
 
@@ -133,43 +100,18 @@ export function CpuSeriesListPage() {
   const filtering = isCpuSeriesFilterActive(applied);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [editRows, setEditRows] = useState<CpuSeriesOption[] | null>(null);
-  const manufacturers = useMemo(
-    () =>
-      uniqueById(
-        items.map((item) => ({
-          id: item.manufacturerId,
-          name: item.manufacturerName,
-        })),
-      ),
-    [items],
+  const manufacturers = useIdNameChoices(
+    items,
+    "manufacturerId",
+    "manufacturerName",
   );
-  const sockets = useMemo(
+  const sockets = useSocketChoices(items);
+  const socketOptions = socketsForManufacturer(sockets, draft.manufacturerId);
+  const visibleItems = useMemo(
     () =>
-      uniqueById(
-        items.map((item) => ({
-          id: item.socketId,
-          name: item.socketName,
-          manufacturerId: item.manufacturerId,
-        })),
-      ),
-    [items],
+      filterByNameAndFields(items, applied, ["manufacturerId", "socketId"]),
+    [applied, items],
   );
-  const socketOptions = draft.manufacturerId
-    ? sockets.filter((item) => item.manufacturerId === draft.manufacturerId)
-    : sockets;
-  const visibleItems = useMemo(() => {
-    const name = applied.name?.trim().toLowerCase();
-    return items.filter((item) => {
-      if (name && !item.name.toLowerCase().includes(name)) return false;
-      if (
-        applied.manufacturerId &&
-        item.manufacturerId !== applied.manufacturerId
-      )
-        return false;
-      if (applied.socketId && item.socketId !== applied.socketId) return false;
-      return true;
-    });
-  }, [applied, items]);
   const bulkDelete = useBulkDelete({
     items: visibleItems,
     rowSelection,
@@ -184,9 +126,7 @@ export function CpuSeriesListPage() {
     importFile: importCpuSeries,
   });
   function startEditing() {
-    const selected = visibleItems.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(visibleItems, rowSelection, setEditRows);
   }
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();

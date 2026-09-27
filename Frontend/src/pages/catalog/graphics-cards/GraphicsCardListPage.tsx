@@ -1,5 +1,13 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
+import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import {
+  enumSelectBulkColumn,
+  idSelectBulkColumn,
+  integerColumn,
+  nameBulkColumn,
+} from "@/components/bulk-edit-columns";
 import { deleteGraphicsCards } from "@/api/catalog/bulk-delete";
 import {
   graphicsCardKeys,
@@ -15,7 +23,6 @@ import {
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
-import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useAuth } from "@/auth/use-auth";
 import { useGraphicsCardFilterOptions } from "@/hooks/use-graphics-card-filter-options";
 import { useGraphicsCards } from "@/hooks/use-graphics-cards";
@@ -31,7 +38,6 @@ import {
   PSU_CABLE_TYPES,
   VIDEO_MEMORY_GB,
   type PcieGeneration,
-  type PsuCableType,
 } from "@/api/enums";
 import {
   CatalogCompatibleCheckbox,
@@ -43,7 +49,6 @@ import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importGraphicsCards } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
-import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
@@ -51,7 +56,6 @@ import {
 } from "@/components/catalog/CatalogFilterFields";
 import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
 
 const EMPTY_ITEMS: GraphicsCardListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -61,96 +65,23 @@ const columnHelper = createColumnHelper<
 const selectClassName =
   "h-10 w-full min-w-0 rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
+
 function graphicsCardEditColumns(
   manufacturers: { id: string; name: string }[],
   gpus: { id: string; name: string }[],
 ): BulkEditColumn<GraphicsCardListItem>[] {
+  const counted = (header: string, field: "videoMemoryGb" | "pcieSlotsUsed" | "lengthMm" | "widthMm" | "heightMm" | "powerConsumptionWatts" | "powerConnectorCount") =>
+    integerColumn<GraphicsCardListItem>(header, field, { type: "number", min: 0 });
+
   return [
-    {
-      header: "Name",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      ),
-    },
-    {
-      header: "Manufacturer",
-      cell: (row, update) => (
-        <select
-          aria-label={`Manufacturer for ${row.name}`}
-          className={selectClassName}
-          value={row.manufacturerId}
-          onChange={(event) => update({ ...row, manufacturerId: event.target.value })}
-        >
-          {manufacturers.map((manufacturer) => (
-            <option key={manufacturer.id} value={manufacturer.id}>
-              {manufacturer.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "GPU",
-      cell: (row, update) => (
-        <select
-          aria-label={`GPU for ${row.name}`}
-          className={selectClassName}
-          value={row.gpuId}
-          onChange={(event) => update({ ...row, gpuId: event.target.value })}
-        >
-          {gpus.map((gpu) => (
-            <option key={gpu.id} value={gpu.id}>
-              {gpu.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Video Memory",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Video Memory for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.videoMemoryGb.toString()}
-          onChange={(event) => update({ ...row, videoMemoryGb: toInteger(event.target.value) ?? 0 })}
-        />
-      ),
-    },
-    {
-      header: "Pcie Slots Used",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Pcie Slots Used for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.pcieSlotsUsed.toString()}
-          onChange={(event) => update({ ...row, pcieSlotsUsed: toInteger(event.target.value) ?? 0 })}
-        />
-      ),
-    },
-    {
-      header: "Pcie Generation",
-      cell: (row, update) => (
-        <select
-          aria-label={`Pcie Generation for ${row.name}`}
-          className={selectClassName}
-          value={row.pcieGeneration}
-          onChange={(event) => update({ ...row, pcieGeneration: event.target.value as PcieGeneration })}
-        >
-          {PCIE_GENERATIONS.map((generation) => (
-            <option key={generation} value={generation}>
-              {generation.replace("Gen", "PCIe ")}
-            </option>
-          ))}
-        </select>
-      ),
-    },
+    nameBulkColumn(),
+    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
+    idSelectBulkColumn("GPU", "gpuId", gpus),
+    counted("Video Memory", "videoMemoryGb"),
+    counted("Pcie Slots Used", "pcieSlotsUsed"),
+    enumSelectBulkColumn("Pcie Generation", "pcieGeneration", PCIE_GENERATIONS, {
+      label: (generation) => generation.replace("Gen", "PCIe "),
+    }),
     {
       header: "Is Low Profile",
       cell: (row, update) => (
@@ -160,85 +91,15 @@ function graphicsCardEditColumns(
         />
       ),
     },
-    {
-      header: "Length (mm)",
-      cell: (row, update) => (
-          <Input
-          aria-label={`Length (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.lengthMm.toString()}
-          onChange={(event) => update({ ...row, lengthMm: toInteger(event.target.value) ?? 0 })}
-        />
-      ),
-    },
-    {
-      header: "Width (mm)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Width (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.widthMm.toString()}
-          onChange={(event) => update({ ...row, widthMm: toInteger(event.target.value) ?? 0 })}
-        />
-      ),
-    },
-    {
-      header: "Height (mm)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Height (mm) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.heightMm.toString()}
-          onChange={(event) => update({ ...row, heightMm: toInteger(event.target.value) ?? 0 })}
-        />
-      ),
-    },
-    {
-      header: "Power Consumption (W)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Power Consumption (W) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.powerConsumptionWatts.toString()}
-          onChange={(event) => update({ ...row, powerConsumptionWatts: toInteger(event.target.value) ?? 0 })}
-        />
-      ),
-    },
-    {
-      header: "Power Connector Type",
-      cell: (row, update) => (
-        <select
-          aria-label={`Power Connector Type for ${row.name}`}
-          className={selectClassName}
-          value={row.powerConnectorType}
-          onChange={(event) => update({ ...row, powerConnectorType: event.target.value as PsuCableType })}
-        >
-          {PSU_CABLE_TYPES.map((type) => (
-            <option key={type} value={type}>
-              {type}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Power Connector Count",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Power Connector Count for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.powerConnectorCount.toString()}
-          onChange={(event) => update({ ...row, powerConnectorCount: toInteger(event.target.value) ?? 0 })}
-        />
-      ),
-    },
+    counted("Length (mm)", "lengthMm"),
+    counted("Width (mm)", "widthMm"),
+    counted("Height (mm)", "heightMm"),
+    counted("Power Consumption (W)", "powerConsumptionWatts"),
+    enumSelectBulkColumn("Power Connector Type", "powerConnectorType", PSU_CABLE_TYPES),
+    counted("Power Connector Count", "powerConnectorCount"),
   ];
 }
+
 export function GraphicsCardListPage() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -262,16 +123,11 @@ export function GraphicsCardListPage() {
   const columns = useMemo(
     () =>
       columnHelper.columns([
-        ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
-        columnHelper.accessor("name", {
-          header: "Name",
-          cell: (info) =>
-            catalogNameCell(
-              `/catalog/graphics-cards/${info.row.original.id}`,
-              info.getValue(),
-            ),
-        }),
-        columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
+        ...catalogLeadColumns(
+          columnHelper,
+          isAdmin,
+          (id) => `/catalog/graphics-cards/${id}`,
+        ),
         columnHelper.accessor("gpuName", { header: "GPU" }),
         columnHelper.accessor("videoMemoryGb", {
           header: "Video Memory",
@@ -343,9 +199,7 @@ export function GraphicsCardListPage() {
 
 
   function startEditing() {
-    const selected = items.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(items, rowSelection, setEditRows);
   }
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {

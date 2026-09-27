@@ -14,6 +14,9 @@ import {
   manufacturerEditPath,
   newMasterDataEditValue,
 } from "@/lib/master-data-edit";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import { filterByNameAndFields } from "@/lib/named-list-filter";
+import { nameBulkColumn } from "@/components/bulk-edit-columns";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -47,18 +50,7 @@ const columns = columnHelper.columns([
 ]);
 
 function manufacturerEditColumns(): BulkEditColumn<NamedMasterData>[] {
-  return [
-    {
-      header: "Name",
-      cell: (row, update) =>
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      ,
-    },
-  ];
+  return [nameBulkColumn()];
 }
 
 type ManufacturerFilter = {
@@ -89,13 +81,10 @@ export function ManufacturerListPage() {
   const filtering = isManufacturerFilterActive(applied);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [editRows, setEditRows] = useState<NamedMasterData[] | null>(null);
-  const visibleItems = useMemo(() => {
-    const name = applied.name?.trim().toLowerCase();
-    return items.filter((item) => {
-      if (name && !item.name.toLowerCase().includes(name)) return false;
-      return true;
-    });
-  }, [applied, items]);
+  const visibleItems = useMemo(
+    () => filterByNameAndFields(items, applied, []),
+    [applied, items],
+  );
   const bulkDelete = useBulkDelete({
     items: visibleItems,
     rowSelection,
@@ -110,9 +99,7 @@ export function ManufacturerListPage() {
     importFile: importManufacturers,
   });
   function startEditing() {
-    const selected = visibleItems.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(visibleItems, rowSelection, setEditRows);
   }
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {

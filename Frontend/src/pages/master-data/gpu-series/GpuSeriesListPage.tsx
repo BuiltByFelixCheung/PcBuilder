@@ -14,7 +14,15 @@ import {
   gpuSeriesEditPath,
   newMasterDataEditValue,
 } from "@/lib/master-data-edit";
-import { uniqueById } from "@/lib/unique-by-id";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import {
+  filterByNameAndFields,
+  useIdNameChoices,
+} from "@/lib/named-list-filter";
+import {
+  idSelectBulkColumn,
+  nameBulkColumn,
+} from "@/components/bulk-edit-columns";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   createColumnHelper,
@@ -32,7 +40,6 @@ import { MasterDataResults } from "@/components/master-data/MasterDataResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
-import { Input } from "@/components/ui/input";
 
 const EMPTY_ITEMS: GpuSeriesOption[] = [];
 const columnHelper = createColumnHelper<
@@ -56,33 +63,8 @@ function gpuSeriesEditColumns(
   manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<GpuSeriesOption>[] {
   return [
-    {
-      header: "Name",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      ),
-    },
-    {
-      header: "Manufacturer",
-      cell: (row, update) => (
-        <select
-          aria-label={`Manufacturer for ${row.name}`}
-          className={formSelectClassName}
-          value={row.manufacturerId}
-          onChange={(event) => update({ ...row, manufacturerId: event.target.value })}
-        >
-          {manufacturers.map((manufacturer) => (
-            <option key={manufacturer.id} value={manufacturer.id}>
-              {manufacturer.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
+    nameBulkColumn(),
+    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
   ];
 }
 type GpuSeriesFilter = {
@@ -110,29 +92,15 @@ export function GpuSeriesListPage() {
   const filtering = isGpuSeriesFilterActive(applied);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [editRows, setEditRows] = useState<GpuSeriesOption[] | null>(null);
-  const manufacturers = useMemo(
-    () =>
-      uniqueById(
-        items.map((item) => ({
-          id: item.manufacturerId,
-          name: item.manufacturerName,
-        })),
-      ),
-    [items],
+  const manufacturers = useIdNameChoices(
+    items,
+    "manufacturerId",
+    "manufacturerName",
   );
-
-  const visibleItems = useMemo(() => {
-    const name = applied.name?.trim().toLowerCase();
-    return items.filter((item) => {
-      if (name && !item.name.toLowerCase().includes(name)) return false;
-      if (
-        applied.manufacturerId &&
-        item.manufacturerId !== applied.manufacturerId
-      )
-        return false;
-      return true;
-    });
-  }, [applied, items]);
+  const visibleItems = useMemo(
+    () => filterByNameAndFields(items, applied, ["manufacturerId"]),
+    [applied, items],
+  );
   const bulkDelete = useBulkDelete({
     items: visibleItems,
     rowSelection,
@@ -147,9 +115,7 @@ export function GpuSeriesListPage() {
     importFile: importGpuSeries,
   });
   function startEditing() {
-    const selected = visibleItems.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(visibleItems, rowSelection, setEditRows);
   }
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();

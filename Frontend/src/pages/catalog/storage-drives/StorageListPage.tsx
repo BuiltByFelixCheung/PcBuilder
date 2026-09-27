@@ -1,5 +1,13 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
+import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { beginBulkEdit } from "@/lib/begin-bulk-edit";
+import {
+  enumSelectBulkColumn,
+  idSelectBulkColumn,
+  integerColumn,
+  nameBulkColumn,
+} from "@/components/bulk-edit-columns";
 import { deleteStorageDrives } from "@/api/catalog/bulk-delete";
 import {
   storageDriveKeys,
@@ -14,7 +22,6 @@ import {
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
-import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useAuth } from "@/auth/use-auth";
 import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import { useStorageDrives } from "@/hooks/use-storage-drives.ts";
@@ -30,9 +37,6 @@ import {
   STORAGE_MEDIAS,
   formatStorageFormFactor,
   type PcieGeneration,
-  type StorageFormFactor,
-  type StorageInterface,
-  type StorageMedia,
 } from "@/api/enums";
 import { formSelectClassName } from "@/components/filters/ListFilters";
 import {
@@ -44,7 +48,6 @@ import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importStorageDrives } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
-import { catalogNameCell } from "@/components/catalog/CatalogNameCell";
 import {
   CatalogFilterActions,
   CatalogNameField,
@@ -56,8 +59,6 @@ import {
   type BulkEditColumn,
 } from "@/components/BulkEditDialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
-import { toInteger } from "@/api/helper";
 
 const EMPTY_ITEMS: StorageDrive[] = [];
 const columnHelper = createColumnHelper<
@@ -65,153 +66,24 @@ const columnHelper = createColumnHelper<
   StorageDrive
 >();
 
+
 function storageDriveEditColumns(
   manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<StorageDrive>[] {
   return [
-    {
-      header: "Name",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Name for ${row.name}`}
-          value={row.name}
-          onChange={(event) => update({ ...row, name: event.target.value })}
-        />
-      ),
-    },
-    {
-      header: "Manufacturer",
-      cell: (row, update) => (
-        <select
-          aria-label={`Manufacturer for ${row.name}`}
-          className={formSelectClassName}
-          value={row.manufacturerId}
-          onChange={(event) =>
-            update({ ...row, manufacturerId: event.target.value })
-          }
-        >
-          {manufacturers.map((manufacturer) => (
-            <option key={manufacturer.id} value={manufacturer.id}>
-              {manufacturer.name}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Media",
-      cell: (row, update) => (
-        <select
-          aria-label={`Media for ${row.name}`}
-          className={formSelectClassName}
-          value={row.media}
-          onChange={(event) =>
-            update({ ...row, media: event.target.value as StorageMedia })
-          }
-        >
-          {STORAGE_MEDIAS.map((media) => (
-            <option key={media} value={media}>
-              {media}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Interface",
-      cell: (row, update) => (
-        <select
-          aria-label={`Interface for ${row.name}`}
-          className={formSelectClassName}
-          value={row.interface}
-          onChange={(event) =>
-            update({
-              ...row,
-              interface: event.target.value as StorageInterface,
-            })
-          }
-        >
-          {STORAGE_INTERFACES.map((storageInterface) => (
-            <option key={storageInterface} value={storageInterface}>
-              {storageInterface}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Form factor",
-      cell: (row, update) => (
-        <select
-          aria-label={`Form factor for ${row.name}`}
-          className={formSelectClassName}
-          value={row.formFactor}
-          onChange={(event) =>
-            update({
-              ...row,
-              formFactor: event.target.value as StorageFormFactor,
-            })
-          }
-        >
-          {STORAGE_FORM_FACTORS.map((formFactor) => (
-            <option key={formFactor} value={formFactor}>
-              {formFactor}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "Capacity (GB)",
-      cell: (row, update) => (
-        <Input
-          aria-label={`Capacity (GB) for ${row.name}`}
-          type="number"
-          min={0}
-          value={row.capacityGb}
-          onChange={(event) =>
-            update({ ...row, capacityGb: toInteger(event.target.value) ?? 0 })
-          }
-        />
-      ),
-    },
-    {
-      header: "PCIe generation",
-      cell: (row, update) => (
-        <select
-          aria-label={`PCIe generation for ${row.name}`}
-          className={formSelectClassName}
-          value={row.pcieGeneration ?? ""}
-          onChange={(event) =>
-            update({
-              ...row,
-              pcieGeneration: event.target.value as PcieGeneration,
-            })
-          }
-        >
-          {PCIE_GENERATIONS.map((generation) => (
-            <option key={generation} value={generation}>
-              {generation.replace("Gen", "PCIe ")}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      header: "RPM",
-      cell: (row, update) => (
-        <Input
-          aria-label={`RPM for ${row.name}`}
-          type="number"
-          value={row.rpm ?? ""}
-          onChange={(event) =>
-            update({ ...row, rpm: toInteger(event.target.value) ?? undefined })
-          }
-        />
-      ),
-    },
+    nameBulkColumn(),
+    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
+    enumSelectBulkColumn("Media", "media", STORAGE_MEDIAS),
+    enumSelectBulkColumn("Interface", "interface", STORAGE_INTERFACES),
+    enumSelectBulkColumn("Form factor", "formFactor", STORAGE_FORM_FACTORS),
+    integerColumn("Capacity (GB)", "capacityGb", { type: "number", min: 0 }),
+    enumSelectBulkColumn("PCIe generation", "pcieGeneration", PCIE_GENERATIONS, {
+      label: (generation) => generation.replace("Gen", "PCIe "),
+    }),
+    integerColumn("RPM", "rpm", { type: "number", fallback: undefined }),
   ];
 }
+
 export function StorageListPage() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -229,16 +101,11 @@ export function StorageListPage() {
   const columns = useMemo(
     () =>
       columnHelper.columns([
-        ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
-        columnHelper.accessor("name", {
-          header: "Name",
-          cell: (info) =>
-            catalogNameCell(
-              `/catalog/storage/${info.row.original.id}`,
-              info.getValue(),
-            ),
-        }),
-        columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
+        ...catalogLeadColumns(
+          columnHelper,
+          isAdmin,
+          (id) => `/catalog/storage/${id}`,
+        ),
         columnHelper.accessor("media", { header: "Media" }),
         columnHelper.accessor("interface", { header: "Interface" }),
         columnHelper.accessor("formFactor", {
@@ -284,9 +151,7 @@ export function StorageListPage() {
   }
 
   function startEditing() {
-    const selected = items.filter((item) => rowSelection[item.id]);
-    if (selected.length === 0) return;
-    setEditRows(selected);
+    beginBulkEdit(items, rowSelection, setEditRows);
   }
 
   function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
