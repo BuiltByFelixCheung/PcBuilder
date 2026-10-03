@@ -77,44 +77,66 @@ public class CpuCooler : ProductEntity
 
     private void ApplyTypeSpecs(CpuCoolerSpecs specs)
     {
-        var type = specs.Type;
+        RequireCoolerType(specs.Type);
+
+        if (specs.Type == CpuCoolerType.Air)
+        {
+            RequireAirHeights(specs.CoolerHeightMm, specs.MaxRamHeightMm);
+            RejectLiquidFields(
+                specs.RadiatorClass,
+                specs.RadiatorLengthMm,
+                specs.RadiatorWidthMm,
+                specs.RadiatorHeightMm,
+                specs.WaterBlockLengthMm,
+                specs.WaterBlockWidthMm,
+                specs.WaterBlockHeightMm);
+            SetAirCoolerSpecs(
+                specs.CoolerHeightMm!.Value,
+                specs.MaxRamHeightMm!.Value,
+                specs.CoolerLengthMm,
+                specs.CoolerWidthMm);
+        }
+        else
+        {
+            RequireRadiatorClass(specs.RadiatorClass);
+            SetLiquidCoolerSpecs(
+                specs.RadiatorClass!.Value,
+                specs.RadiatorLengthMm,
+                specs.RadiatorWidthMm,
+                specs.RadiatorHeightMm,
+                specs.WaterBlockLengthMm,
+                specs.WaterBlockWidthMm,
+                specs.WaterBlockHeightMm);
+        }
+
+        SetFanSpecs(specs.FanThicknessMm, specs.FanWidthMm, specs.FanHeightMm, specs.FanCount);
+    }
+
+    private void RequireCoolerType(CpuCoolerType type)
+    {
         if (!Enum.IsDefined(type))
             throw new ArgumentException("Invalid cooler type.", nameof(type));
 
         Type = type;
-        if (type == CpuCoolerType.Air)
-        {
-            ValidateAirCooler(specs);
-            SetAirCoolerSpecs(specs);
-        }
-        else
-        {
-            var radiatorClass = specs.RadiatorClass;
-            if (radiatorClass is null)
-                throw new ArgumentException("RadiatorClass is required for liquid coolers.", nameof(radiatorClass));
-
-            SetLiquidCoolerSpecs(specs);
-        }
-
-        SetFanSpecs(specs);
     }
 
-    private static void ValidateAirCooler(CpuCoolerSpecs specs)
+    private static void RequireAirHeights(decimal? coolerHeightMm, decimal? maxRamHeightMm)
     {
-        var coolerHeightMm = specs.CoolerHeightMm;
-        var maxRamHeightMm = specs.MaxRamHeightMm;
-        var radiatorClass = specs.RadiatorClass;
-        var radiatorLengthMm = specs.RadiatorLengthMm;
-        var radiatorWidthMm = specs.RadiatorWidthMm;
-        var radiatorHeightMm = specs.RadiatorHeightMm;
-        var waterBlockLengthMm = specs.WaterBlockLengthMm;
-        var waterBlockWidthMm = specs.WaterBlockWidthMm;
-        var waterBlockHeightMm = specs.WaterBlockHeightMm;
-
         if (coolerHeightMm is null)
             throw new ArgumentException("CoolerHeightMm is required for air coolers.", nameof(coolerHeightMm));
         if (maxRamHeightMm is null)
             throw new ArgumentException("MaxRamHeightMm is required for air coolers.", nameof(maxRamHeightMm));
+    }
+
+    private static void RejectLiquidFields(
+        RadiatorClass? radiatorClass,
+        decimal? radiatorLengthMm,
+        decimal? radiatorWidthMm,
+        decimal? radiatorHeightMm,
+        decimal? waterBlockLengthMm,
+        decimal? waterBlockWidthMm,
+        decimal? waterBlockHeightMm)
+    {
         if (radiatorClass is not null)
             throw new ArgumentException("RadiatorClass must be empty for air coolers.", nameof(radiatorClass));
         if (radiatorLengthMm is not null || radiatorWidthMm is not null || radiatorHeightMm is not null)
@@ -123,13 +145,18 @@ public class CpuCooler : ProductEntity
             throw new ArgumentException("Water block dimensions must be empty for air coolers.", nameof(waterBlockLengthMm));
     }
 
-    private void SetFanSpecs(CpuCoolerSpecs specs)
+    private static void RequireRadiatorClass(RadiatorClass? radiatorClass)
     {
-        var fanThicknessMm = specs.FanThicknessMm;
-        var fanWidthMm = specs.FanWidthMm;
-        var fanHeightMm = specs.FanHeightMm;
-        var fanCount = specs.FanCount;
+        if (radiatorClass is null)
+            throw new ArgumentException("RadiatorClass is required for liquid coolers.", nameof(radiatorClass));
+    }
 
+    private void SetFanSpecs(
+        decimal? fanThicknessMm,
+        decimal? fanWidthMm,
+        decimal? fanHeightMm,
+        int? fanCount)
+    {
         RequirePositiveIfPresent(fanThicknessMm, nameof(fanThicknessMm));
         RequirePositiveIfPresent(fanWidthMm, nameof(fanWidthMm));
         RequirePositiveIfPresent(fanHeightMm, nameof(fanHeightMm));
@@ -142,13 +169,12 @@ public class CpuCooler : ProductEntity
         FanCount = fanCount;
     }
 
-    private void SetAirCoolerSpecs(CpuCoolerSpecs specs)
+    private void SetAirCoolerSpecs(
+        decimal coolerHeightMm,
+        decimal maxRamHeightMm,
+        decimal? coolerLengthMm,
+        decimal? coolerWidthMm)
     {
-        var coolerHeightMm = specs.CoolerHeightMm!.Value;
-        var maxRamHeightMm = specs.MaxRamHeightMm!.Value;
-        var coolerLengthMm = specs.CoolerLengthMm;
-        var coolerWidthMm = specs.CoolerWidthMm;
-
         if (coolerHeightMm <= 0)
             throw new ArgumentException("CoolerHeightMm must be greater than zero.", nameof(coolerHeightMm));
 
@@ -171,16 +197,15 @@ public class CpuCooler : ProductEntity
         WaterBlockHeightMm = null;
     }
 
-    private void SetLiquidCoolerSpecs(CpuCoolerSpecs specs)
+    private void SetLiquidCoolerSpecs(
+        RadiatorClass radiatorClass,
+        decimal? radiatorLengthMm,
+        decimal? radiatorWidthMm,
+        decimal? radiatorHeightMm,
+        decimal? waterBlockLengthMm,
+        decimal? waterBlockWidthMm,
+        decimal? waterBlockHeightMm)
     {
-        var radiatorClass = specs.RadiatorClass!.Value;
-        var radiatorLengthMm = specs.RadiatorLengthMm;
-        var radiatorWidthMm = specs.RadiatorWidthMm;
-        var radiatorHeightMm = specs.RadiatorHeightMm;
-        var waterBlockLengthMm = specs.WaterBlockLengthMm;
-        var waterBlockWidthMm = specs.WaterBlockWidthMm;
-        var waterBlockHeightMm = specs.WaterBlockHeightMm;
-
         if (!Enum.IsDefined(radiatorClass))
             throw new ArgumentException("Invalid radiator class.", nameof(radiatorClass));
 

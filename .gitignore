@@ -12,3 +12,4 @@ appsettings.json
 sonar-*.*
 _inspect_xlsx/
 _xlsx_tmp/
+!sonar-project.properties

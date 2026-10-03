@@ -56,6 +56,9 @@ internal static class ManufacturerProductTypeGuard
         ProductType productType,
         Guid manufacturerId)
     {
+        if (manufacturer.Id != manufacturerId)
+            throw new ArgumentException("Manufacturer was not found.", nameof(manufacturerId));
+
         if (!manufacturer.ProductTypes.Contains(productType))
             throw new ArgumentException(
                 $"{manufacturer.Name} does not produce {productType}.",
