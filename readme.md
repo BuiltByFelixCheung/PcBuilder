@@ -1,3 +1,5 @@
+[![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=BuiltByFelixCheung_PcBuilder&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=BuiltByFelixCheung_PcBuilder)
+
 # PcBuilder
 
 Catalog of PC parts, with compatibility checks and saved builds.
