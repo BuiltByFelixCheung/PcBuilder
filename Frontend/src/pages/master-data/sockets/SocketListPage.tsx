@@ -26,7 +26,7 @@ import {
 import {
   idSelectBulkColumn,
   nameBulkColumn,
-} from "@/components/bulk-edit-columns";
+} from "@/components/BulkEditColumns";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";

@@ -22,3 +22,16 @@ export function hasCompleteRange(
 ): range is { min: number; max: number } {
   return range?.min != null && range?.max != null;
 }
+
+const relatedNameSorts: Record<string, string> = {
+  manufacturerName: "manufacturer.name",
+  seriesName: "series.name",
+  socketName: "socket.name",
+  chipsetName: "chipset.name",
+  gpuName: "gpu.name",
+};
+
+export function catalogApiSortField(sortBy?: string) {
+  const field = sortBy?.trim() || "name";
+  return relatedNameSorts[field] ?? field;
+}

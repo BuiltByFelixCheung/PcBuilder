@@ -29,6 +29,7 @@ vi.mock("@/api/master-data", async () => {
 });
 
 import { ChassisListPage } from "@/pages/catalog/chassis/ChassisListPage.tsx";
+import { chooseOption } from "../helpers/choose-option.ts";
 import { renderWithQuery } from "../helpers/query.tsx";
 
 const chassis: ChassisListItem = {
@@ -79,9 +80,10 @@ describe("ChassisListPage", () => {
     renderWithQuery(<ChassisListPage />, { route: "/catalog/chassis" });
     await screen.findByRole("link", { name: "Lian Li O11" });
     await user.type(screen.getByLabelText("Name"), "O11");
-    await user.selectOptions(screen.getByLabelText("Manufacturer"), "lian-li");
+    await chooseOption(user, "Manufacturer", "Lian Li");
     await user.type(screen.getByLabelText("Length min"), "400");
     await user.type(screen.getByLabelText("Length max"), "500");
+    await user.click(screen.getByRole("button", { name: "More filters" }));
     await user.click(screen.getByLabelText("Atx"));
     await user.click(screen.getByRole("button", { name: "Apply filters" }));
     expect(listChassis).toHaveBeenCalledWith(
@@ -144,7 +146,7 @@ describe("ChassisListPage", () => {
       route: "/catalog/chassis?name=O11",
     });
     await screen.findByRole("link", { name: "Lian Li O11" });
-    await user.click(screen.getByRole("button", { name: "Next" }));
+    await user.click(screen.getByRole("button", { name: "Go to next page" }));
     expect(listChassis).toHaveBeenCalledWith(
       expect.objectContaining({ pageIndex: 1 }),
     );

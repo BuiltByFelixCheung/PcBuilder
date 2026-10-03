@@ -32,6 +32,7 @@ vi.mock("@/api/master-data.ts", async () => {
 });
 
 import { MotherboardListPage } from "@/pages/catalog/motherboards/MotherboardListPage.tsx";
+import { chooseOption } from "../helpers/choose-option.ts";
 import { renderWithQuery } from "../helpers/query.tsx";
 
 const motherboard: MotherboardListItem = {
@@ -203,9 +204,10 @@ describe("MotherboardListPage", () => {
     });
     await screen.findByRole("link", { name: "ROG Strix X870-F" });
 
-    await user.selectOptions(screen.getByLabelText("Manufacturer"), "asus");
+    await chooseOption(user, "Manufacturer", "ASUS");
+    await user.click(screen.getByRole("button", { name: "More filters" }));
     await user.selectOptions(screen.getByLabelText("Socket"), "am5");
-    await user.selectOptions(screen.getByLabelText("Chipset"), "x870");
+    await chooseOption(user, "Chipset", "X870");
     await user.selectOptions(screen.getByLabelText("Wi-Fi"), "true");
     await user.click(screen.getByRole("button", { name: "Apply filters" }));
 
@@ -234,15 +236,13 @@ describe("MotherboardListPage", () => {
       route: "/catalog/motherboards?name=X870",
     });
     await screen.findByRole("link", { name: "ROG Strix X870-F" });
-    expect(
-      screen.getByText("Page 1 of 3 (21 motherboards)"),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "pagination" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Next" }));
+    await user.click(screen.getByRole("button", { name: "Go to next page" }));
     expect(listMotherboards).toHaveBeenCalledWith(
       expect.objectContaining({ pageIndex: 1 }),
     );
-    await user.click(screen.getByRole("button", { name: "Previous" }));
+    await user.click(screen.getByRole("button", { name: "Go to previous page" }));
     expect(listMotherboards).toHaveBeenCalledWith(
       expect.objectContaining({ pageIndex: 0 }),
     );
@@ -268,12 +268,17 @@ describe("MotherboardListPage", () => {
       route: "/catalog/motherboards",
     });
     await screen.findByRole("link", { name: "ROG Strix X870-F" });
+    await user.click(screen.getByRole("button", { name: "More filters" }));
 
-    const chipset = screen.getByLabelText("Chipset");
-    expect(chipset).toHaveTextContent("Z890");
+    await user.click(screen.getByLabelText("Chipset"));
+    expect(await screen.findByRole("option", { name: "Z890" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "X870" })).toBeInTheDocument();
+    await user.keyboard("{Escape}");
     await user.selectOptions(screen.getByLabelText("Socket"), "am5");
-    expect(chipset).not.toHaveTextContent("Z890");
-    expect(chipset).toHaveTextContent("X870");
+    await user.click(screen.getByLabelText("Chipset"));
+    expect(screen.queryByRole("option", { name: "Z890" })).not.toBeInTheDocument();
+    expect(await screen.findByRole("option", { name: "X870" })).toBeInTheDocument();
+    await user.keyboard("{Escape}");
 
     await user.selectOptions(screen.getByLabelText("DDR"), "Ddr5");
     await user.type(screen.getByLabelText("Width (mm)"), "200");

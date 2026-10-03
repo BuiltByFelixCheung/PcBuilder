@@ -1,3 +1,5 @@
+using PcBuilderBackend.Domain.Enums;
+
 namespace PcBuilderBackend.Domain.Entities;
 
 public class Manufacturer : BaseEntity
@@ -12,6 +14,8 @@ public class Manufacturer : BaseEntity
     }
 
     public string Name { get; private set; } = string.Empty;
+
+    public List<ProductType> ProductTypes { get; private set; } = [];
 
     private readonly List<Socket> _sockets = [];
     public IReadOnlyCollection<Socket> Sockets => _sockets;
@@ -64,6 +68,19 @@ public class Manufacturer : BaseEntity
     public void Rename(string name)
     {
         SetName(name);
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
+
+    public void SetProductTypes(IEnumerable<ProductType> productTypes)
+    {
+        ArgumentNullException.ThrowIfNull(productTypes);
+
+        var values = productTypes.Distinct().ToList();
+        if (values.Exists(type => !Enum.IsDefined(type)))
+            throw new ArgumentException("Product type is invalid.", nameof(productTypes));
+
+        values.Sort();
+        ProductTypes = values;
         UpdatedAtUtc = DateTime.UtcNow;
     }
 

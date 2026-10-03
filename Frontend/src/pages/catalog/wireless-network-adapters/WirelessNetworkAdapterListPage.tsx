@@ -2,25 +2,19 @@ import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { deleteWirelessNetworkAdapters } from "@/api/catalog/bulk-delete";
 import {
+  createWirelessNetworkAdapter,
   wirelessNetworkAdapterKeys,
   isWirelessNetworkAdapterFilterActive,
   updateWirelessNetworkAdapters,
   type WirelessNetworkAdapter,
   type WirelessNetworkAdapterFilter,
 } from "@/api/catalog/wireless-network-adapters";
-import { FieldGroup } from "@/components/ui/field";
 import {
   createColumnHelper,
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
-import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
-import {
-  enumSelectBulkColumn,
-  idSelectBulkColumn,
-  nameBulkColumn,
-  numberBulkColumn,
-} from "@/components/bulk-edit-columns";
+import { catalogLeadColumns } from "@/components/catalog/CatalogLeadColumns";
 import { beginBulkEdit } from "@/lib/begin-bulk-edit";
 import { useMotherboardOnlyCompatibility } from "@/hooks/use-motherboard-compatibility";
 import { useAuth } from "@/auth/use-auth";
@@ -48,65 +42,48 @@ import {
   CatalogCompatibleCheckbox,
   CatalogRangeField,
 } from "@/components/catalog/CatalogFilterFields.tsx";
+import { unsetCatalogItem } from "@/components/catalog/catalog-create";
+import { CatalogCreateDialog } from "@/components/catalog/CatalogCreateDialog";
 import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importWirelessNetworkAdapters } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import {
   CatalogFilterActions,
+  CatalogFilterGroup,
   CatalogNameField,
   CatalogEnumField,
   CatalogIdSelectField,
 } from "@/components/catalog/CatalogFilterFields";
-import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
+import { BulkEditDialog } from "@/components/BulkEditDialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { toInteger } from "@/api/helper";
+import {
+  WirelessNetworkAdapterEditColumns,
+  WirelessNetworkAdapterFields,
+} from "@/pages/catalog/wireless-network-adapters/WirelessNetworkAdapterEditColumns";
 
 const EMPTY_ITEMS: WirelessNetworkAdapter[] = [];
+const emptyAdapter = unsetCatalogItem<WirelessNetworkAdapter>({
+  id: "",
+  name: "",
+  manufacturerId: "",
+  manufacturerName: "",
+  wifiStandard: "",
+  bluetoothVersion: null,
+  hostInterface: "",
+  maxSpeedMbps: 0,
+  maxSpeedMbps5G: null,
+  maxSpeedMbps6G: null,
+  pcieSlotType: null,
+  key: null,
+  m2FormFactor: null,
+  usbVersion: null,
+  usbType: null,
+});
 const columnHelper = createColumnHelper<
   typeof dataTableFeatures,
   WirelessNetworkAdapter
 >();
-
-function bulkEditColumns(
-  manufacturers: { id: string; name: string }[],
-): BulkEditColumn<WirelessNetworkAdapter>[] {
-  return [
-    nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    enumSelectBulkColumn("Wi-Fi", "wifiStandard", WIFI_STANDARDS),
-    enumSelectBulkColumn(
-      "Host interface",
-      "hostInterface",
-      WIRELESS_HOST_INTERFACES,
-    ),
-    enumSelectBulkColumn("Bluetooth", "bluetoothVersion", BLUETOOTH_VERSIONS, {
-      empty: "null",
-    }),
-    numberBulkColumn("Max speed (Mbps)", "maxSpeedMbps", {
-      parse: toInteger,
-      fallback: 0,
-    }),
-    numberBulkColumn("5 GHz max speed (Mbps)", "maxSpeedMbps5G", {
-      parse: toInteger,
-      fallback: null,
-    }),
-    numberBulkColumn("6 GHz max speed (Mbps)", "maxSpeedMbps6G", {
-      parse: toInteger,
-      fallback: null,
-    }),
-    enumSelectBulkColumn("PCIe slot", "pcieSlotType", PCIE_SLOT_TYPES, {
-      empty: "keep",
-    }),
-    enumSelectBulkColumn("M.2 key", "key", M2_KEYS, { empty: "keep" }),
-    enumSelectBulkColumn("M.2 form factor", "m2FormFactor", M2_FORM_FACTORS, {
-      empty: "keep",
-    }),
-    enumSelectBulkColumn("USB version", "usbVersion", USB_VERSIONS, {
-      empty: "keep",
-    }),
-  ];
-}
 
 export function WirelessNetworkAdapterListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -121,7 +98,10 @@ export function WirelessNetworkAdapterListPage() {
   const query = useWirelessNetworkAdapters(params);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const queryClient = useQueryClient();
-  const [editRows, setEditRows] = useState<WirelessNetworkAdapter[]|null>(null);
+  const [editRows, setEditRows] = useState<WirelessNetworkAdapter[] | null>(
+    null,
+  );
+  const [creating, setCreating] = useState(false);
   const { isAdmin } = useAuth();
 
   const columns = useMemo(
@@ -223,7 +203,7 @@ export function WirelessNetworkAdapterListPage() {
       </p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
-          <FieldGroup className="catalog-filter-grid">
+          <CatalogFilterGroup>
             <CatalogCompatibleCheckbox
               checked={showOnlyCompatible}
               onCheckedChange={applyCompatibleFilter}
@@ -345,7 +325,7 @@ export function WirelessNetworkAdapterListPage() {
                 setDraft((current) => ({ ...current, usbType }))
               }
             />
-          </FieldGroup>
+          </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
         <div className="catalog-results">
@@ -360,6 +340,7 @@ export function WirelessNetworkAdapterListPage() {
             emptyMessage="No wireless network adapters in the catalog yet."
             isAdmin={isAdmin}
             newItemLabel="New Wireless Network Adapter"
+            onNewItem={() => setCreating(true)}
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
@@ -370,17 +351,26 @@ export function WirelessNetworkAdapterListPage() {
             onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
-            totalCount={totalCount}
-            countLabel="adapters"
             onPageChange={goToPage}
           />
         </div>
       </div>
+      {creating ? (
+        <CatalogCreateDialog
+          title="New wireless network adapter"
+          item={emptyAdapter}
+          fields={WirelessNetworkAdapterFields(manufacturers)}
+          queryKey={wirelessNetworkAdapterKeys.all}
+          detailPath={(id) => `/catalog/wireless-network-adapters/${id}`}
+          onClose={() => setCreating(false)}
+          create={createWirelessNetworkAdapter}
+        />
+      ) : null}
       {editRows ? (
         <BulkEditDialog
           title="Edit Wireless Network Adapters"
           rows={editRows}
-          columns={bulkEditColumns(manufacturers)}
+          columns={WirelessNetworkAdapterEditColumns(manufacturers)}
           onClose={() => setEditRows(null)}
           onSave={async (rows) => {
             await updateWirelessNetworkAdapters(rows);

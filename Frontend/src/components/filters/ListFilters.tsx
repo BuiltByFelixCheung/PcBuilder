@@ -1,13 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectItem,
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+  SelectGroup,
+  SelectLabel,
+} from "../ui/select";
 
 export const formSelectClassName =
   "h-10 w-full min-w-0 rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
-export function FilterActions({
-  onClear,
-}: Readonly<{ onClear: () => void }>) {
+export function FilterActions({ onClear }: Readonly<{ onClear: () => void }>) {
   return (
     <div className="catalog-filter-actions">
       <Button type="submit">Apply filters</Button>
@@ -42,6 +49,8 @@ export function NameField({
   );
 }
 
+const emptyOption = "__any__";
+
 export type SelectOption = {
   value: string;
   label: string;
@@ -67,20 +76,28 @@ export function SelectField({
   return (
     <Field>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <select
-        id={id}
+      <Select
         name={name}
-        className={formSelectClassName}
-        value={value ?? ""}
-        onChange={(event) => onValueChange(event.target.value)}
+        value={value || emptyOption}
+        onValueChange={(next) =>
+          onValueChange(next === emptyOption ? "" : next)
+        }
       >
-        <option value="">{emptyLabel}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+        <SelectTrigger id={id} className="w-full">
+          <SelectValue placeholder={emptyLabel} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>{label}</SelectLabel>
+            <SelectItem value={emptyOption}>{emptyLabel}</SelectItem>
+            {options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
     </Field>
   );
 }

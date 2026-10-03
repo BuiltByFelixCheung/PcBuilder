@@ -13,9 +13,9 @@ public class ChassisTests
     public void Child_collections_reject_duplicates_and_missing_removes()
     {
         var chassis = Create();
-        var bay = new ChassisDriveBay(chassis.Id, DriveBayFormFactor.Inch35, 2);
+        var bay = new ChassisDriveBay(chassis.Id, [DriveBayFormFactor.Inch35], 2);
         chassis.AddDriveBay(bay);
-        var dup = () => chassis.AddDriveBay(new ChassisDriveBay(chassis.Id, DriveBayFormFactor.Inch35, 1));
+        var dup = () => chassis.AddDriveBay(new ChassisDriveBay(chassis.Id, [DriveBayFormFactor.Inch35], 1));
         dup.Should().Throw<ArgumentException>();
         chassis.RemoveDriveBay(bay);
         chassis.DriveBays.Should().BeEmpty();
@@ -76,7 +76,7 @@ public class ChassisTests
     public void Storage_compatibility_uses_drive_bays_and_ignores_m2()
     {
         var chassis = Create();
-        chassis.AddDriveBay(new ChassisDriveBay(chassis.Id, DriveBayFormFactor.Inch35, 1));
+        chassis.AddDriveBay(new ChassisDriveBay(chassis.Id, [DriveBayFormFactor.Inch35], 1));
         var hdd = new StorageDrive("HDD", ManufacturerId, new StorageDriveSpecs
         {
             Media = StorageMedia.Hdd,
@@ -98,7 +98,7 @@ public class ChassisTests
         chassis.CheckStorageDriveCompatibility(hdd).Should().BeTrue();
         chassis.CheckStorageDriveCompatibility([hdd, hdd]).Should().BeFalse();
 
-        chassis.AddDriveBay(new ChassisDriveBay(chassis.Id, DriveBayFormFactor.Inch25, 1));
+        chassis.AddDriveBay(new ChassisDriveBay(chassis.Id, [DriveBayFormFactor.Inch25], 1));
         var sataSsd = new StorageDrive("MX500", ManufacturerId, new StorageDriveSpecs
         {
             Media = StorageMedia.Ssd,
@@ -108,6 +108,34 @@ public class ChassisTests
         });
         chassis.CheckStorageDriveCompatibility(sataSsd).Should().BeTrue();
         chassis.CheckStorageDriveCompatibility([sataSsd, sataSsd]).Should().BeFalse();
+    }
+
+    [Fact]
+    public void Combo_drive_bay_shares_slots_between_sizes()
+    {
+        var chassis = Create();
+        chassis.AddDriveBay(new ChassisDriveBay(
+            chassis.Id,
+            [DriveBayFormFactor.Inch25, DriveBayFormFactor.Inch35],
+            2));
+        var hdd = new StorageDrive("HDD", ManufacturerId, new StorageDriveSpecs
+        {
+            Media = StorageMedia.Hdd,
+            Interface = StorageInterface.Sata,
+            FormFactor = StorageFormFactor.Sata35,
+            CapacityGb = 4000,
+            Rpm = 7200
+        });
+        var ssd = new StorageDrive("SSD", ManufacturerId, new StorageDriveSpecs
+        {
+            Media = StorageMedia.Ssd,
+            Interface = StorageInterface.Sata,
+            FormFactor = StorageFormFactor.Sata25,
+            CapacityGb = 1000
+        });
+
+        chassis.CheckStorageDriveCompatibility([hdd, ssd]).Should().BeTrue();
+        chassis.CheckStorageDriveCompatibility([hdd, hdd, ssd, ssd]).Should().BeFalse();
     }
 
     [Fact]
@@ -129,12 +157,12 @@ public class ChassisTests
     public void Air_cooler_height_and_aio_radiator_are_checked()
     {
         var chassis = Create();
-        chassis.AddRadiator(new ChassisRadiator(chassis.Id, RadiatorLength.Mm360, RadiatorMountLocation.Top, 1));
+        chassis.AddRadiator(new ChassisRadiator(chassis.Id, RadiatorClass.Mm360, RadiatorMountLocation.Top, 1));
 
-        var airOk = new CpuCooler(ManufacturerId, "NH-D15", 220, CpuCoolerType.Air, 150, 35, null);
-        var airTall = new CpuCooler(ManufacturerId, "Tall", 220, CpuCoolerType.Air, 180, 35, null);
-        var aio = new CpuCooler(ManufacturerId, "360", 280, CpuCoolerType.Water, null, null, RadiatorLength.Mm360);
-        var aioWrong = new CpuCooler(ManufacturerId, "240", 250, CpuCoolerType.Water, null, null, RadiatorLength.Mm240);
+        var airOk = new CpuCooler(ManufacturerId, "NH-D15", CpuCoolerType.Air, 150, 35, null);
+        var airTall = new CpuCooler(ManufacturerId, "Tall", CpuCoolerType.Air, 180, 35, null);
+        var aio = new CpuCooler(ManufacturerId, "360", CpuCoolerType.Water, null, null, RadiatorClass.Mm360);
+        var aioWrong = new CpuCooler(ManufacturerId, "240", CpuCoolerType.Water, null, null, RadiatorClass.Mm240);
 
         chassis.CheckCpuCoolerCompatibility(airOk).Should().BeTrue();
         chassis.CheckCpuCoolerCompatibility(airTall).Should().BeFalse();

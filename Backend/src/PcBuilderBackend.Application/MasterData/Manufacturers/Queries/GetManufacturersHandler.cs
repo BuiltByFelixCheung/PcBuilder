@@ -2,7 +2,6 @@ using MediatR;
 using PcBuilderBackend.Application.Common.Caching;
 using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.MasterData.Manufacturers.Dto;
-using PcBuilderBackend.Domain.Entities;
 
 namespace PcBuilderBackend.Application.MasterData.Manufacturers.Queries;
 

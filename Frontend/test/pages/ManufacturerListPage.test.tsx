@@ -59,6 +59,24 @@ describe("ManufacturerListPage", () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
   });
 
+  it("sorts the table by name", async () => {
+    listManufacturers.mockResolvedValue([
+      { id: "zotac", name: "Zotac" },
+      amd,
+    ]);
+    const user = userEvent.setup();
+    renderWithQuery(<ManufacturerListPage />, {
+      route: "/master-data/manufacturers",
+    });
+    expect(await screen.findByRole("link", { name: "Zotac" })).toBeInTheDocument();
+    expect(screen.getAllByRole("row")[1]).toHaveTextContent("Zotac");
+
+    await user.click(screen.getByRole("button", { name: "Name" }));
+
+    expect(screen.getAllByRole("row")[1]).toHaveTextContent("AMD");
+    expect(screen.getAllByRole("row")[2]).toHaveTextContent("Zotac");
+  });
+
   it("filters by name and shows an empty match", async () => {
     const user = userEvent.setup();
     renderWithQuery(<ManufacturerListPage />, {
@@ -102,14 +120,20 @@ describe("ManufacturerListPage", () => {
     renderWithQuery(<ManufacturerListPage />, {
       route: "/master-data/manufacturers",
     });
-    await user.click(await screen.findByRole("link", { name: "New Manufacturer" }));
+    const newItem = await screen.findByRole("link", { name: "New Manufacturer" });
+    expect(newItem).toHaveAttribute("data-slot", "button");
+    expect(newItem.className).toContain("text-primary-foreground");
+    await user.click(newItem);
     const dialog = await screen.findByRole("dialog", { name: "New Manufacturer" });
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
     expect(await within(dialog).findByText("Name is required.")).toBeInTheDocument();
     await user.type(within(dialog).getByLabelText("Name"), "ASUS");
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
     await waitFor(() => {
-      expect(createManufacturer).toHaveBeenCalledWith({ name: "ASUS" });
+      expect(createManufacturer).toHaveBeenCalledWith({
+        name: "ASUS",
+        productTypes: [],
+      });
     });
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -143,7 +167,10 @@ describe("ManufacturerListPage", () => {
     updateManufacturer.mockResolvedValue(amd);
     await user.click(within(again).getByRole("button", { name: "Save" }));
     await waitFor(() => {
-      expect(updateManufacturer).toHaveBeenCalledWith("amd", { name: "AMD" });
+      expect(updateManufacturer).toHaveBeenCalledWith("amd", {
+        name: "AMD",
+        productTypes: [],
+      });
     });
 
     deleteManufacturer.mockRejectedValueOnce(
@@ -219,13 +246,18 @@ describe("ManufacturerListPage", () => {
 
     await user.click(screen.getByRole("button", { name: "Edit Selected" }));
     const dialog = await screen.findByRole("dialog", { name: "Edit manufacturers" });
+    await user.click(within(dialog).getByRole("checkbox", { name: "CPUs for AMD" }));
     const name = within(dialog).getByRole("textbox", { name: "Name for AMD" });
     await user.clear(name);
     await user.type(name, "AMD Inc");
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
     await waitFor(() => {
       expect(updateManufacturers).toHaveBeenCalledWith([
-        expect.objectContaining({ id: "amd", name: "AMD Inc" }),
+        expect.objectContaining({
+          id: "amd",
+          name: "AMD Inc",
+          productTypes: ["Cpu"],
+        }),
       ]);
     });
 

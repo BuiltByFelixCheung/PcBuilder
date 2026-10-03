@@ -4,8 +4,11 @@ import {
   deleteManufacturers,
   updateManufacturers,
   listManufacturers,
+  MANUFACTURER_PRODUCT_TYPES,
+  manufacturerProductTypeLabel,
   masterDataKeys,
-  type NamedMasterData,
+  type Manufacturer,
+  type ManufacturerProductType,
   importManufacturers,
 } from "@/api/master-data";
 import { ManufacturerFormDialog } from "@/components/master-data/ManufacturerFormDialog";
@@ -16,7 +19,8 @@ import {
 } from "@/lib/master-data-edit";
 import { beginBulkEdit } from "@/lib/begin-bulk-edit";
 import { filterByNameAndFields } from "@/lib/named-list-filter";
-import { nameBulkColumn } from "@/components/bulk-edit-columns";
+import { nameBulkColumn } from "@/components/BulkEditColumns";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,12 +34,15 @@ import { MasterDataResults } from "@/components/master-data/MasterDataResults";
 import { FilterActions } from "@/components/filters/ListFilters";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
-import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
+import {
+  BulkEditDialog,
+  type BulkEditColumn,
+} from "@/components/BulkEditDialog";
 
-const EMPTY_ITEMS: NamedMasterData[] = [];
+const EMPTY_ITEMS: Manufacturer[] = [];
 const columnHelper = createColumnHelper<
   typeof dataTableFeatures,
-  NamedMasterData
+  Manufacturer
 >();
 const columns = columnHelper.columns([
   createSelectionColumn(columnHelper),
@@ -47,10 +54,58 @@ const columns = columnHelper.columns([
       </Link>
     ),
   }),
+  columnHelper.accessor("productTypes", {
+    header: "Product lines",
+    cell: (info) => {
+      const labels = (info.getValue() ?? []).map(manufacturerProductTypeLabel);
+      return labels.length > 0 ? labels.join(", ") : "—";
+    },
+  }),
 ]);
 
-function manufacturerEditColumns(): BulkEditColumn<NamedMasterData>[] {
-  return [nameBulkColumn()];
+function manufacturerEditColumns(): BulkEditColumn<Manufacturer>[] {
+  return [nameBulkColumn(), productLinesBulkColumn()];
+}
+
+function productLinesBulkColumn(): BulkEditColumn<Manufacturer> {
+  return {
+    header: "Product lines",
+    className: "min-w-80 whitespace-normal",
+    cell: (row, update) => {
+      const selected = row.productTypes ?? [];
+      return (
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2 py-1">
+          {MANUFACTURER_PRODUCT_TYPES.map((type) => (
+            <label
+              key={type.value}
+              className="flex items-center gap-2 text-sm"
+            >
+              <Checkbox
+                aria-label={`${type.label} for ${row.name}`}
+                checked={selected.includes(type.value)}
+                onCheckedChange={(next) =>
+                  update({
+                    ...row,
+                    productTypes: nextProductTypes(selected, type.value, next === true),
+                  })
+                }
+              />
+              {type.label}
+            </label>
+          ))}
+        </div>
+      );
+    },
+  };
+}
+
+function nextProductTypes(
+  selected: readonly ManufacturerProductType[],
+  value: ManufacturerProductType,
+  checked: boolean,
+) {
+  if (!checked) return selected.filter((item) => item !== value);
+  return selected.includes(value) ? [...selected] : [...selected, value];
 }
 
 type ManufacturerFilter = {
@@ -80,7 +135,7 @@ export function ManufacturerListPage() {
   );
   const filtering = isManufacturerFilterActive(applied);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [editRows, setEditRows] = useState<NamedMasterData[] | null>(null);
+  const [editRows, setEditRows] = useState<Manufacturer[] | null>(null);
   const visibleItems = useMemo(
     () => filterByNameAndFields(items, applied, []),
     [applied, items],

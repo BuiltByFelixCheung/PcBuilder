@@ -48,6 +48,33 @@ describe("cpu list search params", () => {
     });
   });
 
+  it("round-trips a column sort and keeps the default out of the query", () => {
+    const search = cpuListSearchFromParams({
+      pageIndex: 1,
+      pageSize: 10,
+      sortBy: "seriesName",
+      sortDirection: "desc",
+      filter: emptyCpuFilter,
+    });
+    expect(search.get("sort")).toBe("seriesName");
+    expect(search.get("dir")).toBe("desc");
+    expect(search.get("page")).toBe("1");
+    expect(cpuListParamsFromSearch(search)).toMatchObject({
+      pageIndex: 1,
+      sortBy: "seriesName",
+      sortDirection: "desc",
+    });
+    expect(
+      cpuListSearchFromParams({
+        pageIndex: 0,
+        pageSize: 10,
+        sortBy: "name",
+        sortDirection: "asc",
+        filter: emptyCpuFilter,
+      }).toString(),
+    ).toBe("");
+  });
+
   it("omits empty filter from the query string", () => {
     expect(
       cpuListSearchFromParams({

@@ -3,11 +3,13 @@ import type { MotherboardListItem } from "@/api/catalog/motherboards";
 
 const get = vi.fn();
 const post = vi.fn();
+const put = vi.fn();
 
 vi.mock("@/api/client.ts", () => ({
   api: {
     get: (...args: unknown[]) => get(...args),
     post: (...args: unknown[]) => post(...args),
+    put: (...args: unknown[]) => put(...args),
   },
 }));
 
@@ -16,6 +18,8 @@ import {
   isMotherboardFilterActive,
   listMotherboards,
   motherboardKeys,
+  updateMotherboard,
+  updateMotherboards,
 } from "@/api/catalog/motherboards";
 
 const paging = {
@@ -53,6 +57,7 @@ describe("motherboard API", () => {
   beforeEach(() => {
     get.mockReset();
     post.mockReset();
+    put.mockReset();
   });
 
   it("treats blank filters as inactive", () => {
@@ -129,6 +134,66 @@ describe("motherboard API", () => {
         filter: expect.objectContaining({ chassisId: "case-1" }),
       }),
     );
+  });
+
+  it("updates a motherboard", async () => {
+    put.mockResolvedValue({ data: item });
+    await updateMotherboard(item);
+    expect(put).toHaveBeenCalledWith("/catalog/motherboard", {
+      id: "mb-1",
+      name: "ROG Strix X870-F",
+      manufacturerId: "asus",
+      manufacturerName: "ASUS",
+      socketId: "am5",
+      socketName: "AM5",
+      chipsetId: "x870",
+      chipsetName: "X870",
+      ramSlots: 4,
+      maxMemoryGb: 192,
+      maxDimmSizeGb: 48,
+      sataPorts: 4,
+      fanConnectors: 7,
+      epsConnectors: 2,
+      widthMm: 305,
+      heightMm: 244,
+      ddrGeneration: "Ddr5",
+      ramFormFactor: "UDimm",
+      formFactor: "Atx",
+      wifiEnabled: true,
+      bluetoothEnabled: true,
+    });
+  });
+
+  it("updates motherboards in bulk", async () => {
+    put.mockResolvedValue({ data: [item] });
+    await updateMotherboards([item]);
+    expect(put).toHaveBeenCalledWith("/catalog/motherboard/bulk", {
+      motherboards: [
+        {
+          id: "mb-1",
+          name: "ROG Strix X870-F",
+          manufacturerId: "asus",
+          manufacturerName: "ASUS",
+          socketId: "am5",
+          socketName: "AM5",
+          chipsetId: "x870",
+          chipsetName: "X870",
+          ramSlots: 4,
+          maxMemoryGb: 192,
+          maxDimmSizeGb: 48,
+          sataPorts: 4,
+          fanConnectors: 7,
+          epsConnectors: 2,
+          widthMm: 305,
+          heightMm: 244,
+          ddrGeneration: "Ddr5",
+          ramFormFactor: "UDimm",
+          formFactor: "Atx",
+          wifiEnabled: true,
+          bluetoothEnabled: true,
+        },
+      ],
+    });
   });
 
   it("loads a motherboard by id", async () => {

@@ -39,6 +39,11 @@ describe("ChildCollectionDialog", () => {
       />,
     );
 
+    expect(document.querySelector("[data-slot=table]")).toHaveClass(
+      "w-max",
+      "min-w-full",
+    );
+
     await user.click(screen.getByRole("button", { name: "Remove row 1" }));
     await user.click(screen.getByRole("button", { name: "Add row" }));
     await user.type(

@@ -1,5 +1,6 @@
 import { api } from "../client";
 import {
+  catalogApiSortField,
   hasCompleteRange,
   type PagedRequest,
   type PagedResult,
@@ -69,7 +70,7 @@ export function listWiredNetworkAdapters(
   const paging = {
     pageIndex: params.pageIndex,
     pageSize: params.pageSize,
-    sortBy: params.sortBy ?? "name",
+    sortBy: catalogApiSortField(params.sortBy),
     sortDirection: params.sortDirection ?? "asc",
   };
 
@@ -112,5 +113,17 @@ export function getWiredNetworkAdapterById(id: string) {
 export function updateWiredNetworkAdapters(wiredNetworkAdapters: WiredNetworkAdapter[]) {
   return api
     .put("/catalog/wired-network-adapter/bulk", { adapters: wiredNetworkAdapters })
+    .then((response) => response.data);
+}
+
+export function updateWiredNetworkAdapter(adapter: WiredNetworkAdapter) {
+  return api
+    .put("/catalog/wired-network-adapter", adapter)
+    .then((response) => response.data);
+}
+
+export function createWiredNetworkAdapter(adapter: WiredNetworkAdapter) {
+  return api
+    .post<{ id: string }>("/catalog/wired-network-adapter", adapter)
     .then((response) => response.data);
 }

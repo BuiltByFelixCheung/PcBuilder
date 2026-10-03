@@ -9,6 +9,7 @@ import { LoginPage } from "./pages/auth/LoginPage.tsx";
 import { RegisterPage } from "./pages/auth/RegisterPage.tsx";
 import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage.tsx";
 import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage.tsx";
+import { CpuCreatePage } from "./pages/catalog/cpus/CpuCreatePage.tsx";
 import { CpuDetailPage } from "./pages/catalog/cpus/CpuDetailPage.tsx";
 import { CpuListPage } from "./pages/catalog/cpus/CpuListPage.tsx";
 import { GraphicsCardListPage } from "./pages/catalog/graphics-cards/GraphicsCardListPage.tsx";
@@ -17,8 +18,10 @@ import { RamListPage } from "./pages/catalog/memories/RamListPage.tsx";
 import { RamDetailPage } from "./pages/catalog/memories/RamDetailPage.tsx";
 import { StorageDetailPage } from "./pages/catalog/storage-drives/StorageDetailPage.tsx";
 import { StorageListPage } from "./pages/catalog/storage-drives/StorageListPage.tsx";
+import { PsuCreatePage } from "./pages/catalog/psus/PsuCreatePage.tsx";
 import { PsuDetailPage } from "./pages/catalog/psus/PsuDetailPage.tsx";
 import { PsuListPage } from "./pages/catalog/psus/PsuListPage.tsx";
+import { CpuCoolerCreatePage } from "./pages/catalog/cpu-coolers/CpuCoolerCreatePage.tsx";
 import { CpuCoolerDetailPage } from "./pages/catalog/cpu-coolers/CpuCoolerDetailPage.tsx";
 import { CpuCoolerListPage } from "./pages/catalog/cpu-coolers/CpuCoolerListPage.tsx";
 import { ChassisFanDetailPage } from "./pages/catalog/chassis-fans/ChassisFanDetailPage.tsx";
@@ -29,8 +32,10 @@ import { WirelessNetworkAdapterDetailPage } from "./pages/catalog/wireless-netwo
 import { WirelessNetworkAdapterListPage } from "./pages/catalog/wireless-network-adapters/WirelessNetworkAdapterListPage.tsx";
 
 import "./AppShell.css";
+import { ChassisCreatePage } from "./pages/catalog/chassis/ChassisCreatePage.tsx";
 import { ChassisDetailPage } from "./pages/catalog/chassis/ChassisDetailPage.tsx";
 import { ChassisListPage } from "./pages/catalog/chassis/ChassisListPage.tsx";
+import { MotherboardCreatePage } from "./pages/catalog/motherboards/MotherboardCreatePage.tsx";
 import { MotherboardDetailPage } from "./pages/catalog/motherboards/MotherboardDetailPage.tsx";
 import { MotherboardListPage } from "./pages/catalog/motherboards/MotherboardListPage.tsx";
 import { BuilderPage } from "./pages/build/BuilderPage.tsx";
@@ -120,6 +125,17 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
         <Route element={<RequireAdmin />}>
+          <Route path="catalog/chassis/new" element={<ChassisCreatePage />} />
+          <Route
+            path="catalog/motherboards/new"
+            element={<MotherboardCreatePage />}
+          />
+          <Route path="catalog/cpus/new" element={<CpuCreatePage />} />
+          <Route path="catalog/psus/new" element={<PsuCreatePage />} />
+          <Route
+            path="catalog/cpu-coolers/new"
+            element={<CpuCoolerCreatePage />}
+          />
           <Route path="master-data/chipsets" element={<ChipsetListPage />} />
           <Route
             path="master-data/cpu-series"

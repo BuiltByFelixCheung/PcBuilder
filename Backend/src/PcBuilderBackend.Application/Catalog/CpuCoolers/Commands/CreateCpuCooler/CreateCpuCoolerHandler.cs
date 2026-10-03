@@ -20,11 +20,22 @@ public class CreateCpuCoolerHandler(
         var entity = new CpuCooler(
             request.ManufacturerId,
             request.Name,
-            request.MaxTdp,
             request.Type,
             request.CoolerHeightMm,
             request.MaxRamHeightMm,
-            request.RadiatorLength);
+            request.RadiatorClass,
+            request.RadiatorLengthMm,
+            request.RadiatorWidthMm,
+            request.RadiatorHeightMm,
+            request.CoolerLengthMm,
+            request.CoolerWidthMm,
+            request.WaterBlockLengthMm,
+            request.WaterBlockWidthMm,
+            request.WaterBlockHeightMm,
+            request.FanThicknessMm,
+            request.FanWidthMm,
+            request.FanHeightMm,
+            request.FanCount);
 
         ApplySockets(entity, request.Sockets);
 

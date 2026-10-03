@@ -22,7 +22,7 @@ import {
 import {
   idSelectBulkColumn,
   nameBulkColumn,
-} from "@/components/bulk-edit-columns";
+} from "@/components/BulkEditColumns";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   createColumnHelper,
@@ -39,7 +39,10 @@ import {
 import { MasterDataResults } from "@/components/master-data/MasterDataResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
-import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
+import {
+  BulkEditDialog,
+  type BulkEditColumn,
+} from "@/components/BulkEditDialog";
 
 const EMPTY_ITEMS: GpuOption[] = [];
 const columnHelper = createColumnHelper<typeof dataTableFeatures, GpuOption>();

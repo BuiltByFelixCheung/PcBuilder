@@ -1,5 +1,6 @@
 import { type ColumnHelper, type RowData } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
+import { Checkbox } from "./checkbox";
 
 type Selectable = { id: string };
 
@@ -9,17 +10,17 @@ export function createSelectionColumn<TData extends Selectable & RowData>(
   return columnHelper.display({
     id: "select",
     header: ({ table }) => (
-      <input
-        type="checkbox"
+      <Checkbox
+        aria-label="Select all rows"
         checked={table.getIsAllRowsSelected()}
-        onChange={table.getToggleAllRowsSelectedHandler()}
+        onCheckedChange={(checked) => table.toggleAllRowsSelected(checked === true)}
       />
     ),
     cell: ({ row }) => (
-      <input
-        type="checkbox"
+      <Checkbox
+        aria-label="Select row"
         checked={row.getIsSelected()}
-        onChange={row.getToggleSelectedHandler()}
+        onCheckedChange={(checked) => row.toggleSelected(checked === true)}
       />
     ),
   });

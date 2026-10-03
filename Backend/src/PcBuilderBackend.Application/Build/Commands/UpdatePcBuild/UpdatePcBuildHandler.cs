@@ -1,7 +1,6 @@
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using PcBuilderBackend.Application.Build;
 using PcBuilderBackend.Application.Build.Dto;
 using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.Common.Logging;
@@ -95,16 +94,16 @@ public class UpdatePcBuildHandler(
             pcBuilds.DeletePart(part);
         }
 
-        foreach (var chassisFan in command.ChassisFans ?? [])
+        foreach (var chassisFan in command.ChassisFans)
             pcBuild.AddChassisFan(chassisFan.PartId, chassisFan.Quantity);
 
-        foreach (var storageDevice in command.StorageDevices ?? [])
+        foreach (var storageDevice in command.StorageDevices)
             pcBuild.AddStorageDevice(storageDevice.PartId, storageDevice.Quantity);
 
-        foreach (var wiredNetworkAdapter in command.WiredNetworkAdapters ?? [])
+        foreach (var wiredNetworkAdapter in command.WiredNetworkAdapters)
             pcBuild.AddWiredNetworkAdapter(wiredNetworkAdapter.PartId, wiredNetworkAdapter.Quantity);
 
-        foreach (var wirelessNetworkAdapter in command.WirelessNetworkAdapters ?? [])
+        foreach (var wirelessNetworkAdapter in command.WirelessNetworkAdapters)
             pcBuild.AddWirelessNetworkAdapter(wirelessNetworkAdapter.PartId, wirelessNetworkAdapter.Quantity);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);

@@ -1,9 +1,14 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { GraphicsCardDetail } from "@/api/catalog/graphics-cards";
+import type {
+  GraphicsCardDetail,
+  GraphicsCardListItem,
+} from "@/api/catalog/graphics-cards";
 import { Route, Routes } from "react-router-dom";
 
 const getGraphicsCardById = vi.fn();
+const updateGraphicsCard = vi.fn();
 
 vi.mock("@/api/catalog/graphics-cards", async () => {
   const actual = await vi.importActual<
@@ -12,6 +17,7 @@ vi.mock("@/api/catalog/graphics-cards", async () => {
   return {
     ...actual,
     getGraphicsCardById: (...args: unknown[]) => getGraphicsCardById(...args),
+    updateGraphicsCard: (...args: unknown[]) => updateGraphicsCard(...args),
   };
 });
 
@@ -41,7 +47,10 @@ const card: GraphicsCardDetail = {
   gpuSeriesName: "GeForce RTX 40",
 };
 
-function renderDetail(route = "/catalog/graphics-cards/gpu-1") {
+function renderDetail(
+  route = "/catalog/graphics-cards/gpu-1",
+  options?: { isAdmin?: boolean },
+) {
   return renderWithQuery(
     <Routes>
       <Route
@@ -49,13 +58,14 @@ function renderDetail(route = "/catalog/graphics-cards/gpu-1") {
         element={<GraphicsCardDetailPage />}
       />
     </Routes>,
-    { route },
+    { route, isAdmin: options?.isAdmin },
   );
 }
 
 describe("GraphicsCardDetailPage", () => {
   beforeEach(() => {
     getGraphicsCardById.mockReset();
+    updateGraphicsCard.mockReset();
   });
 
   it("renders card and GPU details", async () => {
@@ -70,6 +80,29 @@ describe("GraphicsCardDetailPage", () => {
     expect(screen.getByText("NVIDIA")).toBeInTheDocument();
     expect(screen.getByText("GeForce RTX 40")).toBeInTheDocument();
     expect(screen.getByText("No")).toBeInTheDocument();
+  });
+
+  it("saves the list item without GPU series fields", async () => {
+    getGraphicsCardById.mockResolvedValue(card);
+    updateGraphicsCard.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderDetail("/catalog/graphics-cards/gpu-1", { isAdmin: true });
+
+    const title = await screen.findByRole("heading", { name: "TUF RTX 4070" });
+    await user.click(
+      within(title.parentElement!).getByRole("button", { name: "Edit" }),
+    );
+    const name = screen.getByRole("textbox", { name: "Name for TUF RTX 4070" });
+    await user.clear(name);
+    await user.type(name, "TUF 4070");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => {
+      expect(updateGraphicsCard).toHaveBeenCalledTimes(1);
+    });
+    const [saved] = updateGraphicsCard.mock.calls[0] as [GraphicsCardListItem];
+    expect(saved.name).toBe("TUF 4070");
+    expect(saved).not.toHaveProperty("gpuManufacturerId");
+    expect(saved).not.toHaveProperty("gpuSeriesName");
   });
 
   it("shows loading and error states", async () => {

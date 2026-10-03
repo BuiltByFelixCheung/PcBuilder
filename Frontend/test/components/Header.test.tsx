@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CurrentUser } from "@/auth/types.ts";
 import { testUser } from "../helpers/auth.ts";
 import { Header } from "@/components/layout/header";
@@ -31,6 +31,33 @@ vi.mock("@/auth/use-auth.ts", () => ({
 }));
 
 describe("header chrome", () => {
+  afterEach(() => {
+    document.documentElement.classList.remove("dark");
+    localStorage.removeItem("theme");
+  });
+
+  it("switches between light and dark mode", async () => {
+    localStorage.setItem("theme", "light");
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <AppHeader />
+      </MemoryRouter>,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Switch to dark mode" }),
+    );
+    expect(document.documentElement).toHaveClass("dark");
+    expect(localStorage.getItem("theme")).toBe("dark");
+
+    await user.click(
+      screen.getByRole("button", { name: "Switch to light mode" }),
+    );
+    expect(document.documentElement).not.toHaveClass("dark");
+    expect(localStorage.getItem("theme")).toBe("light");
+  });
+
   it("renders guest links and signed-in actions", async () => {
     const user = userEvent.setup();
     const { rerender } = render(
@@ -127,5 +154,36 @@ describe("header chrome", () => {
       "href",
       "/catalog/motherboards",
     );
+  });
+
+  it("opens catalog and account links from the mobile menu", async () => {
+    auth.isReady = true;
+    auth.isAuthenticated = false;
+    auth.user = null;
+    auth.isAdmin = false;
+    vi.stubGlobal("matchMedia", () => ({
+      matches: true,
+      media: "(max-width: 1024px)",
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <AppLayout />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByRole("link", { name: "CPUs" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Menu" }));
+    expect(screen.getByRole("link", { name: "CPUs" })).toHaveAttribute(
+      "href",
+      "/catalog/cpus",
+    );
+    expect(screen.getByRole("link", { name: "Builder" })).toHaveAttribute(
+      "href",
+      "/builds/current",
+    );
+    expect(screen.getByRole("link", { name: "Sign in" })).toBeInTheDocument();
+    vi.unstubAllGlobals();
   });
 });

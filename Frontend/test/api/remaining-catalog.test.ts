@@ -80,7 +80,6 @@ const cooler: CpuCoolerListItem = {
   name: "NH-D15",
   manufacturerId: "noctua",
   manufacturerName: "Noctua",
-  maxTdp: 220,
   type: "Air",
   coolerHeightMm: 165,
 };

@@ -29,7 +29,7 @@ public class BulkUpdateChassisRadiatorsHandler(
         }
 
         var existingByKey = entity.Radiators.ToDictionary(x => (x.Length, x.MountLocation));
-        var touchedKeys = new HashSet<(RadiatorLength Length, RadiatorMountLocation MountLocation)>();
+        var touchedKeys = new HashSet<(RadiatorClass Length, RadiatorMountLocation MountLocation)>();
 
         foreach (var radiator in request.Radiators)
         {

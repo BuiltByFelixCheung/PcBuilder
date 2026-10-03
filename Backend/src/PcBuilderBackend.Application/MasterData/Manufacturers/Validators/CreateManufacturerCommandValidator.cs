@@ -8,5 +8,6 @@ public class CreateManufacturerCommandValidator : AbstractValidator<CreateManufa
     public CreateManufacturerCommandValidator()
     {
         Include(new ManufacturerFieldsValidator<CreateManufacturerCommand>());
+        RuleForEach(command => command.ProductTypes).IsInEnum();
     }
 }

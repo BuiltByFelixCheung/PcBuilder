@@ -15,9 +15,9 @@ public class ChassisProfile : Profile
             .ForMember(d => d.Options, o => o.MapFrom(s => s.Options.Where(x => x.IsActive)));
 
         CreateMap<ChassisDriveBay, ChassisDriveBayDto>()
-            .ForCtorParam(nameof(ChassisDriveBayDto.FormFactor), o => o.MapFrom(s => s.DriveBayFormFactor))
+            .ForCtorParam(nameof(ChassisDriveBayDto.FormFactors), o => o.MapFrom(s => s.DriveBayFormFactors.ToArray()))
             .ForCtorParam(nameof(ChassisDriveBayDto.SlotCount), o => o.MapFrom(s => s.BayCount))
-            .ForMember(d => d.FormFactor, o => o.MapFrom(s => s.DriveBayFormFactor))
+            .ForMember(d => d.FormFactors, o => o.MapFrom(s => s.DriveBayFormFactors.ToArray()))
             .ForMember(d => d.SlotCount, o => o.MapFrom(s => s.BayCount));
 
         CreateMap<ChassisPcieSlot, ChassisPcieSlotDto>();

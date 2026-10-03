@@ -1,21 +1,17 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { catalogLeadColumns } from "@/components/catalog/CatalogLeadColumns";
 import { beginBulkEdit } from "@/lib/begin-bulk-edit";
-import {
-  enumSelectBulkColumn,
-  idSelectBulkColumn,
-  nameBulkColumn,
-} from "@/components/bulk-edit-columns";
 import { deleteChassisFans } from "@/api/catalog/bulk-delete";
 import {
   chassisFanKeys,
+  createChassisFan,
   isChassisFanFilterActive,
   updateChassisFans,
   type ChassisFan,
   type ChassisFanFilter,
 } from "@/api/catalog/chassis-fans";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   createColumnHelper,
@@ -34,54 +30,36 @@ import { FAN_DIAMETERS_MM, formatFanDiameterMm } from "@/api/enums";
 import { CatalogCompatibleCheckbox } from "@/components/catalog/CatalogFilterFields.tsx";
 import { usePcBuild } from "@/builds/use-pc-build";
 import { useAuth } from "@/auth/use-auth";
+import { unsetCatalogItem } from "@/components/catalog/catalog-create";
+import { CatalogCreateDialog } from "@/components/catalog/CatalogCreateDialog";
 import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importChassisFans } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import {
   CatalogFilterActions,
+  CatalogFilterGroup,
   CatalogNameField,
   CatalogEnumField,
   CatalogIdSelectField,
 } from "@/components/catalog/CatalogFilterFields";
 import { useQueryClient } from "@tanstack/react-query";
-import { formSelectClassName } from "@/components/filters/ListFilters";
-import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
+import { BulkEditDialog } from "@/components/BulkEditDialog";
+import {
+  ChassisFanEditColumns,
+  ChassisFanFields,
+} from "@/pages/catalog/chassis-fans/ChassisFanEditColumns";
 
 const EMPTY_ITEMS: ChassisFan[] = [];
 const columnHelper = createColumnHelper<typeof dataTableFeatures, ChassisFan>();
-
-
-function chassisFanEditColumns(
-  manufacturers: { id: string; name: string }[],
-): BulkEditColumn<ChassisFan>[] {
-  return [
-    nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    enumSelectBulkColumn("Diameter", "diameterMm", FAN_DIAMETERS_MM, {
-      label: formatFanDiameterMm,
-    }),
-    {
-      header: "Pack size",
-      cell: (row, update) => (
-        <select
-          aria-label={`Pack size for ${row.name}`}
-          className={formSelectClassName}
-          value={row.fansCountPerPack}
-          onChange={(event) => update({ ...row, fansCountPerPack: toInteger(event.target.value) ?? 0 })}
-        >
-          {Array.from({ length: 10 }, (_, index) => index + 1).map((size) => (
-            <option key={size} value={size}>
-              {size}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-  ];
-}
-
-
+const emptyFan = unsetCatalogItem<ChassisFan>({
+  id: "",
+  name: "",
+  manufacturerId: "",
+  manufacturerName: "",
+  diameterMm: "",
+  fansCountPerPack: 0,
+});
 
 export function ChassisFanListPage() {
   const queryClient = useQueryClient();
@@ -118,6 +96,7 @@ export function ChassisFanListPage() {
     Boolean(params.filter.chassisId),
   );
   const [editRows, setEditRows] = useState<ChassisFan[] | null>(null);
+  const [creating, setCreating] = useState(false);
   const { isAdmin } = useAuth();
 
   const columns = useMemo(
@@ -140,7 +119,6 @@ export function ChassisFanListPage() {
   function compatibilityIds(checked: boolean) {
     return { chassisId: checked ? currentBuild.chassisId : undefined };
   }
-
 
   function startEditing() {
     beginBulkEdit(items, rowSelection, setEditRows);
@@ -196,7 +174,7 @@ export function ChassisFanListPage() {
       </p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
-          <FieldGroup className="catalog-filter-grid">
+          <CatalogFilterGroup>
             <CatalogCompatibleCheckbox
               checked={showOnlyCompatible}
               onCheckedChange={applyCompatibleFilter}
@@ -243,7 +221,7 @@ export function ChassisFanListPage() {
                 }
               />
             </Field>
-          </FieldGroup>
+          </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
         <div className="catalog-results">
@@ -258,6 +236,7 @@ export function ChassisFanListPage() {
             emptyMessage="No chassis fans in the catalog yet."
             isAdmin={isAdmin}
             newItemLabel="New Chassis Fan"
+            onNewItem={() => setCreating(true)}
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
@@ -268,17 +247,26 @@ export function ChassisFanListPage() {
             onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
-            totalCount={totalCount}
-            countLabel="chassis fans"
             onPageChange={goToPage}
           />
         </div>
       </div>
+      {creating ? (
+        <CatalogCreateDialog
+          title="New chassis fan"
+          item={emptyFan}
+          fields={ChassisFanFields(manufacturers)}
+          queryKey={chassisFanKeys.all}
+          detailPath={(id) => `/catalog/chassis-fans/${id}`}
+          onClose={() => setCreating(false)}
+          create={createChassisFan}
+        />
+      ) : null}
       {editRows ? (
         <BulkEditDialog
           title="Edit Chassis Fans"
           rows={editRows}
-          columns={chassisFanEditColumns(manufacturers)}
+          columns={ChassisFanEditColumns(manufacturers)}
           onClose={() => setEditRows(null)}
           onSave={async (rows) => {
             await updateChassisFans(rows);

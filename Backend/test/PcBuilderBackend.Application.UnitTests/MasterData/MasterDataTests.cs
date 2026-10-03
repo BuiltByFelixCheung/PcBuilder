@@ -57,9 +57,10 @@ public class MasterDataTests : IDisposable
                 _fx.UnitOfWork,
                 _fx.Mapper,
                 _fx.Cache)
-            .Handle(new CreateManufacturerCommand("Intel"), CancellationToken.None);
+            .Handle(new CreateManufacturerCommand("Intel", [ProductType.Cpu, ProductType.Cpu]), CancellationToken.None);
 
         created.Name.Should().Be("Intel");
+        created.ProductTypes.Should().Equal(ProductType.Cpu);
         (await _fx.Context.Manufacturers.CountAsync()).Should().Be(2);
 
         (await new DeleteManufacturerHandler(

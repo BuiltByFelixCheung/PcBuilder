@@ -1,7 +1,11 @@
 import type { ChassisFanFilter, ChassisFanListParams } from "../chassis-fans";
 import { emptyToUndefined, setSearchValue, toInteger } from "../../helper";
 import type { FanDiameterMm } from "../../enums";
-import { catalogPagingFromSearch, setPageSearch } from "./list-search";
+import {
+  catalogPagingFromSearch,
+  setCatalogSortSearch,
+  setPageSearch,
+} from "./list-search";
 
 export const emptyChassisFanFilter: ChassisFanFilter = {
   name: "",
@@ -28,6 +32,7 @@ export function chassisFanListSearchFromParams(
 ): URLSearchParams {
   const search = new URLSearchParams();
   const filter = params.filter;
+  setCatalogSortSearch(search, params);
   setPageSearch(search, params.pageIndex);
   setSearchValue(search, "name", filter.name?.trim());
   setSearchValue(search, "manufacturerId", filter.manufacturerId);

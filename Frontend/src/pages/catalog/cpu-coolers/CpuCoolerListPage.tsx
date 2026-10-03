@@ -1,13 +1,7 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { catalogLeadColumns } from "@/components/catalog/CatalogLeadColumns";
 import { beginBulkEdit } from "@/lib/begin-bulk-edit";
-import {
-  enumSelectBulkColumn,
-  idSelectBulkColumn,
-  nameBulkColumn,
-  optionalNumberColumn,
-} from "@/components/bulk-edit-columns";
 import { deleteCpuCoolers } from "@/api/catalog/bulk-delete";
 import {
   cpuCoolerKeys,
@@ -16,8 +10,8 @@ import {
   type CpuCoolerFilter,
   type CpuCoolerListItem,
 } from "@/api/catalog/cpu-coolers";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { DecimalInput } from "@/components/catalog/DecimalInput";
+import { Field, FieldLabel } from "@/components/ui/field";
 import {
   createColumnHelper,
   type RowSelectionState,
@@ -34,11 +28,10 @@ import {
   cpuCoolerListSearchFromParams,
   emptyCpuCoolerFilter,
 } from "@/api/catalog/params/cpu-cooler-list-params";
-import { toOptionalNumber } from "@/api/helper";
 import {
   CPU_COOLER_TYPES,
-  RADIATOR_LENGTHS,
-  formatRadiatorLength,
+  RADIATOR_CLASSES,
+  formatRadiatorClass,
 } from "@/api/enums";
 import { usePcBuild } from "@/builds/use-pc-build";
 import type { RangeFilter } from "@/api/paging";
@@ -48,15 +41,14 @@ import { importCpuCoolers } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import {
   CatalogFilterActions,
+  CatalogFilterGroup,
   CatalogNameField,
   CatalogCompatibleCheckbox,
   CatalogEnumField,
   CatalogIdSelectField,
 } from "@/components/catalog/CatalogFilterFields";
-import {
-  BulkEditDialog,
-  type BulkEditColumn,
-} from "@/components/BulkEditDialog";
+import { BulkEditDialog } from "@/components/BulkEditDialog";
+import { CpuCoolerEditColumns } from "@/pages/catalog/cpu-coolers/CpuCoolerEditColumns";
 import { useQueryClient } from "@tanstack/react-query";
 
 const EMPTY_ITEMS: CpuCoolerListItem[] = [];
@@ -64,26 +56,6 @@ const columnHelper = createColumnHelper<
   typeof dataTableFeatures,
   CpuCoolerListItem
 >();
-
-
-function cpuCoolerEditColumns(
-  manufacturers: { id: string; name: string }[],
-): BulkEditColumn<CpuCoolerListItem>[] {
-  return [
-    nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    enumSelectBulkColumn("Type", "type", CPU_COOLER_TYPES),
-    optionalNumberColumn("Max TDP", "maxTdp"),
-    optionalNumberColumn("Height (mm)", "coolerHeightMm"),
-    optionalNumberColumn("Max RAM height (mm)", "maxRamHeightMm"),
-    enumSelectBulkColumn("Radiator length", "radiatorLength", RADIATOR_LENGTHS, {
-      empty: "null",
-      emptyLabel: "N/A",
-      label: formatRadiatorLength,
-    }),
-  ];
-}
-
 
 export function CpuCoolerListPage() {
   const queryClient = useQueryClient();
@@ -110,9 +82,19 @@ export function CpuCoolerListPage() {
           (id) => `/catalog/cpu-coolers/${id}`,
         ),
         columnHelper.accessor("type", { header: "Type" }),
-        columnHelper.accessor("maxTdp", {
-          header: "Max TDP",
-          cell: (info) => `${info.getValue()} W`,
+        columnHelper.accessor("coolerLengthMm", {
+          header: "Length",
+          cell: (info) => {
+            const value = info.getValue();
+            return value != null ? `${value} mm` : "—";
+          },
+        }),
+        columnHelper.accessor("coolerWidthMm", {
+          header: "Width",
+          cell: (info) => {
+            const value = info.getValue();
+            return value != null ? `${value} mm` : "—";
+          },
         }),
         columnHelper.accessor("coolerHeightMm", {
           header: "Height",
@@ -128,12 +110,79 @@ export function CpuCoolerListPage() {
             return value != null ? `${value} mm` : "—";
           },
         }),
-        columnHelper.accessor("radiatorLength", {
-          header: "Radiator",
+        columnHelper.accessor("radiatorClass", {
+          header: "Radiator class",
           cell: (info) => {
             const value = info.getValue();
-            return value ? formatRadiatorLength(value) : "—";
+            return value ? formatRadiatorClass(value) : "—";
           },
+        }),
+        columnHelper.accessor("radiatorLengthMm", {
+          header: "Radiator length",
+          cell: (info) => {
+            const value = info.getValue();
+            return value != null ? `${value} mm` : "—";
+          },
+        }),
+        columnHelper.accessor("radiatorWidthMm", {
+          header: "Radiator width",
+          cell: (info) => {
+            const value = info.getValue();
+            return value != null ? `${value} mm` : "—";
+          },
+        }),
+        columnHelper.accessor("radiatorHeightMm", {
+          header: "Radiator height",
+          cell: (info) => {
+            const value = info.getValue();
+            return value != null ? `${value} mm` : "—";
+          },
+        }),
+        columnHelper.accessor("waterBlockLengthMm", {
+          header: "Water block length",
+          cell: (info) => {
+            const value = info.getValue();
+            return value != null ? `${value} mm` : "—";
+          },
+        }),
+        columnHelper.accessor("waterBlockWidthMm", {
+          header: "Water block width",
+          cell: (info) => {
+            const value = info.getValue();
+            return value != null ? `${value} mm` : "—";
+          },
+        }),
+        columnHelper.accessor("waterBlockHeightMm", {
+          header: "Water block height",
+          cell: (info) => {
+            const value = info.getValue();
+            return value != null ? `${value} mm` : "—";
+          },
+        }),
+        columnHelper.accessor("fanThicknessMm", {
+          header: "Fan thickness",
+          cell: (info) => {
+            const value = info.getValue();
+            return value != null ? `${value} mm` : "—";
+          },
+        }),
+        columnHelper.accessor("fanWidthMm", {
+          header: "Fan width",
+          cell: (info) => {
+            const value = info.getValue();
+            return value != null ? `${value} mm` : "—";
+          },
+        }),
+        columnHelper.accessor("fanHeightMm", {
+          header: "Fan height",
+          cell: (info) => {
+            const value = info.getValue();
+            return value != null ? `${value} mm` : "—";
+          },
+        }),
+        columnHelper.accessor("fanCount", {
+          header: "Fan count",
+          cell: (info) => info.getValue() ?? "—",
         }),
       ]),
     [isAdmin],
@@ -219,7 +268,7 @@ export function CpuCoolerListPage() {
   }
 
   function setRange(
-    key: "maxTdp" | "coolerHeightMm" | "maxRamHeightMm",
+    key: "coolerHeightMm" | "maxRamHeightMm",
     side: "min" | "max",
     value: number | null,
   ) {
@@ -240,7 +289,7 @@ export function CpuCoolerListPage() {
       </p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
-          <FieldGroup className="catalog-filter-grid">
+          <CatalogFilterGroup>
             <CatalogCompatibleCheckbox
               checked={showOnlyCompatible}
               onCheckedChange={applyCompatibleFilter}
@@ -283,79 +332,28 @@ export function CpuCoolerListPage() {
             />
             <CatalogEnumField
               id="cooler-radiator"
-              label="Radiator"
-              value={draft.radiatorLength}
-              options={RADIATOR_LENGTHS}
-              formatOption={formatRadiatorLength}
-              onChange={(radiatorLength) =>
-                setDraft((current) => ({ ...current, radiatorLength }))
+              label="Radiator class"
+              value={draft.radiatorClass}
+              options={RADIATOR_CLASSES}
+              formatOption={formatRadiatorClass}
+              onChange={(radiatorClass) =>
+                setDraft((current) => ({ ...current, radiatorClass }))
               }
             />
             <Field>
-              <FieldLabel htmlFor="cooler-tdp-min">Max TDP (W)</FieldLabel>
-              <div className="flex gap-2">
-                <Input
-                  id="cooler-tdp-min"
-                  type="number"
-                  min={0}
-                  placeholder="Min"
-                  value={draft.maxTdp?.min ?? ""}
-                  onChange={(event) =>
-                    setRange(
-                      "maxTdp",
-                      "min",
-                      toOptionalNumber(event.target.value),
-                    )
-                  }
-                />
-                <Input
-                  id="cooler-tdp-max"
-                  type="number"
-                  min={0}
-                  placeholder="Max"
-                  aria-label="Max TDP max"
-                  value={draft.maxTdp?.max ?? ""}
-                  onChange={(event) =>
-                    setRange(
-                      "maxTdp",
-                      "max",
-                      toOptionalNumber(event.target.value),
-                    )
-                  }
-                />
-              </div>
-            </Field>
-            <Field>
               <FieldLabel htmlFor="cooler-height-min">Height (mm)</FieldLabel>
               <div className="flex gap-2">
-                <Input
+                <DecimalInput
                   id="cooler-height-min"
-                  type="number"
-                  min={0}
                   placeholder="Min"
-                  value={draft.coolerHeightMm?.min ?? ""}
-                  onChange={(event) =>
-                    setRange(
-                      "coolerHeightMm",
-                      "min",
-                      toOptionalNumber(event.target.value),
-                    )
-                  }
+                  value={draft.coolerHeightMm?.min}
+                  onValue={(min) => setRange("coolerHeightMm", "min", min)}
                 />
-                <Input
-                  id="cooler-height-max"
-                  type="number"
-                  min={0}
+                <DecimalInput
+                  label="Height max"
                   placeholder="Max"
-                  aria-label="Height max"
-                  value={draft.coolerHeightMm?.max ?? ""}
-                  onChange={(event) =>
-                    setRange(
-                      "coolerHeightMm",
-                      "max",
-                      toOptionalNumber(event.target.value),
-                    )
-                  }
+                  value={draft.coolerHeightMm?.max}
+                  onValue={(max) => setRange("coolerHeightMm", "max", max)}
                 />
               </div>
             </Field>
@@ -364,38 +362,21 @@ export function CpuCoolerListPage() {
                 Max RAM height (mm)
               </FieldLabel>
               <div className="flex gap-2">
-                <Input
+                <DecimalInput
                   id="cooler-ram-height-min"
-                  type="number"
-                  min={0}
                   placeholder="Min"
-                  value={draft.maxRamHeightMm?.min ?? ""}
-                  onChange={(event) =>
-                    setRange(
-                      "maxRamHeightMm",
-                      "min",
-                      toOptionalNumber(event.target.value),
-                    )
-                  }
+                  value={draft.maxRamHeightMm?.min}
+                  onValue={(min) => setRange("maxRamHeightMm", "min", min)}
                 />
-                <Input
-                  id="cooler-ram-height-max"
-                  type="number"
-                  min={0}
+                <DecimalInput
+                  label="Max RAM height max"
                   placeholder="Max"
-                  aria-label="Max RAM height max"
-                  value={draft.maxRamHeightMm?.max ?? ""}
-                  onChange={(event) =>
-                    setRange(
-                      "maxRamHeightMm",
-                      "max",
-                      toOptionalNumber(event.target.value),
-                    )
-                  }
+                  value={draft.maxRamHeightMm?.max}
+                  onValue={(max) => setRange("maxRamHeightMm", "max", max)}
                 />
               </div>
             </Field>
-          </FieldGroup>
+          </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
         <div className="catalog-results">
@@ -410,6 +391,7 @@ export function CpuCoolerListPage() {
             emptyMessage="No CPU coolers in the catalog yet."
             isAdmin={isAdmin}
             newItemLabel="New CPU Cooler"
+            newItemTo="/catalog/cpu-coolers/new"
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
@@ -420,8 +402,6 @@ export function CpuCoolerListPage() {
             onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
-            totalCount={totalCount}
-            countLabel="CPU coolers"
             onPageChange={goToPage}
           />
         </div>
@@ -430,7 +410,7 @@ export function CpuCoolerListPage() {
         <BulkEditDialog
           title="Edit CPU Coolers"
           rows={editRows}
-          columns={cpuCoolerEditColumns(manufacturers)}
+          columns={CpuCoolerEditColumns(manufacturers)}
           onClose={() => setEditRows(null)}
           onSave={async (rows) => {
             await updateCpuCoolers(rows);

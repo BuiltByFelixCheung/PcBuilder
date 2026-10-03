@@ -28,27 +28,28 @@ public class BulkUpdateChassisDriveBaysHandler(
             return null;
         }
 
-        var existingByKey = entity.DriveBays.ToDictionary(x => x.DriveBayFormFactor);
-        var touchedKeys = new HashSet<DriveBayFormFactor>();
+        var existingByKey = entity.DriveBays.ToDictionary(FormFactorKey);
+        var touchedKeys = new HashSet<string>();
 
         foreach (var bay in request.DriveBays)
         {
-            touchedKeys.Add(bay.FormFactor);
+            var key = FormFactorKey(bay.FormFactors);
+            touchedKeys.Add(key);
 
-            if (existingByKey.TryGetValue(bay.FormFactor, out var existing))
+            if (existingByKey.TryGetValue(key, out var existing))
             {
-                existing.UpdateSpecs(request.ChassisId, bay.FormFactor, bay.SlotCount);
+                existing.UpdateSpecs(request.ChassisId, bay.FormFactors, bay.SlotCount);
             }
             else
             {
                 entity.AddDriveBay(new ChassisDriveBay(
                     request.ChassisId,
-                    bay.FormFactor,
+                    bay.FormFactors,
                     bay.SlotCount));
             }
         }
 
-        foreach (var existing in existingByKey.Values.Where(x => !touchedKeys.Contains(x.DriveBayFormFactor)))
+        foreach (var existing in existingByKey.Values.Where(x => !touchedKeys.Contains(FormFactorKey(x))))
         {
             entity.RemoveDriveBay(existing);
             chassis.DeleteDriveBay(existing);
@@ -62,4 +63,10 @@ public class BulkUpdateChassisDriveBaysHandler(
             .Where(x => x.IsActive)
             .Select(mapper.Map<ChassisDriveBayDto>)];
     }
+
+    private static string FormFactorKey(ChassisDriveBay bay) =>
+        string.Join(',', bay.DriveBayFormFactors);
+
+    private static string FormFactorKey(IEnumerable<DriveBayFormFactor> formFactors) =>
+        string.Join(',', ChassisDriveBay.NormalizeFormFactors(formFactors));
 }

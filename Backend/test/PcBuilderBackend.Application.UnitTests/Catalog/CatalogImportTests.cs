@@ -122,7 +122,7 @@ public class CatalogImportTests : IDisposable
         MaxCpuCoolerHeightMm = 170,
         MaxGraphicsCardLengthMm = 370,
         MaxPsuLengthMm = 180,
-        DriveBays = [new ChassisDriveBayImportRow { FormFactor = DriveBayFormFactor.Inch35, SlotCount = 2 }],
+        DriveBays = [new ChassisDriveBayImportRow { FormFactors = [DriveBayFormFactor.Inch35], SlotCount = 2 }],
         FanMounts =
         [
             new ChassisFanMountImportRow
@@ -144,7 +144,7 @@ public class CatalogImportTests : IDisposable
         [
             new ChassisRadiatorImportRow
             {
-                Length = RadiatorLength.Mm360,
+                Length = RadiatorClass.Mm360,
                 Location = RadiatorMountLocation.Top,
                 RadiatorCount = 1
             }

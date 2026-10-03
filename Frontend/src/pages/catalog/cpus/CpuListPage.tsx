@@ -1,12 +1,7 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { catalogLeadColumns } from "@/components/catalog/CatalogLeadColumns";
 import { beginBulkEdit } from "@/lib/begin-bulk-edit";
-import {
-  idSelectBulkColumn,
-  integerColumn,
-  nameBulkColumn,
-} from "@/components/bulk-edit-columns";
 import { deleteCpus } from "@/api/catalog/bulk-delete";
 import {
   cpuKeys,
@@ -15,7 +10,6 @@ import {
   type CpuFilter,
   type CpuListItem,
 } from "@/api/catalog/cpus";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   createColumnHelper,
   type RowSelectionState,
@@ -36,66 +30,21 @@ import { importCpus } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import {
   CatalogFilterActions,
+  CatalogFilterGroup,
   CatalogNameField,
   CatalogCompatibleCheckbox,
   CatalogIdSelectField,
   CatalogRangeField,
 } from "@/components/catalog/CatalogFilterFields";
-import {
-  BulkEditDialog,
-  type BulkEditColumn,
-} from "@/components/BulkEditDialog";
+import { BulkEditDialog } from "@/components/BulkEditDialog";
+import { CpuEditColumns } from "@/pages/catalog/cpus/CpuEditColumns";
 import { useQueryClient } from "@tanstack/react-query";
-import { Checkbox } from "@/components/ui/checkbox";
 
 const EMPTY_ITEMS: CpuListItem[] = [];
 const columnHelper = createColumnHelper<
   typeof dataTableFeatures,
   CpuListItem
 >();
-const selectClassName =
-  "h-10 w-full min-w-0 rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
-
-
-function cpuEditColumns(
-  manufacturers: { id: string; name: string }[],
-  series: { id: string; name: string }[],
-  sockets: { id: string; name: string }[],
-): BulkEditColumn<CpuListItem>[] {
-  return [
-    nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    idSelectBulkColumn("Series", "seriesId", series),
-    idSelectBulkColumn("Socket", "socketId", sockets),
-    integerColumn("TDP (W)", "thermalDesignPower", {
-      type: "number",
-      min: 0,
-      label: "TDP",
-    }),
-    integerColumn("Power Consumption (W)", "powerConsumptionWatts", {
-      type: "number",
-      min: 0,
-      label: "Power",
-    }),
-    integerColumn("Max RAM (GB)", "maxMemoryGb", {
-      type: "number",
-      min: 0,
-      label: "Max RAM",
-    }),
-    {
-      header: "Has iGPU",
-      cell: (row, update) => (
-        <Checkbox
-          checked={row.integratedGraphics}
-          onCheckedChange={(checked) =>
-            update({ ...row, integratedGraphics: checked as boolean })
-          }
-        />
-      ),
-    },
-  ];
-}
-
 
 export function CpuListPage() {
   const queryClient = useQueryClient();
@@ -225,7 +174,7 @@ export function CpuListPage() {
 
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
-          <FieldGroup className="catalog-filter-grid">
+          <CatalogFilterGroup>
             <CatalogCompatibleCheckbox
               checked={showOnlyCompatible}
               onCheckedChange={applyCompatibleFilter}
@@ -235,51 +184,33 @@ export function CpuListPage() {
               value={draft.name}
               onChange={(name) => setDraft((current) => ({ ...current, name }))}
             />
-            <Field>
-              <FieldLabel htmlFor="cpu-manufacturer">Manufacturer</FieldLabel>
-              <select
-                id="cpu-manufacturer"
-                className={selectClassName}
-                value={draft.manufacturerId ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    manufacturerId: event.target.value || undefined,
-                    socketId: undefined,
-                    seriesId: undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {manufacturers.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="cpu-socket">Socket</FieldLabel>
-              <select
-                id="cpu-socket"
-                className={selectClassName}
-                value={draft.socketId ?? ""}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    socketId: event.target.value || undefined,
-                    seriesId: undefined,
-                  }))
-                }
-              >
-                <option value="">Any</option>
-                {socketOptions.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <CatalogIdSelectField
+              id="cpu-manufacturer"
+              label="Manufacturer"
+              value={draft.manufacturerId}
+              options={manufacturers}
+              onChange={(value) =>
+                setDraft((current) => ({
+                  ...current,
+                  manufacturerId: value || undefined,
+                  socketId: undefined,
+                  seriesId: undefined,
+                }))
+              }
+            />
+            <CatalogIdSelectField
+              id="cpu-socket"
+              label="Socket"
+              value={draft.socketId}
+              options={socketOptions}
+              onChange={(value) =>
+                setDraft((current) => ({
+                  ...current,
+                  socketId: value || undefined,
+                  seriesId: undefined,
+                }))
+              }
+            />
             <CatalogIdSelectField
               id="cpu-series"
               label="Series"
@@ -310,7 +241,7 @@ export function CpuListPage() {
                 setDraft((current) => ({ ...current, powerConsumptionWatts }))
               }
             />
-          </FieldGroup>
+          </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
 
@@ -326,6 +257,7 @@ export function CpuListPage() {
             emptyMessage="No CPUs in the catalog yet."
             isAdmin={isAdmin}
             newItemLabel="New CPU"
+            newItemTo="/catalog/cpus/new"
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
@@ -336,8 +268,6 @@ export function CpuListPage() {
             onEditSelected={startEditing}
             pageIndex={pageIndex}
             pageCount={pageCount}
-            totalCount={totalCount}
-            countLabel="CPUs"
             onPageChange={goToPage}
           />
         </div>
@@ -346,7 +276,7 @@ export function CpuListPage() {
         <BulkEditDialog
           title="Edit CPUs"
           rows={editRows}
-          columns={cpuEditColumns(manufacturers, series, sockets)}
+          columns={CpuEditColumns(manufacturers, series, sockets)}
           onClose={() => setEditRows(null)}
           onSave={async (rows) => {
             await updateCpus(rows);

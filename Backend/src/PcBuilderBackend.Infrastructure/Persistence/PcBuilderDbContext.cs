@@ -43,7 +43,19 @@ public class PcBuilderDbContext(DbContextOptions<PcBuilderDbContext> options)
     public DbSet<PcBuildUser> PcBuildUsers { get; set; } = null!;
     public DbSet<PcBuildPart> PcBuildParts { get; set; } = null!;
 
+    public override int SaveChanges()
+    {
+        PrepareSave();
+        return base.SaveChanges();
+    }
+
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        PrepareSave();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    private void PrepareSave()
     {
         var utcNow = DateTime.UtcNow;
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())
@@ -66,7 +78,7 @@ public class PcBuilderDbContext(DbContextOptions<PcBuilderDbContext> options)
             }
         }
 
-        return base.SaveChangesAsync(cancellationToken);
+        ManufacturerProductTypeGuard.Ensure(this);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

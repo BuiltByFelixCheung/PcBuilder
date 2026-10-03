@@ -94,7 +94,25 @@ public class StorageAndCoolerTests
     [Fact]
     public void Air_cooler_requires_heights_and_checks_cpu_tdp_and_ram_clearance()
     {
-        var cooler = new CpuCooler(ManufacturerId, "NH-D15", 150, CpuCoolerType.Air, 165, 32, null);
+        var cooler = new CpuCooler(
+            ManufacturerId,
+            "NH-D15",
+            CpuCoolerType.Air,
+            165,
+            32,
+            null,
+            coolerLengthMm: 150,
+            coolerWidthMm: 135,
+            fanThicknessMm: 140,
+            fanWidthMm: 150,
+            fanHeightMm: 25,
+            fanCount: 2);
+        cooler.CoolerLengthMm.Should().Be(150);
+        cooler.CoolerWidthMm.Should().Be(135);
+        cooler.FanThicknessMm.Should().Be(140);
+        cooler.FanWidthMm.Should().Be(150);
+        cooler.FanHeightMm.Should().Be(25);
+        cooler.FanCount.Should().Be(2);
         var socketId = Guid.NewGuid();
         cooler.AddCpuCoolerSocket(new CpuCoolerSocket(cooler.Id, socketId));
 
@@ -130,7 +148,7 @@ public class StorageAndCoolerTests
         });
 
         cooler.CheckCompatibility(cpuOk).Status.Should().Be(PartsCompatibility.Compatible);
-        cooler.CheckCompatibility(cpuHot).Reason.Should().Be(CompatibilityReason.ExceedsThermalDesignPower);
+        cooler.CheckCompatibility(cpuHot).Status.Should().Be(PartsCompatibility.Compatible);
         cooler.CheckCompatibility(otherSocket).Reason.Should().Be(CompatibilityReason.MissingCpuCoolerSocket);
 
         var shortRam = new Ram("Low", ManufacturerId, new RamSpecs
@@ -162,13 +180,32 @@ public class StorageAndCoolerTests
     }
 
     [Fact]
-    public void Liquid_cooler_requires_radiator_length()
+    public void Liquid_cooler_requires_radiator_class_and_stores_optional_dimensions()
     {
-        var ok = new CpuCooler(ManufacturerId, "360", 280, CpuCoolerType.Water, null, null, RadiatorLength.Mm360);
+        var ok = new CpuCooler(
+            ManufacturerId,
+            "360",
+            CpuCoolerType.Water,
+            null,
+            null,
+            RadiatorClass.Mm360,
+            394,
+            120,
+            27,
+            waterBlockLengthMm: 78,
+            waterBlockWidthMm: 72,
+            waterBlockHeightMm: 55);
         ok.CoolerHeightMm.Should().BeNull();
+        ok.CoolerLengthMm.Should().BeNull();
+        ok.RadiatorLengthMm.Should().Be(394);
+        ok.RadiatorWidthMm.Should().Be(120);
+        ok.RadiatorHeightMm.Should().Be(27);
+        ok.WaterBlockLengthMm.Should().Be(78);
+        ok.WaterBlockWidthMm.Should().Be(72);
+        ok.WaterBlockHeightMm.Should().Be(55);
 
-        var missing = () => new CpuCooler(ManufacturerId, "360", 280, CpuCoolerType.Water, null, null, null);
-        missing.Should().Throw<ArgumentException>().WithParameterName("radiatorLength");
+        var missing = () => new CpuCooler(ManufacturerId, "360", CpuCoolerType.Water, null, null, null);
+        missing.Should().Throw<ArgumentException>().WithParameterName("radiatorClass");
     }
 
     [Fact]

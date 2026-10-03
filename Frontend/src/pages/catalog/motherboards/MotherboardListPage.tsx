@@ -1,13 +1,7 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { catalogLeadColumns } from "@/components/catalog/CatalogLeadColumns";
 import { beginBulkEdit } from "@/lib/begin-bulk-edit";
-import {
-  enumSelectBulkColumn,
-  idSelectBulkColumn,
-  integerColumn,
-  nameBulkColumn,
-} from "@/components/bulk-edit-columns";
 import { deleteMotherboards } from "@/api/catalog/bulk-delete";
 import {
   motherboardKeys,
@@ -16,7 +10,7 @@ import {
   type MotherboardFilter,
   type MotherboardListItem,
 } from "@/api/catalog/motherboards";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   createColumnHelper,
@@ -45,16 +39,16 @@ import { importMotherboards } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import {
   CatalogFilterActions,
+  CatalogFilterGroup,
   CatalogNameField,
   CatalogCompatibleCheckbox,
   CatalogEnumField,
   CatalogIdSelectField,
   CatalogRangeField,
 } from "@/components/catalog/CatalogFilterFields";
-import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
+import { BulkEditDialog } from "@/components/BulkEditDialog";
+import { MotherboardEditColumns } from "@/pages/catalog/motherboards/MotherboardEditColumns";
 import { useQueryClient } from "@tanstack/react-query";
-import { Checkbox } from "@/components/ui/checkbox";
-
 const EMPTY_ITEMS: MotherboardListItem[] = [];
 const columnHelper = createColumnHelper<
   typeof dataTableFeatures,
@@ -68,66 +62,6 @@ function optionalBooleanValue(value: boolean | undefined): string {
   if (value === false) return "false";
   return "";
 }
-
-
-function motherboardEditColumns(
-  manufacturers: { id: string; name: string }[],
-  sockets: { id: string; name: string }[],
-  chipsets: { id: string; name: string }[],
-): BulkEditColumn<MotherboardListItem>[] {
-  const counted = (
-    header: string,
-    field:
-      | "ramSlots"
-      | "maxMemoryGb"
-      | "maxDimmSizeGb"
-      | "sataPorts"
-      | "fanConnectors"
-      | "epsConnectors"
-      | "widthMm"
-      | "heightMm",
-  ) => integerColumn<MotherboardListItem>(header, field, { type: "number", min: 0 });
-
-  return [
-    nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    idSelectBulkColumn("Socket", "socketId", sockets),
-    idSelectBulkColumn("Chipset", "chipsetId", chipsets),
-    counted("RAM slots", "ramSlots"),
-    counted("Max memory (GB)", "maxMemoryGb"),
-    counted("Max memory per slot (GB)", "maxDimmSizeGb"),
-    counted("SATA ports", "sataPorts"),
-    counted("Fan connectors", "fanConnectors"),
-    counted("EPS connectors", "epsConnectors"),
-    counted("Width (mm)", "widthMm"),
-    counted("Height (mm)", "heightMm"),
-    enumSelectBulkColumn("DDR Generation", "ddrGeneration", DDR_GENERATIONS, {
-      label: (generation) => generation.replace("Ddr", "DDR"),
-    }),
-    enumSelectBulkColumn("RAM form factor", "ramFormFactor", RAM_FORM_FACTORS),
-    enumSelectBulkColumn("Form factor", "formFactor", MB_FORM_FACTORS),
-    {
-      header: "Wi-Fi Enabled?",
-      cell: (row, update) => (
-        <Checkbox
-          checked={row.wifiEnabled}
-          onCheckedChange={(checked) => update({ ...row, wifiEnabled: checked as boolean })}
-        />
-      ),
-    },
-    {
-      header: "Bluetooth Enabled?",
-      cell: (row, update) => (
-        <Checkbox
-          checked={row.bluetoothEnabled}
-          onCheckedChange={(checked) => update({ ...row, bluetoothEnabled: checked as boolean })}
-        />
-      ),
-    },
-  ];
-}
-
-
 
 export function MotherboardListPage() {
   const queryClient = useQueryClient();
@@ -247,7 +181,7 @@ export function MotherboardListPage() {
       </p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
-          <FieldGroup className="catalog-filter-grid">
+          <CatalogFilterGroup>
             <CatalogCompatibleCheckbox
               checked={showOnlyCompatible}
               onCheckedChange={applyCompatibleFilter}
@@ -503,7 +437,7 @@ export function MotherboardListPage() {
                 setDraft((current) => ({ ...current, heightMm }))
               }
             />
-          </FieldGroup>
+          </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
         <div className="catalog-results">
@@ -518,6 +452,7 @@ export function MotherboardListPage() {
             emptyMessage="No motherboards in the catalog yet."
             isAdmin={isAdmin}
             newItemLabel="New Motherboard"
+            newItemTo="/catalog/motherboards/new"
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
@@ -528,8 +463,6 @@ export function MotherboardListPage() {
             onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
-            totalCount={totalCount}
-            countLabel="motherboards"
             onPageChange={goToPage}
           />
         </div>
@@ -538,7 +471,7 @@ export function MotherboardListPage() {
         <BulkEditDialog
           title="Edit Motherboards"
           rows={editRows}
-          columns={motherboardEditColumns(manufacturers, sockets, chipsets)}
+          columns={MotherboardEditColumns(manufacturers, sockets, chipsets)}
           onClose={() => setEditRows(null)}
           onSave={async (rows) => {
             await updateMotherboards(rows);

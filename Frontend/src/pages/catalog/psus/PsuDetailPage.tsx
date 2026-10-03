@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { parseApiError } from "@/api/errors.ts";
 import { PageStatus } from "@/components/PageStatus.tsx";
 import {
@@ -10,14 +12,31 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { usePsu } from "@/hooks/use-psus.ts";
+import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import { AddToBuildButton } from "@/builds";
 import { useAuth } from "@/auth/use-auth";
+import { Button } from "@/components/ui/button";
+import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
+import { ChildCollectionDialog } from "@/components/catalog/ChildCollectionDialog";
+import {
+  psuKeys,
+  psuListItem,
+  updatePsu,
+  updatePsuCables,
+  type PsuCable,
+} from "@/api/catalog/psus";
+import { PsuFields } from "@/pages/catalog/psus/PsuEditColumns";
+import { cableColumns } from "@/pages/catalog/psus/PsuChildColumns";
 
 export function PsuDetailPage() {
   const { psuId } = useParams();
   const query = usePsu(psuId);
   const psu = query.data;
+  const queryClient = useQueryClient();
   const { isAdmin } = useAuth();
+  const [editing, setEditing] = useState(false);
+  const [editingCables, setEditingCables] = useState(false);
+  const manufacturers = useCatalogManufacturers("psu");
 
   if (query.isPending) {
     return <PageStatus>Loading PSU…</PageStatus>;
@@ -43,8 +62,48 @@ export function PsuDetailPage() {
       <p>
         <Link to="/catalog/psus">Back to PSUs</Link>
       </p>
-      <h1>{psu.name}</h1>
-      {!isAdmin && <AddToBuildButton productType="psu" partId={psu.id} />}
+      <div className="catalog-detail-title">
+        <h1>{psu.name}</h1>
+        {!isAdmin && <AddToBuildButton productType="psu" partId={psu.id} />}
+        {isAdmin && (
+          <Button type="button" onClick={() => setEditing(true)}>
+            Edit
+          </Button>
+        )}
+      </div>
+      {editing ? (
+        <CatalogEditDialog
+          title="Edit PSU"
+          item={psuListItem(psu)}
+          fields={PsuFields(manufacturers)}
+          onClose={() => setEditing(false)}
+          onSave={async (item) => {
+            await updatePsu(item);
+            await queryClient.invalidateQueries({
+              queryKey: psuKeys.detail(psu.id),
+            });
+          }}
+        />
+      ) : null}
+      {editingCables ? (
+        <ChildCollectionDialog<PsuCable>
+          title="Edit cables"
+          rows={psu.cables}
+          columns={cableColumns}
+          createRow={() => ({
+            type: "Motherboard24Pin",
+            cablesCount: 1,
+            connectorsCount: 1,
+          })}
+          onClose={() => setEditingCables(false)}
+          onSave={async (rows) => {
+            await updatePsuCables(psu.id, rows);
+            await queryClient.invalidateQueries({
+              queryKey: psuKeys.detail(psu.id),
+            });
+          }}
+        />
+      ) : null}
       <dl className="catalog-details">
         <div>
           <dt>Manufacturer</dt>
@@ -76,7 +135,14 @@ export function PsuDetailPage() {
         </div>
       </dl>
 
-      <h2>Cables</h2>
+      <div className="catalog-detail-subtitle">
+        <h2>Cables</h2>
+        {isAdmin && (
+          <Button type="button" onClick={() => setEditingCables(true)}>
+            Edit cables
+          </Button>
+        )}
+      </div>
       {psu.cables.length === 0 ? (
         <p className="catalog-empty">No cables.</p>
       ) : (

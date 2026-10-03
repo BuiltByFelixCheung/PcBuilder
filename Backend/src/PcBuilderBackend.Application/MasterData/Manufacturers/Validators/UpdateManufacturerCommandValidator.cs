@@ -9,5 +9,6 @@ public class UpdateManufacturerCommandValidator : AbstractValidator<UpdateManufa
     {
         RuleFor(x => x.Id).NotEmpty().WithMessage("Id is required");
         Include(new ManufacturerFieldsValidator<UpdateManufacturerCommand>());
+        RuleForEach(command => command.ProductTypes).IsInEnum();
     }
 }

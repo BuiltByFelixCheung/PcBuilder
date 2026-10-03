@@ -1,12 +1,7 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { catalogLeadColumns } from "@/components/catalog/CatalogLeadColumns";
 import { beginBulkEdit } from "@/lib/begin-bulk-edit";
-import {
-  idSelectBulkColumn,
-  nameBulkColumn,
-  optionalNumberColumn,
-} from "@/components/bulk-edit-columns";
 import { deleteChassis } from "@/api/catalog/bulk-delete";
 import {
   chassisKeys,
@@ -15,8 +10,8 @@ import {
   type ChassisFilter,
   type ChassisListItem,
 } from "@/api/catalog/chassis";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { DecimalInput } from "@/components/catalog/DecimalInput";
+import { Field, FieldLabel } from "@/components/ui/field";
 import {
   createColumnHelper,
   type RowSelectionState,
@@ -30,7 +25,6 @@ import {
   chassisListSearchFromParams,
   emptyChassisFilter,
 } from "@/api/catalog/params/chassis-list-params";
-import { toOptionalNumber } from "@/api/helper";
 import { MB_FORM_FACTORS } from "@/api/enums";
 import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
@@ -38,13 +32,12 @@ import { importChassis } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import {
   CatalogFilterActions,
+  CatalogFilterGroup,
   CatalogNameField,
   CatalogIdSelectField,
 } from "@/components/catalog/CatalogFilterFields";
-import {
-  BulkEditDialog,
-  type BulkEditColumn,
-} from "@/components/BulkEditDialog";
+import { BulkEditDialog } from "@/components/BulkEditDialog";
+import { ChassisEditColumns } from "@/pages/catalog/chassis/ChassisEditColumns";
 import { useQueryClient } from "@tanstack/react-query";
 
 const EMPTY_ITEMS: ChassisListItem[] = [];
@@ -52,25 +45,6 @@ const columnHelper = createColumnHelper<
   typeof dataTableFeatures,
   ChassisListItem
 >();
-
-
-function chassisEditColumns(
-  manufacturers: { id: string; name: string }[],
-): BulkEditColumn<ChassisListItem>[] {
-  return [
-    nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    optionalNumberColumn("Length (mm)", "lengthMm"),
-    optionalNumberColumn("Width (mm)", "widthMm"),
-    optionalNumberColumn("Height (mm)", "heightMm"),
-    optionalNumberColumn("Motherboard Max Width (mm)", "motherboardMaxWidthMm"),
-    optionalNumberColumn("Motherboard Max Height (mm)", "motherboardMaxHeightMm"),
-    optionalNumberColumn("Max CPU Cooler Height (mm)", "maxCpuCoolerHeightMm"),
-    optionalNumberColumn("Max Graphics Card Length (mm)", "maxGraphicsCardLengthMm"),
-    optionalNumberColumn("Max PSU Length (mm)", "maxPsuLengthMm"),
-  ];
-}
-
 
 export function ChassisListPage() {
   const queryClient = useQueryClient();
@@ -171,7 +145,7 @@ export function ChassisListPage() {
       </p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
-          <FieldGroup className="catalog-filter-grid">
+          <CatalogFilterGroup>
             <CatalogNameField
               id="chassis-name"
               value={draft.name}
@@ -189,36 +163,32 @@ export function ChassisListPage() {
             <Field>
               <FieldLabel htmlFor="chassis-length-min">Length (mm)</FieldLabel>
               <div className="flex gap-2">
-                <Input
+                <DecimalInput
                   id="chassis-length-min"
-                  type="number"
-                  min={0}
+                  label="Length min"
                   placeholder="Min"
-                  aria-label="Length min"
-                  value={draft.lengthMm?.min ?? ""}
-                  onChange={(event) =>
+                  value={draft.lengthMm?.min}
+                  onValue={(min) =>
                     setDraft((current) => ({
                       ...current,
                       lengthMm: {
-                        min: toOptionalNumber(event.target.value),
+                        min: min,
                         max: current.lengthMm?.max ?? null,
                       },
                     }))
                   }
                 />
-                <Input
+                <DecimalInput
                   id="chassis-length-max"
-                  type="number"
-                  min={0}
+                  label="Length max"
                   placeholder="Max"
-                  aria-label="Length max"
-                  value={draft.lengthMm?.max ?? ""}
-                  onChange={(event) =>
+                  value={draft.lengthMm?.max}
+                  onValue={(max) =>
                     setDraft((current) => ({
                       ...current,
                       lengthMm: {
                         min: current.lengthMm?.min ?? null,
-                        max: toOptionalNumber(event.target.value),
+                        max: max,
                       },
                     }))
                   }
@@ -228,36 +198,32 @@ export function ChassisListPage() {
             <Field>
               <FieldLabel htmlFor="chassis-width-min">Width (mm)</FieldLabel>
               <div className="flex gap-2">
-                <Input
+                <DecimalInput
                   id="chassis-width-min"
-                  type="number"
-                  min={0}
+                  label="Width min"
                   placeholder="Min"
-                  aria-label="Width min"
-                  value={draft.widthMm?.min ?? ""}
-                  onChange={(event) =>
+                  value={draft.widthMm?.min}
+                  onValue={(min) =>
                     setDraft((current) => ({
                       ...current,
                       widthMm: {
-                        min: toOptionalNumber(event.target.value),
+                        min: min,
                         max: current.widthMm?.max ?? null,
                       },
                     }))
                   }
                 />
-                <Input
+                <DecimalInput
                   id="chassis-width-max"
-                  type="number"
-                  min={0}
+                  label="Width max"
                   placeholder="Max"
-                  aria-label="Width max"
-                  value={draft.widthMm?.max ?? ""}
-                  onChange={(event) =>
+                  value={draft.widthMm?.max}
+                  onValue={(max) =>
                     setDraft((current) => ({
                       ...current,
                       widthMm: {
                         min: current.widthMm?.min ?? null,
-                        max: toOptionalNumber(event.target.value),
+                        max: max,
                       },
                     }))
                   }
@@ -267,36 +233,32 @@ export function ChassisListPage() {
             <Field>
               <FieldLabel htmlFor="chassis-height-min">Height (mm)</FieldLabel>
               <div className="flex gap-2">
-                <Input
+                <DecimalInput
                   id="chassis-height-min"
-                  type="number"
-                  min={0}
+                  label="Height min"
                   placeholder="Min"
-                  aria-label="Height min"
-                  value={draft.heightMm?.min ?? ""}
-                  onChange={(event) =>
+                  value={draft.heightMm?.min}
+                  onValue={(min) =>
                     setDraft((current) => ({
                       ...current,
                       heightMm: {
-                        min: toOptionalNumber(event.target.value),
+                        min: min,
                         max: current.heightMm?.max ?? null,
                       },
                     }))
                   }
                 />
-                <Input
+                <DecimalInput
                   id="chassis-height-max"
-                  type="number"
-                  min={0}
+                  label="Height max"
                   placeholder="Max"
-                  aria-label="Height max"
-                  value={draft.heightMm?.max ?? ""}
-                  onChange={(event) =>
+                  value={draft.heightMm?.max}
+                  onValue={(max) =>
                     setDraft((current) => ({
                       ...current,
                       heightMm: {
                         min: current.heightMm?.min ?? null,
-                        max: toOptionalNumber(event.target.value),
+                        max: max,
                       },
                     }))
                   }
@@ -308,36 +270,32 @@ export function ChassisListPage() {
                 Motherboard Max Width (mm)
               </FieldLabel>
               <div className="flex gap-2">
-                <Input
+                <DecimalInput
                   id="chassis-motherboard-max-width-min"
-                  type="number"
-                  min={0}
+                  label="Motherboard max width min"
                   placeholder="Min"
-                  aria-label="Motherboard max width min"
-                  value={draft.motherboardMaxWidthMm?.min ?? ""}
-                  onChange={(event) =>
+                  value={draft.motherboardMaxWidthMm?.min}
+                  onValue={(min) =>
                     setDraft((current) => ({
                       ...current,
                       motherboardMaxWidthMm: {
-                        min: toOptionalNumber(event.target.value),
+                        min: min,
                         max: current.motherboardMaxWidthMm?.max ?? null,
                       },
                     }))
                   }
                 />
-                <Input
+                <DecimalInput
                   id="chassis-motherboard-max-width-max"
-                  type="number"
-                  min={0}
+                  label="Motherboard max width max"
                   placeholder="Max"
-                  aria-label="Motherboard max width max"
-                  value={draft.motherboardMaxWidthMm?.max ?? ""}
-                  onChange={(event) =>
+                  value={draft.motherboardMaxWidthMm?.max}
+                  onValue={(max) =>
                     setDraft((current) => ({
                       ...current,
                       motherboardMaxWidthMm: {
                         min: current.motherboardMaxWidthMm?.min ?? null,
-                        max: toOptionalNumber(event.target.value),
+                        max: max,
                       },
                     }))
                   }
@@ -349,36 +307,32 @@ export function ChassisListPage() {
                 Motherboard Max Height (mm)
               </FieldLabel>
               <div className="flex gap-2">
-                <Input
+                <DecimalInput
                   id="chassis-motherboard-max-height-min"
-                  type="number"
-                  min={0}
+                  label="Motherboard max height min"
                   placeholder="Min"
-                  aria-label="Motherboard max height min"
-                  value={draft.motherboardMaxHeightMm?.min ?? ""}
-                  onChange={(event) =>
+                  value={draft.motherboardMaxHeightMm?.min}
+                  onValue={(min) =>
                     setDraft((current) => ({
                       ...current,
                       motherboardMaxHeightMm: {
-                        min: toOptionalNumber(event.target.value),
+                        min: min,
                         max: current.motherboardMaxHeightMm?.max ?? null,
                       },
                     }))
                   }
                 />
-                <Input
+                <DecimalInput
                   id="chassis-motherboard-max-height-max"
-                  type="number"
-                  min={0}
+                  label="Motherboard max height max"
                   placeholder="Max"
-                  aria-label="Motherboard max height max"
-                  value={draft.motherboardMaxHeightMm?.max ?? ""}
-                  onChange={(event) =>
+                  value={draft.motherboardMaxHeightMm?.max}
+                  onValue={(max) =>
                     setDraft((current) => ({
                       ...current,
                       motherboardMaxHeightMm: {
                         min: current.motherboardMaxHeightMm?.min ?? null,
-                        max: toOptionalNumber(event.target.value),
+                        max: max,
                       },
                     }))
                   }
@@ -390,36 +344,32 @@ export function ChassisListPage() {
                 Max CPU Cooler Height (mm)
               </FieldLabel>
               <div className="flex gap-2">
-                <Input
+                <DecimalInput
                   id="chassis-max-cpu-cooler-height-min"
-                  type="number"
-                  min={0}
+                  label="Max CPU cooler height min"
                   placeholder="Min"
-                  aria-label="Max CPU cooler height min"
-                  value={draft.maxCpuCoolerHeightMm?.min ?? ""}
-                  onChange={(event) =>
+                  value={draft.maxCpuCoolerHeightMm?.min}
+                  onValue={(min) =>
                     setDraft((current) => ({
                       ...current,
                       maxCpuCoolerHeightMm: {
-                        min: toOptionalNumber(event.target.value),
+                        min: min,
                         max: current.maxCpuCoolerHeightMm?.max ?? null,
                       },
                     }))
                   }
                 />
-                <Input
+                <DecimalInput
                   id="chassis-max-cpu-cooler-height-max"
-                  type="number"
-                  min={0}
+                  label="Max CPU cooler height max"
                   placeholder="Max"
-                  aria-label="Max CPU cooler height max"
-                  value={draft.maxCpuCoolerHeightMm?.max ?? ""}
-                  onChange={(event) =>
+                  value={draft.maxCpuCoolerHeightMm?.max}
+                  onValue={(max) =>
                     setDraft((current) => ({
                       ...current,
                       maxCpuCoolerHeightMm: {
                         min: current.maxCpuCoolerHeightMm?.min ?? null,
-                        max: toOptionalNumber(event.target.value),
+                        max: max,
                       },
                     }))
                   }
@@ -431,36 +381,32 @@ export function ChassisListPage() {
                 Max Graphics Card Length (mm)
               </FieldLabel>
               <div className="flex gap-2">
-                <Input
+                <DecimalInput
                   id="chassis-max-graphics-card-length-min"
-                  type="number"
-                  min={0}
+                  label="Max graphics card length min"
                   placeholder="Min"
-                  aria-label="Max graphics card length min"
-                  value={draft.maxGraphicsCardLengthMm?.min ?? ""}
-                  onChange={(event) =>
+                  value={draft.maxGraphicsCardLengthMm?.min}
+                  onValue={(min) =>
                     setDraft((current) => ({
                       ...current,
                       maxGraphicsCardLengthMm: {
-                        min: toOptionalNumber(event.target.value),
+                        min: min,
                         max: current.maxGraphicsCardLengthMm?.max ?? null,
                       },
                     }))
                   }
                 />
-                <Input
+                <DecimalInput
                   id="chassis-max-graphics-card-length-max"
-                  type="number"
-                  min={0}
+                  label="Max graphics card length max"
                   placeholder="Max"
-                  aria-label="Max graphics card length max"
-                  value={draft.maxGraphicsCardLengthMm?.max ?? ""}
-                  onChange={(event) =>
+                  value={draft.maxGraphicsCardLengthMm?.max}
+                  onValue={(max) =>
                     setDraft((current) => ({
                       ...current,
                       maxGraphicsCardLengthMm: {
                         min: current.maxGraphicsCardLengthMm?.min ?? null,
-                        max: toOptionalNumber(event.target.value),
+                        max: max,
                       },
                     }))
                   }
@@ -472,36 +418,32 @@ export function ChassisListPage() {
                 Max PSU Length (mm)
               </FieldLabel>
               <div className="flex gap-2">
-                <Input
+                <DecimalInput
                   id="chassis-max-psu-length-min"
-                  type="number"
-                  min={0}
+                  label="Max PSU length min"
                   placeholder="Min"
-                  aria-label="Max PSU length min"
-                  value={draft.maxPsuLengthMm?.min ?? ""}
-                  onChange={(event) =>
+                  value={draft.maxPsuLengthMm?.min}
+                  onValue={(min) =>
                     setDraft((current) => ({
                       ...current,
                       maxPsuLengthMm: {
-                        min: toOptionalNumber(event.target.value),
+                        min: min,
                         max: current.maxPsuLengthMm?.max ?? null,
                       },
                     }))
                   }
                 />
-                <Input
+                <DecimalInput
                   id="chassis-max-psu-length-max"
-                  type="number"
-                  min={0}
+                  label="Max PSU length max"
                   placeholder="Max"
-                  aria-label="Max PSU length max"
-                  value={draft.maxPsuLengthMm?.max ?? ""}
-                  onChange={(event) =>
+                  value={draft.maxPsuLengthMm?.max}
+                  onValue={(max) =>
                     setDraft((current) => ({
                       ...current,
                       maxPsuLengthMm: {
                         min: current.maxPsuLengthMm?.min ?? null,
-                        max: toOptionalNumber(event.target.value),
+                        max: max,
                       },
                     }))
                   }
@@ -538,7 +480,7 @@ export function ChassisListPage() {
                 })}
               </div>
             </Field>
-          </FieldGroup>
+          </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
         <div className="catalog-results">
@@ -553,6 +495,7 @@ export function ChassisListPage() {
             emptyMessage="No chassis in the catalog yet."
             isAdmin={isAdmin}
             newItemLabel="New Chassis"
+            newItemTo="/catalog/chassis/new"
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
@@ -563,8 +506,6 @@ export function ChassisListPage() {
             onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
-            totalCount={totalCount}
-            countLabel="Chassis"
             onPageChange={goToPage}
           />
         </div>
@@ -573,7 +514,7 @@ export function ChassisListPage() {
         <BulkEditDialog
           title="Edit Chassis"
           rows={editRows}
-          columns={chassisEditColumns(manufacturers)}
+          columns={ChassisEditColumns(manufacturers)}
           onClose={() => setEditRows(null)}
           onSave={async (rows) => {
             await updateMultipleChassis(rows);

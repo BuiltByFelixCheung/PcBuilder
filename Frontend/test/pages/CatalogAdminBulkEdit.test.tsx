@@ -302,7 +302,7 @@ async function exerciseAdminList({
 
   const savedRow = await screen.findByRole("row", { name: new RegExp(linkName) });
   const checkbox = within(savedRow).getByRole("checkbox");
-  if (!(checkbox as HTMLInputElement).checked) {
+  if (checkbox.getAttribute("aria-checked") !== "true") {
     await user.click(checkbox);
   }
   await user.click(screen.getByRole("button", { name: "Delete Selected" }));
@@ -641,7 +641,6 @@ describe("catalog admin bulk actions", () => {
         name: "NH-D15",
         manufacturerId: "maker",
         manufacturerName: "Maker",
-        maxTdp: 220,
         type: "Air",
         coolerHeightMm: 165,
         sockets: [{ socketId: "am5", socketName: "AM5" }],

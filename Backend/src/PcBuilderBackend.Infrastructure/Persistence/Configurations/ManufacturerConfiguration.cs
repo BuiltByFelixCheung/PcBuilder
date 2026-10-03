@@ -14,6 +14,11 @@ internal sealed class ManufacturerConfiguration : IEntityTypeConfiguration<Manuf
             .IsRequired()
             .HasMaxLength(200);
 
+        builder.PrimitiveCollection(manufacturer => manufacturer.ProductTypes)
+            .HasColumnType("product_type[]")
+            .IsRequired()
+            .HasDefaultValueSql("'{}'");
+
         builder.HasIndex(manufacturer => manufacturer.Name)
             .IsUnique();
     }

@@ -56,6 +56,39 @@ export type ProductType =
   | "wirednetworkadapter"
   | "wirelessnetworkadapter";
 
+export const MANUFACTURER_PRODUCT_TYPES = [
+  { value: "Chassis", label: "Chassis" },
+  { value: "ChassisFan", label: "Chassis Fans" },
+  { value: "Chipset", label: "Chipsets" },
+  { value: "Cpu", label: "CPUs" },
+  { value: "CpuCooler", label: "CPU Coolers" },
+  { value: "CpuSeries", label: "CPU Series" },
+  { value: "Gpu", label: "GPUs" },
+  { value: "GpuSeries", label: "GPU Series" },
+  { value: "GraphicsCard", label: "Graphics Cards" },
+  { value: "Motherboard", label: "Motherboards" },
+  { value: "Psu", label: "PSUs" },
+  { value: "Ram", label: "RAM" },
+  { value: "Socket", label: "Sockets" },
+  { value: "StorageDrive", label: "Storage" },
+  { value: "WiredNetworkAdapter", label: "Wired Network Adapters" },
+  { value: "WirelessNetworkAdapter", label: "Wireless Network Adapters" },
+] as const;
+
+export type ManufacturerProductType =
+  (typeof MANUFACTURER_PRODUCT_TYPES)[number]["value"];
+
+export type Manufacturer = NamedMasterData & {
+  productTypes?: ManufacturerProductType[];
+};
+
+export function manufacturerProductTypeLabel(value: string) {
+  return (
+    MANUFACTURER_PRODUCT_TYPES.find((type) => type.value === value)?.label ??
+    value
+  );
+}
+
 export const masterDataKeys = {
   manufacturers: ["master-data", "manufacturers"] as const,
   manufacturersByProductType: (productType: ProductType) =>
@@ -69,7 +102,7 @@ export const masterDataKeys = {
 
 export function listManufacturers() {
   return api
-    .get<NamedMasterData[]>("/master-data/manufacturer")
+    .get<Manufacturer[]>("/master-data/manufacturer")
     .then((response) => response.data);
 }
 
@@ -182,11 +215,12 @@ export function updateGpuSeries(gpuSeriesId: string, body: GpuSeriesWrite) {
 
 export type ManufacturerWrite = {
   name: string;
+  productTypes: ManufacturerProductType[];
 };
 
 export function createManufacturer(body: ManufacturerWrite) {
   return api
-    .post<NamedMasterData>("/master-data/manufacturer", body)
+    .post<Manufacturer>("/master-data/manufacturer", body)
     .then((response) => response.data);
 }
 
@@ -195,8 +229,8 @@ export function updateManufacturer(
   body: ManufacturerWrite,
 ) {
   return api
-    .put<NamedMasterData>("/master-data/manufacturer", {
-      manufacturerId,
+    .put<Manufacturer>("/master-data/manufacturer", {
+      id: manufacturerId,
       ...body,
     })
     .then((response) => response.data);
@@ -259,9 +293,9 @@ export function updateChipsets(chipsets: ChipsetOption[]) {
     .then((response) => response.data);
 }
 
-export function updateManufacturers(manufacturers: NamedMasterData[]) {
+export function updateManufacturers(manufacturers: Manufacturer[]) {
   return api
-    .put<NamedMasterData[]>("/master-data/manufacturer/bulk", { manufacturers })
+    .put<Manufacturer[]>("/master-data/manufacturer/bulk", { manufacturers })
     .then((response) => response.data);
 }
 

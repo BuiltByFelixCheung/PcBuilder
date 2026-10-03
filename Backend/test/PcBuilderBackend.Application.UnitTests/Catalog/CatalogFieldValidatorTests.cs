@@ -90,10 +90,10 @@ public class CatalogFieldValidatorTests : IDisposable
 
         var air = Cooler(CpuCoolerType.Air, sockets, height: 158, ramHeight: 32);
         (await validator.ValidateAsync(air)).IsValid.Should().BeTrue();
-        (await validator.ValidateAsync(air with { RadiatorLength = RadiatorLength.Mm240 }))
+        (await validator.ValidateAsync(air with { RadiatorClass = RadiatorClass.Mm240 }))
             .IsValid.Should().BeFalse();
 
-        var water = Cooler(CpuCoolerType.Water, sockets, radiator: RadiatorLength.Mm240);
+        var water = Cooler(CpuCoolerType.Water, sockets, radiator: RadiatorClass.Mm240);
         (await validator.ValidateAsync(water)).IsValid.Should().BeTrue();
         (await validator.ValidateAsync(water with { CoolerHeightMm = 40, MaxRamHeightMm = 32 }))
             .IsValid.Should().BeFalse();
@@ -123,7 +123,7 @@ public class CatalogFieldValidatorTests : IDisposable
         var unique = Chassis() with
         {
             PcieSlots = [new ChassisPcieSlotDto(false, 3, PcieOrientation.Horizontal)],
-            Radiators = [new ChassisRadiatorDto { Length = RadiatorLength.Mm360, Location = RadiatorMountLocation.Top, RadiatorCount = 1 }]
+            Radiators = [new ChassisRadiatorDto { Length = RadiatorClass.Mm360, Location = RadiatorMountLocation.Top, RadiatorCount = 1 }]
         };
         (await validator.ValidateAsync(unique)).IsValid.Should().BeTrue();
 
@@ -141,8 +141,8 @@ public class CatalogFieldValidatorTests : IDisposable
         {
             Radiators =
             [
-                new ChassisRadiatorDto { Length = RadiatorLength.Mm360, Location = RadiatorMountLocation.Top, RadiatorCount = 1 },
-                new ChassisRadiatorDto { Length = RadiatorLength.Mm360, Location = RadiatorMountLocation.Top, RadiatorCount = 2 }
+                new ChassisRadiatorDto { Length = RadiatorClass.Mm360, Location = RadiatorMountLocation.Top, RadiatorCount = 1 },
+                new ChassisRadiatorDto { Length = RadiatorClass.Mm360, Location = RadiatorMountLocation.Top, RadiatorCount = 2 }
             ]
         };
         (await validator.ValidateAsync(duplicateRadiator)).IsValid.Should().BeFalse();
@@ -223,16 +223,15 @@ public class CatalogFieldValidatorTests : IDisposable
         List<CpuCoolerSocketDto> sockets,
         decimal? height = null,
         decimal? ramHeight = null,
-        RadiatorLength? radiator = null) =>
+        RadiatorClass? radiator = null) =>
         new()
         {
             Name = "Cooler",
             ManufacturerId = _fx.Manufacturer.Id,
-            MaxTdp = 250,
             Type = type,
             CoolerHeightMm = height,
             MaxRamHeightMm = ramHeight,
-            RadiatorLength = radiator,
+            RadiatorClass = radiator,
             Sockets = sockets
         };
 

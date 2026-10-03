@@ -51,7 +51,7 @@ public class Chassis : ProductEntity
 
     public void AddDriveBay(ChassisDriveBay driveBay)
     {
-        if (_driveBays.Any(x => x.DriveBayFormFactor == driveBay.DriveBayFormFactor))
+        if (_driveBays.Any(x => x.HasSameFormFactors(driveBay)))
             throw new ArgumentException("Chassis Drive Bay already exists.");
 
         _driveBays.Add(driveBay);
@@ -59,7 +59,7 @@ public class Chassis : ProductEntity
 
     public void RemoveDriveBay(ChassisDriveBay driveBay)
     {
-        if (_driveBays.All(x => x.DriveBayFormFactor != driveBay.DriveBayFormFactor))
+        if (_driveBays.All(x => !x.HasSameFormFactors(driveBay)))
             throw new ArgumentException("Chassis Drive Bay does not exist.");
 
         _driveBays.Remove(driveBay);
@@ -179,7 +179,7 @@ public class Chassis : ProductEntity
         return cpuCooler.Type switch
         {
             CpuCoolerType.Air => cpuCooler.CoolerHeightMm <= MaxCpuCoolerHeightMm,
-            CpuCoolerType.Water => _radiators.Any(x => x.Length == cpuCooler.RadiatorLength),
+            CpuCoolerType.Water => _radiators.Any(x => x.Length == cpuCooler.RadiatorClass),
             _ => throw new ArgumentOutOfRangeException(nameof(cpuCooler), cpuCooler.Type, $"Unsupported cooler type '{cpuCooler.Type}'.")
         };
     }
@@ -200,7 +200,7 @@ public class Chassis : ProductEntity
         if (remaining.Count == 0)
             return true;
 
-        return CanAssignFanMounts(FanMounts.ToList(), 0, remaining);
+        return CanAssignFanMounts([.. FanMounts], 0, remaining);
     }
 
     public bool CheckFanCompatibility(ChassisFan fan)
@@ -211,38 +211,44 @@ public class Chassis : ProductEntity
 
     /// <param name="drives">
     /// Selected drives (one entry per unit; expand quantity by repeating the product).
-    /// M.2 drives are ignored (motherboard-mounted). 2.5" and 3.5" drives are checked against drive bays.
+    /// M.2 drives are ignored (motherboard-mounted). 2.5" and 3.5" drives share a bay that lists both sizes.
     /// </param>
     public bool CheckStorageDriveCompatibility(IEnumerable<StorageDrive> drives)
     {
         ArgumentNullException.ThrowIfNull(drives);
 
-        var requiredByBay = drives
+        var required = drives
             .Select(drive => TryMapToDriveBay(drive.FormFactor))
             .Where(bay => bay.HasValue)
-            .GroupBy(bay => bay!.Value)
-            .ToDictionary(group => group.Key, group => group.Count());
+            .Select(bay => bay!.Value)
+            .ToList();
 
-        if (requiredByBay.Count == 0)
+        if (required.Count == 0)
             return true;
 
-        foreach (var (bayFormFactor, needed) in requiredByBay)
-        {
-            var available = DriveBays
-                .Where(bay => bay.DriveBayFormFactor == bayFormFactor)
-                .Sum(bay => bay.BayCount);
+        var need25 = required.Count(size => size == DriveBayFormFactor.Inch25);
+        var need35 = required.Count(size => size == DriveBayFormFactor.Inch35);
+        var only25 = DriveBaySlots(accepts25: true, accepts35: false);
+        var only35 = DriveBaySlots(accepts25: false, accepts35: true);
+        var shared = DriveBaySlots(accepts25: true, accepts35: true);
 
-            if (needed > available)
-                return false;
-        }
-
-        return true;
+        return need25 <= only25 + shared
+            && need35 <= only35 + shared
+            && need25 + need35 <= only25 + only35 + shared;
     }
 
     public bool CheckStorageDriveCompatibility(StorageDrive drive)
     {
         ArgumentNullException.ThrowIfNull(drive);
         return CheckStorageDriveCompatibility([drive]);
+    }
+
+    private int DriveBaySlots(bool accepts25, bool accepts35)
+    {
+        return DriveBays
+            .Where(bay => bay.DriveBayFormFactors.Contains(DriveBayFormFactor.Inch25) == accepts25
+                && bay.DriveBayFormFactors.Contains(DriveBayFormFactor.Inch35) == accepts35)
+            .Sum(bay => bay.BayCount);
     }
 
     private static DriveBayFormFactor? TryMapToDriveBay(StorageFormFactor formFactor) => formFactor switch

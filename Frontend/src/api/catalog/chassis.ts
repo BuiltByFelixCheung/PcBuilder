@@ -1,5 +1,6 @@
 import { api } from "../client";
 import {
+  catalogApiSortField,
   hasCompleteRange,
   type PagedRequest,
   type PagedResult,
@@ -13,7 +14,7 @@ import type {
   PcieSlotOrientation,
   RadiatorMountLocation,
   PsuFormFactor,
-  RadiatorLength,
+  RadiatorClass,
 } from "../enums";
 
 export type ChassisFilter = {
@@ -70,7 +71,7 @@ export type ChassisFanMountOption = {
 };
 
 export type ChassisDriveBay = {
-  formFactor: DriveBayFormFactor;
+  formFactors: DriveBayFormFactor[];
   slotCount: number;
 };
 
@@ -81,7 +82,7 @@ export type ChassisPcieSlot = {
 };
 
 export type ChassisRadiator = {
-  length: RadiatorLength;
+  length: RadiatorClass;
   location: RadiatorMountLocation;
   radiatorCount: number;
 };
@@ -115,7 +116,7 @@ export function listChassis(params: ChassisListParams) {
   const paging = {
     pageIndex: params.pageIndex,
     pageSize: params.pageSize,
-    sortBy: params.sortBy ?? "name",
+    sortBy: catalogApiSortField(params.sortBy),
     sortDirection: params.sortDirection ?? "asc",
   };
 
@@ -165,6 +166,96 @@ function toChassisFilterBody(filter: ChassisFilter): ChassisFilter {
   };
 }
 
+const chassisChildKeys = [
+  "fanMounts",
+  "driveBays",
+  "pcieSlots",
+  "radiators",
+  "psuFormFactors",
+  "mbFormFactors",
+] as const satisfies readonly (keyof ChassisDetail)[];
+
+export function chassisListItem(detail: ChassisDetail): ChassisListItem {
+  const item = { ...detail };
+  for (const key of chassisChildKeys) delete item[key];
+  return item;
+}
+
+export function updateChassis(item: ChassisListItem) {
+  return api
+    .put<ChassisDetail>("/catalog/chassis", item)
+    .then((response) => response.data);
+}
+
 export function updateMultipleChassis(chassis: ChassisListItem[]) {
   return api.put("/catalog/chassis/bulk", { items: chassis });
+}
+
+export function updateChassisDriveBays(
+  id: string,
+  driveBays: ChassisDriveBay[],
+) {
+  return api
+    .put<ChassisDriveBay[]>(`/catalog/chassis/${id}/drive-bay`, driveBays)
+    .then((response) => response.data);
+}
+
+export function updateChassisRadiators(
+  id: string,
+  radiators: ChassisRadiator[],
+) {
+  return api
+    .put<ChassisRadiator[]>(`/catalog/chassis/${id}/radiator`, radiators)
+    .then((response) => response.data);
+}
+
+export function updateChassisFanMounts(
+  id: string,
+  fanMounts: ChassisFanMount[],
+) {
+  return api
+    .put<ChassisFanMount[]>(`/catalog/chassis/${id}/fan-mount`, fanMounts)
+    .then((response) => response.data);
+}
+
+export function updateChassisPcieSlots(id: string, pcieSlots: ChassisPcieSlot[]) {
+  return api
+    .put<ChassisPcieSlot[]>(`/catalog/chassis/${id}/pcie-slot`, pcieSlots)
+    .then((response) => response.data);
+}
+
+export function updateChassisMbFormFactors(
+  id: string,
+  mbFormFactors: MbFormFactor[],
+) {
+  return api
+    .put<MbFormFactor[]>(`/catalog/chassis/${id}/mb-form-factor`, mbFormFactors)
+    .then((response) => response.data);
+}
+
+export function updateChassisPsuFormFactors(
+  id: string,
+  psuFormFactors: PsuFormFactor[],
+) {
+  return api
+    .put<PsuFormFactor[]>(
+      `/catalog/chassis/${id}/psu-form-factor`,
+      psuFormFactors,
+    )
+    .then((response) => response.data);
+}
+
+export function createChassis(
+  chassis: ChassisListItem & {
+    fanMounts: ChassisFanMount[];
+    driveBays: ChassisDriveBay[];
+    pcieSlots: ChassisPcieSlot[];
+    radiators: ChassisRadiator[];
+    psuFormFactors: PsuFormFactor[];
+    mbFormFactors: MbFormFactor[];
+  },
+) {
+  return api
+    .post<{ id: string }>("/catalog/chassis", chassis)
+    .then((response) => response.data);
 }

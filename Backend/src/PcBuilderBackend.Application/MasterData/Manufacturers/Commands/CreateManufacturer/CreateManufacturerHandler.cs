@@ -20,6 +20,7 @@ public class CreateManufacturerHandler(
     public async Task<ManufacturerDto> Handle(CreateManufacturerCommand request, CancellationToken cancellationToken)
     {
         var entity = new Manufacturer(request.Name);
+        entity.SetProductTypes(request.ProductTypes ?? []);
         manufacturers.Add(entity);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         EntityLog.Created(logger, EntityLog.Manufacturer, entity.Id);

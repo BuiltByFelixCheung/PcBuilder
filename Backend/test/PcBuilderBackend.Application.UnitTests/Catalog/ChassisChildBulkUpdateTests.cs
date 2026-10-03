@@ -58,16 +58,16 @@ public class ChassisChildBulkUpdateTests : IDisposable
         var chassis = SeedChassis();
 
         var result = await DriveBays().Handle(
-            new BulkUpdateChassisDriveBaysCommand(chassis.Id,
-            [
-                new ChassisDriveBayDto(DriveBayFormFactor.Inch35, 4),
-                new ChassisDriveBayDto(DriveBayFormFactor.Inch25, 2)
-            ]),
+            new BulkUpdateChassisDriveBaysCommand(chassis.Id, new List<ChassisDriveBayDto>
+            {
+                new([DriveBayFormFactor.Inch35], 4),
+                new([DriveBayFormFactor.Inch25], 2)
+            }),
             CancellationToken.None);
 
         result.Should().HaveCount(2);
-        result.Should().Contain(x => x.FormFactor == DriveBayFormFactor.Inch35 && x.SlotCount == 4);
-        result.Should().Contain(x => x.FormFactor == DriveBayFormFactor.Inch25);
+        result.Should().Contain(x => x.SlotCount == 4 && x.FormFactors.Single() == DriveBayFormFactor.Inch35);
+        result.Should().Contain(x => x.FormFactors.Single() == DriveBayFormFactor.Inch25);
     }
 
     [Fact]
@@ -117,13 +117,13 @@ public class ChassisChildBulkUpdateTests : IDisposable
                 [
                     new ChassisRadiatorDto
                     {
-                        Length = RadiatorLength.Mm360,
+                        Length = RadiatorClass.Mm360,
                         Location = RadiatorMountLocation.Top,
                         RadiatorCount = 2
                     },
                     new ChassisRadiatorDto
                     {
-                        Length = RadiatorLength.Mm240,
+                        Length = RadiatorClass.Mm240,
                         Location = RadiatorMountLocation.Front,
                         RadiatorCount = 1
                     }
@@ -178,12 +178,12 @@ public class ChassisChildBulkUpdateTests : IDisposable
                 MaxGraphicsCardLengthMm = 370,
                 MaxPsuLengthMm = 180
             });
-        chassis.AddDriveBay(new ChassisDriveBay(chassis.Id, DriveBayFormFactor.Inch35, 2));
+        chassis.AddDriveBay(new ChassisDriveBay(chassis.Id, [DriveBayFormFactor.Inch35], 2));
         var mount = new ChassisFanMount(chassis.Id, FanMountLocation.Front, false);
         mount.AddOption(new ChassisFanMountOption(mount.Id, FanDiameterMm.Mm120, 3));
         chassis.AddFanMount(mount);
         chassis.AddPcieSlot(new ChassisPcieSlot(chassis.Id, false, 7, PcieOrientation.Horizontal));
-        chassis.AddRadiator(new ChassisRadiator(chassis.Id, RadiatorLength.Mm360, RadiatorMountLocation.Top, 1));
+        chassis.AddRadiator(new ChassisRadiator(chassis.Id, RadiatorClass.Mm360, RadiatorMountLocation.Top, 1));
         chassis.AddMbFormFactor(new ChassisMbFormFactor(chassis.Id, MbFormFactor.Atx));
         chassis.AddPsuFormFactor(new ChassisPsuFormFactor(chassis.Id, PsuFormFactor.Atx));
         _fx.Context.Chassis.Add(chassis);

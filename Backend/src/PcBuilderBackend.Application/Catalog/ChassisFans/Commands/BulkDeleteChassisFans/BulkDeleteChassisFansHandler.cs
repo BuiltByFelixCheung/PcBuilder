@@ -2,7 +2,6 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.Common.Logging;
-using PcBuilderBackend.Domain.Entities;
 
 namespace PcBuilderBackend.Application.Catalog.ChassisFans.Commands.BulkDeleteChassisFans;
 

@@ -34,6 +34,8 @@ public class BulkUpdateManufacturersHandler(
         {
             var dto = request.Manufacturers.First(dto => dto.Id == entity.Id);
             entity.Rename(dto.Name);
+            if (dto.ProductTypes is not null)
+                entity.SetProductTypes(dto.ProductTypes);
             result.Add(mapper.Map<ManufacturerDto>(entity));
         }
 

@@ -527,6 +527,19 @@ public class ClosedXmlExcelImportService : IExcelImportService
         ];
     }
 
+    private static List<DriveBayFormFactor> ParseDriveBayFormFactors(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return [];
+
+        return
+        [
+            .. value
+                .Split([',', ';', '|'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(Enum.Parse<DriveBayFormFactor>)
+        ];
+    }
+
     private static List<M2FormFactor> ParseM2FormFactors(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -572,7 +585,7 @@ public class ClosedXmlExcelImportService : IExcelImportService
                 .Select(row => new ChassisDriveBayImportRow
                 {
                     ParentRowNumber = (int)row.Cell(1).GetDouble(),
-                    FormFactor = Enum.Parse<DriveBayFormFactor>(row.Cell(2).GetString()),
+                    FormFactors = [.. ParseDriveBayFormFactors(row.Cell(2).GetString())],
                     SlotCount = (int)row.Cell(3).GetDouble()
                 })
         ];
@@ -630,7 +643,7 @@ public class ClosedXmlExcelImportService : IExcelImportService
                 .Select(row => new ChassisRadiatorImportRow
                 {
                     ParentRowNumber = (int)row.Cell(1).GetDouble(),
-                    Length = Enum.Parse<RadiatorLength>(row.Cell(2).GetString()),
+                    Length = Enum.Parse<RadiatorClass>(row.Cell(2).GetString()),
                     Location = Enum.Parse<RadiatorMountLocation>(row.Cell(3).GetString()),
                     RadiatorCount = (int)row.Cell(4).GetDouble()
                 })
@@ -675,11 +688,22 @@ public class ClosedXmlExcelImportService : IExcelImportService
                     ManufacturerId = Guid.TryParse(row.Cell(2).GetString(), out var manufacturerId)
                         ? manufacturerId
                         : Guid.Empty,
-                    MaxTdp = (int)row.Cell(3).GetDouble(),
-                    Type = Enum.Parse<CpuCoolerType>(row.Cell(4).GetString()),
-                    CoolerHeightMm = ParseOptionalDecimal(row.Cell(5)),
-                    MaxRamHeightMm = ParseOptionalDecimal(row.Cell(6)),
-                    RadiatorLength = ParseOptionalEnum<RadiatorLength>(row.Cell(7))
+                    Type = Enum.Parse<CpuCoolerType>(row.Cell(3).GetString()),
+                    CoolerLengthMm = ParseOptionalDecimal(row.Cell(4)),
+                    CoolerWidthMm = ParseOptionalDecimal(row.Cell(5)),
+                    CoolerHeightMm = ParseOptionalDecimal(row.Cell(6)),
+                    MaxRamHeightMm = ParseOptionalDecimal(row.Cell(7)),
+                    RadiatorClass = ParseOptionalEnum<RadiatorClass>(row.Cell(8)),
+                    RadiatorLengthMm = ParseOptionalDecimal(row.Cell(9)),
+                    RadiatorWidthMm = ParseOptionalDecimal(row.Cell(10)),
+                    RadiatorHeightMm = ParseOptionalDecimal(row.Cell(11)),
+                    WaterBlockLengthMm = ParseOptionalDecimal(row.Cell(12)),
+                    WaterBlockWidthMm = ParseOptionalDecimal(row.Cell(13)),
+                    WaterBlockHeightMm = ParseOptionalDecimal(row.Cell(14)),
+                    FanThicknessMm = ParseOptionalDecimal(row.Cell(15)),
+                    FanWidthMm = ParseOptionalDecimal(row.Cell(16)),
+                    FanHeightMm = ParseOptionalDecimal(row.Cell(17)),
+                    FanCount = ParseOptionalInt(row.Cell(18))
                 })
         ];
     }

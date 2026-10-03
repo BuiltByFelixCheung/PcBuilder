@@ -1,5 +1,6 @@
 import { api } from "../client";
 import {
+  catalogApiSortField,
   hasCompleteRange,
   type PagedRequest,
   type PagedResult,
@@ -78,7 +79,7 @@ export function listPsus(params: PsuListParams) {
   const paging = {
     pageIndex: params.pageIndex,
     pageSize: params.pageSize,
-    sortBy: params.sortBy ?? "name",
+    sortBy: catalogApiSortField(params.sortBy),
     sortDirection: params.sortDirection ?? "asc",
   };
 
@@ -119,8 +120,39 @@ function toPsuFilterBody(filter: PsuFilter): PsuFilter {
   };
 }
 
+export function psuListItem(detail: PsuDetail): PsuListItem {
+  return {
+    id: detail.id,
+    name: detail.name,
+    manufacturerId: detail.manufacturerId,
+    manufacturerName: detail.manufacturerName,
+    wattage: detail.wattage,
+    modularity: detail.modularity,
+    formFactor: detail.formFactor,
+    lengthMm: detail.lengthMm,
+    widthMm: detail.widthMm,
+    heightMm: detail.heightMm,
+  };
+}
+
 export function updatePsus(psus: PsuListItem[]) {
   return api
     .put("/catalog/psu/bulk", { psus: psus })
+    .then((response) => response.data);
+}
+
+export function updatePsu(psu: PsuListItem) {
+  return api.put("/catalog/psu", psu).then((response) => response.data);
+}
+
+export function updatePsuCables(psuId: string, cables: PsuCable[]) {
+  return api
+    .put<PsuCable[]>(`/catalog/psu/${psuId}/cable`, cables)
+    .then((response) => response.data);
+}
+
+export function createPsu(psu: PsuListItem & { cables: PsuCable[] }) {
+  return api
+    .post<{ id: string }>("/catalog/psu", psu)
     .then((response) => response.data);
 }

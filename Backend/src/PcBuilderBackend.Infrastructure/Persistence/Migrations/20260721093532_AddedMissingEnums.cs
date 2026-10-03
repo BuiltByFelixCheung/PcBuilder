@@ -189,7 +189,7 @@ namespace PcBuilderBackend.Infrastructure.Persistence.Migrations
                 table: "CpuCoolers",
                 type: "integer",
                 nullable: true,
-                oldClrType: typeof(RadiatorLength),
+                oldClrType: typeof(RadiatorClass),
                 oldType: "radiator_length",
                 oldNullable: true);
 
@@ -206,7 +206,7 @@ namespace PcBuilderBackend.Infrastructure.Persistence.Migrations
                 table: "ChassisRadiators",
                 type: "integer",
                 nullable: false,
-                oldClrType: typeof(RadiatorLength),
+                oldClrType: typeof(RadiatorClass),
                 oldType: "radiator_length");
 
             migrationBuilder.AlterColumn<int>(

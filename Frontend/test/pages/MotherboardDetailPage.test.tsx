@@ -1,8 +1,14 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { MotherboardDetail } from "@/api/catalog/motherboards";
+import type {
+  MotherboardDetail,
+  MotherboardListItem,
+} from "@/api/catalog/motherboards";
 
 const getMotherboardById = vi.fn();
+const updateMotherboard = vi.fn();
+const updateMotherboardPcieSlots = vi.fn();
 
 vi.mock("@/api/catalog/motherboards", async () => {
   const actual = await vi.importActual<
@@ -11,6 +17,9 @@ vi.mock("@/api/catalog/motherboards", async () => {
   return {
     ...actual,
     getMotherboardById: (...args: unknown[]) => getMotherboardById(...args),
+    updateMotherboard: (...args: unknown[]) => updateMotherboard(...args),
+    updateMotherboardPcieSlots: (...args: unknown[]) =>
+      updateMotherboardPcieSlots(...args),
   };
 });
 
@@ -66,7 +75,10 @@ const motherboard: MotherboardDetail = {
   ],
 };
 
-function renderDetail(route = "/catalog/motherboards/mb-1") {
+function renderDetail(
+  route = "/catalog/motherboards/mb-1",
+  options?: { isAdmin?: boolean },
+) {
   return renderWithQuery(
     <Routes>
       <Route
@@ -74,13 +86,15 @@ function renderDetail(route = "/catalog/motherboards/mb-1") {
         element={<MotherboardDetailPage />}
       />
     </Routes>,
-    { route },
+    { route, isAdmin: options?.isAdmin },
   );
 }
 
 describe("MotherboardDetailPage", () => {
   beforeEach(() => {
     getMotherboardById.mockReset();
+    updateMotherboard.mockReset();
+    updateMotherboardPcieSlots.mockReset();
   });
 
   it("renders motherboard details and child collections", async () => {
@@ -143,6 +157,45 @@ describe("MotherboardDetailPage", () => {
     });
     renderDetail();
     expect(await screen.findByText("None")).toBeInTheDocument();
+  });
+
+  it("saves motherboard fields and PCIe slots", async () => {
+    getMotherboardById.mockResolvedValue(motherboard);
+    updateMotherboard.mockResolvedValue(undefined);
+    updateMotherboardPcieSlots.mockResolvedValue([]);
+    const user = userEvent.setup();
+    renderDetail("/catalog/motherboards/mb-1", { isAdmin: true });
+
+    const title = await screen.findByRole("heading", {
+      name: "ROG Strix X870-F",
+    });
+    await user.click(
+      within(title.parentElement!).getByRole("button", { name: "Edit" }),
+    );
+    const name = screen.getByRole("textbox", {
+      name: "Name for ROG Strix X870-F",
+    });
+    await user.clear(name);
+    await user.type(name, "X870-F");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => {
+      expect(updateMotherboard).toHaveBeenCalledTimes(1);
+    });
+    const [saved] = updateMotherboard.mock.calls[0] as [MotherboardListItem];
+    expect(saved.name).toBe("X870-F");
+    expect(saved.manufacturerName).toBe("ASUS");
+    expect(saved.socketName).toBe("AM5");
+    expect(saved.chipsetName).toBe("X870");
+    expect(saved).not.toHaveProperty("pcieSlots");
+    expect(saved).not.toHaveProperty("m2Slots");
+    expect(saved).not.toHaveProperty("usbPorts");
+
+    await user.click(screen.getByRole("button", { name: "Edit PCIe" }));
+    await user.click(screen.getByRole("button", { name: "Remove row 1" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => {
+      expect(updateMotherboardPcieSlots).toHaveBeenCalledWith("mb-1", []);
+    });
   });
 
   it("shows not found when the motherboard is missing", async () => {

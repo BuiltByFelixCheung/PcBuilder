@@ -1,8 +1,9 @@
 import type { CpuCoolerFilter, CpuCoolerListParams } from "../cpu-coolers";
 import { emptyToUndefined, parseRange, setSearchValue } from "../../helper";
-import type { CpuCoolerType, RadiatorLength } from "../../enums";
+import type { CpuCoolerType, RadiatorClass } from "../../enums";
 import {
   catalogPagingFromSearch,
+  setCatalogSortSearch,
   setPageSearch,
   setSearchRange,
 } from "./list-search";
@@ -20,7 +21,6 @@ export function cpuCoolerListParamsFromSearch(
       name: search.get("name") ?? "",
       manufacturerId: emptyToUndefined(search.get("manufacturerId")),
       type: emptyToUndefined(search.get("type")) as CpuCoolerType | undefined,
-      maxTdp: parseRange(search.get("maxTdpMin"), search.get("maxTdpMax")),
       coolerHeightMm: parseRange(
         search.get("coolerHeightMmMin"),
         search.get("coolerHeightMmMax"),
@@ -29,8 +29,8 @@ export function cpuCoolerListParamsFromSearch(
         search.get("maxRamHeightMmMin"),
         search.get("maxRamHeightMmMax"),
       ),
-      radiatorLength: emptyToUndefined(search.get("radiatorLength")) as
-        RadiatorLength | undefined,
+      radiatorClass: emptyToUndefined(search.get("radiatorClass")) as
+        RadiatorClass | undefined,
       socketId: emptyToUndefined(search.get("socketId")),
       cpuId: emptyToUndefined(search.get("cpuId")),
       chassisId: emptyToUndefined(search.get("chassisId")),
@@ -45,11 +45,11 @@ export function cpuCoolerListSearchFromParams(
 ): URLSearchParams {
   const search = new URLSearchParams();
   const filter = params.filter;
+  setCatalogSortSearch(search, params);
   setPageSearch(search, params.pageIndex);
   setSearchValue(search, "name", filter.name?.trim());
   setSearchValue(search, "manufacturerId", filter.manufacturerId);
   setSearchValue(search, "type", filter.type);
-  setSearchRange(search, filter.maxTdp, "maxTdpMin", "maxTdpMax");
   setSearchRange(
     search,
     filter.coolerHeightMm,
@@ -62,7 +62,7 @@ export function cpuCoolerListSearchFromParams(
     "maxRamHeightMmMin",
     "maxRamHeightMmMax",
   );
-  setSearchValue(search, "radiatorLength", filter.radiatorLength);
+  setSearchValue(search, "radiatorClass", filter.radiatorClass);
   setSearchValue(search, "socketId", filter.socketId);
   setSearchValue(search, "cpuId", filter.cpuId);
   setSearchValue(search, "chassisId", filter.chassisId);

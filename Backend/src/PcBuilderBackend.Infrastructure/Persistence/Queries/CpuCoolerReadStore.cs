@@ -88,8 +88,6 @@ public class CpuCoolerReadStore(PcBuilderDbContext db, IMapper mapper) : ICpuCoo
             .WhereIf(!string.IsNullOrWhiteSpace(filter.Name), x => x.Name.Contains(filter.Name!))
             .WhereIf(filter.ManufacturerId.HasValue, x => x.ManufacturerId == filter.ManufacturerId)
             .WhereIf(filter.Type.HasValue, x => x.Type == filter.Type)
-            .WhereIf(filter.MaxTdp?.Min is not null, x => x.MaxTdp >= filter.MaxTdp!.Min)
-            .WhereIf(filter.MaxTdp?.Max is not null, x => x.MaxTdp <= filter.MaxTdp!.Max)
             .WhereIf(filter.CoolerHeightMm?.Min is not null,
                 x => x.CoolerHeightMm >= filter.CoolerHeightMm!.Min)
             .WhereIf(filter.CoolerHeightMm?.Max is not null,
@@ -98,7 +96,7 @@ public class CpuCoolerReadStore(PcBuilderDbContext db, IMapper mapper) : ICpuCoo
                 x => x.MaxRamHeightMm >= filter.MaxRamHeightMm!.Min)
             .WhereIf(filter.MaxRamHeightMm?.Max is not null,
                 x => x.MaxRamHeightMm <= filter.MaxRamHeightMm!.Max)
-            .WhereIf(filter.RadiatorLength.HasValue, x => x.RadiatorLength == filter.RadiatorLength)
+            .WhereIf(filter.RadiatorClass.HasValue, x => x.RadiatorClass == filter.RadiatorClass)
             .WhereIf(filter.SocketId.HasValue,
                 x => x.CpuCoolerSockets.Any(s => s.SocketId == filter.SocketId && s.IsActive));
     }

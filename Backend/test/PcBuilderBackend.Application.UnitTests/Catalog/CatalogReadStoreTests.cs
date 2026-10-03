@@ -45,6 +45,7 @@ public class CatalogReadStoreTests : IDisposable
             NullLoggerFactory.Instance).CreateMapper();
 
         _manufacturer = new Manufacturer("ASUS");
+        _manufacturer.SetProductTypes(Enum.GetValues<ProductType>());
         _db.Manufacturers.Add(_manufacturer);
         _db.SaveChanges();
 
@@ -360,7 +361,7 @@ public class CatalogReadStoreTests : IDisposable
                 }),
                 CancellationToken.None)).Items
             .Should().ContainSingle();
-        (await coolerStore.GetByIdAsync(cooler.Id, CancellationToken.None))!.MaxTdp.Should().Be(220);
+        (await coolerStore.GetByIdAsync(cooler.Id, CancellationToken.None))!.CoolerHeightMm.Should().Be(165);
         (await coolerStore.ListCpuCoolerSockets(cooler.Id, CancellationToken.None)).Should().ContainSingle();
         (await coolerStore.FilterAsync(
                 new PagedRequest<CpuCoolerFilter>(new CpuCoolerFilter { MotherboardId = Guid.NewGuid() }),
@@ -454,12 +455,12 @@ public class CatalogReadStoreTests : IDisposable
                 MaxGraphicsCardLengthMm = 370,
                 MaxPsuLengthMm = 180
             });
-        chassis.AddDriveBay(new ChassisDriveBay(chassis.Id, DriveBayFormFactor.Inch35, 2));
+        chassis.AddDriveBay(new ChassisDriveBay(chassis.Id, [DriveBayFormFactor.Inch35], 2));
         var mount = new ChassisFanMount(chassis.Id, FanMountLocation.Front, false);
         mount.AddOption(new ChassisFanMountOption(mount.Id, FanDiameterMm.Mm120, 3));
         chassis.AddFanMount(mount);
         chassis.AddPcieSlot(new ChassisPcieSlot(chassis.Id, false, 7, PcieOrientation.Horizontal));
-        chassis.AddRadiator(new ChassisRadiator(chassis.Id, RadiatorLength.Mm360, RadiatorMountLocation.Top, 1));
+        chassis.AddRadiator(new ChassisRadiator(chassis.Id, RadiatorClass.Mm360, RadiatorMountLocation.Top, 1));
         foreach (var formFactor in (mbFormFactors.Length > 0 ? mbFormFactors : [MbFormFactor.Atx]).Distinct())
             chassis.AddMbFormFactor(new ChassisMbFormFactor(chassis.Id, formFactor));
         chassis.AddPsuFormFactor(new ChassisPsuFormFactor(chassis.Id, PsuFormFactor.Atx));
@@ -580,7 +581,7 @@ public class CatalogReadStoreTests : IDisposable
 
     private CpuCooler SeedCpuCooler(string name)
     {
-        var cooler = new CpuCooler(_manufacturer.Id, name, 220, CpuCoolerType.Air, 165, 32, null);
+        var cooler = new CpuCooler(_manufacturer.Id, name, CpuCoolerType.Air, 165, 32, null);
         cooler.AddCpuCoolerSocket(new CpuCoolerSocket(cooler.Id, _socket.Id));
         _db.CpuCoolers.Add(cooler);
         _db.SaveChanges();

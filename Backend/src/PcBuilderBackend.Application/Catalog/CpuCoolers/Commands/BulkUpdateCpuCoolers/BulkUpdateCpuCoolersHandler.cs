@@ -1,7 +1,6 @@
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using PcBuilderBackend.Application.Catalog.CpuCoolers.Commands.BulkUpdateCpuCoolerSockets;
 using PcBuilderBackend.Application.Catalog.CpuCoolers.Dto;
 using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.Common.Logging;
@@ -34,11 +33,22 @@ public class BulkUpdateCpuCoolersHandler(
             entity.Rename(dto.Name);
             entity.UpdateManufacturer(dto.ManufacturerId);
             entity.UpdateSpecs(
-                dto.MaxTdp,
                 dto.Type,
                 dto.CoolerHeightMm,
                 dto.MaxRamHeightMm,
-                dto.RadiatorLength);
+                dto.RadiatorClass,
+                dto.RadiatorLengthMm,
+                dto.RadiatorWidthMm,
+                dto.RadiatorHeightMm,
+                dto.CoolerLengthMm,
+                dto.CoolerWidthMm,
+                dto.WaterBlockLengthMm,
+                dto.WaterBlockWidthMm,
+                dto.WaterBlockHeightMm,
+                dto.FanThicknessMm,
+                dto.FanWidthMm,
+                dto.FanHeightMm,
+                dto.FanCount);
 
             result.Add(mapper.Map<CpuCoolerDto>(entity));
         }

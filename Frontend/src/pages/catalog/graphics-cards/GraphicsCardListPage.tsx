@@ -1,23 +1,17 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { catalogLeadColumns } from "@/components/catalog/CatalogLeadColumns";
 import { beginBulkEdit } from "@/lib/begin-bulk-edit";
-import {
-  enumSelectBulkColumn,
-  idSelectBulkColumn,
-  integerColumn,
-  nameBulkColumn,
-} from "@/components/bulk-edit-columns";
 import { deleteGraphicsCards } from "@/api/catalog/bulk-delete";
 import {
+  createGraphicsCard,
   graphicsCardKeys,
   isGraphicsCardFilterActive,
   updateGraphicsCards,
   type GraphicsCardFilter,
   type GraphicsCardListItem,
 } from "@/api/catalog/graphics-cards";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldLabel } from "@/components/ui/field";
 import {
   createColumnHelper,
   type RowSelectionState,
@@ -35,7 +29,6 @@ import { toInteger } from "@/api/helper";
 import {
   PCIE_GENERATIONS,
   PCIE_SLOTS_USED,
-  PSU_CABLE_TYPES,
   VIDEO_MEMORY_GB,
   type PcieGeneration,
 } from "@/api/enums";
@@ -45,60 +38,50 @@ import {
   CatalogRangeField,
 } from "@/components/catalog/CatalogFilterFields.tsx";
 import { usePcBuild } from "@/builds/use-pc-build";
+import { unsetCatalogItem } from "@/components/catalog/catalog-create";
+import { CatalogCreateDialog } from "@/components/catalog/CatalogCreateDialog";
 import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importGraphicsCards } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import {
   CatalogFilterActions,
+  CatalogFilterGroup,
   CatalogNameField,
   CatalogIdSelectField,
 } from "@/components/catalog/CatalogFilterFields";
-import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
+import { BulkEditDialog } from "@/components/BulkEditDialog";
+import {
+  GraphicsCardEditColumns,
+  GraphicsCardFields,
+} from "@/pages/catalog/graphics-cards/GraphicsCardEditColumns";
 import { useQueryClient } from "@tanstack/react-query";
 
 const EMPTY_ITEMS: GraphicsCardListItem[] = [];
+const emptyCard = unsetCatalogItem<GraphicsCardListItem>({
+  id: "",
+  name: "",
+  manufacturerId: "",
+  manufacturerName: "",
+  gpuId: "",
+  gpuName: "",
+  videoMemoryGb: 0,
+  pcieSlotsUsed: 0,
+  pcieGeneration: "",
+  isLowProfile: false,
+  lengthMm: 0,
+  widthMm: 0,
+  heightMm: 0,
+  powerConsumptionWatts: 0,
+  powerConnectorType: "",
+  powerConnectorCount: 0,
+});
 const columnHelper = createColumnHelper<
   typeof dataTableFeatures,
   GraphicsCardListItem
 >();
 const selectClassName =
   "h-10 w-full min-w-0 rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
-
-
-function graphicsCardEditColumns(
-  manufacturers: { id: string; name: string }[],
-  gpus: { id: string; name: string }[],
-): BulkEditColumn<GraphicsCardListItem>[] {
-  const counted = (header: string, field: "videoMemoryGb" | "pcieSlotsUsed" | "lengthMm" | "widthMm" | "heightMm" | "powerConsumptionWatts" | "powerConnectorCount") =>
-    integerColumn<GraphicsCardListItem>(header, field, { type: "number", min: 0 });
-
-  return [
-    nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    idSelectBulkColumn("GPU", "gpuId", gpus),
-    counted("Video Memory", "videoMemoryGb"),
-    counted("Pcie Slots Used", "pcieSlotsUsed"),
-    enumSelectBulkColumn("Pcie Generation", "pcieGeneration", PCIE_GENERATIONS, {
-      label: (generation) => generation.replace("Gen", "PCIe "),
-    }),
-    {
-      header: "Is Low Profile",
-      cell: (row, update) => (
-        <Checkbox
-          checked={row.isLowProfile}
-          onCheckedChange={(checked) => update({ ...row, isLowProfile: checked as boolean })}
-        />
-      ),
-    },
-    counted("Length (mm)", "lengthMm"),
-    counted("Width (mm)", "widthMm"),
-    counted("Height (mm)", "heightMm"),
-    counted("Power Consumption (W)", "powerConsumptionWatts"),
-    enumSelectBulkColumn("Power Connector Type", "powerConnectorType", PSU_CABLE_TYPES),
-    counted("Power Connector Count", "powerConnectorCount"),
-  ];
-}
 
 export function GraphicsCardListPage() {
   const queryClient = useQueryClient();
@@ -118,6 +101,7 @@ export function GraphicsCardListPage() {
   const query = useGraphicsCards(params);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [editRows, setEditRows] = useState<GraphicsCardListItem[] | null>(null);
+  const [creating, setCreating] = useState(false);
   const { isAdmin } = useAuth();
 
   const columns = useMemo(
@@ -197,7 +181,6 @@ export function GraphicsCardListPage() {
     Boolean(params.filter.chassisId || params.filter.motherboardId),
   );
 
-
   function startEditing() {
     beginBulkEdit(items, rowSelection, setEditRows);
   }
@@ -258,7 +241,7 @@ export function GraphicsCardListPage() {
 
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
-          <FieldGroup className="catalog-filter-grid">
+          <CatalogFilterGroup>
             <CatalogCompatibleCheckbox
               checked={showOnlyCompatible}
               onCheckedChange={applyCompatibleFilter}
@@ -446,10 +429,13 @@ export function GraphicsCardListPage() {
               maxAriaLabel="Power consumption max"
               range={draft.powerConsumptionWatts}
               onChange={(powerConsumptionWatts) =>
-                setDraft((current) => ({ ...current, powerConsumptionWatts }))
+                setDraft((current) => ({
+                  ...current,
+                  powerConsumptionWatts,
+                }))
               }
             />
-          </FieldGroup>
+          </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
 
@@ -465,6 +451,7 @@ export function GraphicsCardListPage() {
             emptyMessage="No graphics cards in the catalog yet."
             isAdmin={isAdmin}
             newItemLabel="New Graphics Card"
+            onNewItem={() => setCreating(true)}
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
@@ -475,17 +462,26 @@ export function GraphicsCardListPage() {
             onEditSelected={startEditing}
             pageIndex={pageIndex}
             pageCount={pageCount}
-            totalCount={totalCount}
-            countLabel="CPUs"
             onPageChange={goToPage}
           />
         </div>
       </div>
+      {creating ? (
+        <CatalogCreateDialog
+          title="New graphics card"
+          item={emptyCard}
+          fields={GraphicsCardFields(manufacturers, gpus)}
+          queryKey={graphicsCardKeys.all}
+          detailPath={(id) => `/catalog/graphics-cards/${id}`}
+          onClose={() => setCreating(false)}
+          create={createGraphicsCard}
+        />
+      ) : null}
       {editRows ? (
         <BulkEditDialog
           title="Edit Graphics Cards"
           rows={editRows}
-          columns={graphicsCardEditColumns(manufacturers, gpus)}
+          columns={GraphicsCardEditColumns(manufacturers, gpus)}
           onClose={() => setEditRows(null)}
           onSave={async (rows) => {
             await updateGraphicsCards(rows);

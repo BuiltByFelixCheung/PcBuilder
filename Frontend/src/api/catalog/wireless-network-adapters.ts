@@ -1,5 +1,6 @@
 import { api } from "../client";
 import {
+  catalogApiSortField,
   hasCompleteRange,
   type PagedRequest,
   type PagedResult,
@@ -92,7 +93,7 @@ export function listWirelessNetworkAdapters(
   const paging = {
     pageIndex: params.pageIndex,
     pageSize: params.pageSize,
-    sortBy: params.sortBy ?? "name",
+    sortBy: catalogApiSortField(params.sortBy),
     sortDirection: params.sortDirection ?? "asc",
   };
 
@@ -146,5 +147,17 @@ export function getWirelessNetworkAdapterById(id: string) {
 export function updateWirelessNetworkAdapters(wirelessNetworkAdapters: WirelessNetworkAdapter[]) {
   return api
     .put("/catalog/wireless-network-adapter/bulk", { adapters: wirelessNetworkAdapters })
+    .then((response) => response.data);
+}
+
+export function updateWirelessNetworkAdapter(adapter: WirelessNetworkAdapter) {
+  return api
+    .put("/catalog/wireless-network-adapter", adapter)
+    .then((response) => response.data);
+}
+
+export function createWirelessNetworkAdapter(adapter: WirelessNetworkAdapter) {
+  return api
+    .post<{ id: string }>("/catalog/wireless-network-adapter", adapter)
     .then((response) => response.data);
 }

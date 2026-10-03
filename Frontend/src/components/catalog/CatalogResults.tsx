@@ -1,12 +1,23 @@
+import { useSearchParams } from "react-router-dom";
 import type {
   OnChangeFn,
   RowData,
   RowSelectionState,
+  SortingState,
 } from "@tanstack/react-table";
 import { parseApiError } from "@/api/errors.ts";
 import { PageStatus } from "@/components/PageStatus";
-import { Button } from "@/components/ui/button";
+import { ManagementActions } from "@/components/ManagementActions";
 import { DataTable, type DataTableColumns } from "@/components/ui/data-table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 type CatalogResultsBase<TData extends RowData> = {
   isInitialLoading: boolean;
@@ -26,6 +37,22 @@ function selectionActive(rowSelection: RowSelectionState) {
   return Object.values(rowSelection).some(Boolean);
 }
 
+function pageItems(pageIndex: number, pageCount: number) {
+  const current = pageIndex + 1;
+  if (pageCount <= 7) {
+    return Array.from({ length: pageCount }, (_, index) => index + 1);
+  }
+
+  const pages: Array<number | "ellipsis"> = [1];
+  const start = Math.max(2, current - 1);
+  const end = Math.min(pageCount - 1, current + 1);
+  if (start > 2) pages.push("ellipsis");
+  for (let page = start; page <= end; page += 1) pages.push(page);
+  if (end < pageCount - 1) pages.push("ellipsis");
+  pages.push(pageCount);
+  return pages;
+}
+
 export function CatalogPagedResults<TData extends RowData>({
   isInitialLoading,
   isError,
@@ -37,6 +64,8 @@ export function CatalogPagedResults<TData extends RowData>({
   emptyMessage,
   isAdmin,
   newItemLabel,
+  newItemTo,
+  onNewItem,
   columns,
   rowSelection,
   onRowSelectionChange,
@@ -47,8 +76,6 @@ export function CatalogPagedResults<TData extends RowData>({
   onEditSelected,
   pageIndex,
   pageCount,
-  totalCount,
-  countLabel,
   onPageChange,
 }: Readonly<
   CatalogResultsBase<TData> & {
@@ -59,13 +86,34 @@ export function CatalogPagedResults<TData extends RowData>({
     deleteError?: string | null;
     onImport: () => void;
     newItemLabel: string;
+    newItemTo?: string;
+    onNewItem?: () => void;
     pageIndex: number;
     pageCount: number;
-    totalCount: number;
-    countLabel: string;
     onPageChange: (pageIndex: number) => void;
   }
 >) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sortBy = searchParams.get("sort")?.trim() || "name";
+  const sortDescending = searchParams.get("dir") === "desc";
+  const sorting: SortingState = [{ id: sortBy, desc: sortDescending }];
+
+  function onSortingChange(updater: Parameters<OnChangeFn<SortingState>>[0]) {
+    const next = typeof updater === "function" ? updater(sorting) : updater;
+    const sort = next[0];
+    const updated = new URLSearchParams(searchParams);
+    if (!sort || (sort.id === "name" && !sort.desc)) {
+      updated.delete("sort");
+      updated.delete("dir");
+    } else {
+      updated.set("sort", sort.id);
+      if (sort.desc) updated.set("dir", "desc");
+      else updated.delete("dir");
+    }
+    updated.delete("page");
+    setSearchParams(updated);
+  }
+
   if (isInitialLoading) {
     return <PageStatus>{loadingMessage}</PageStatus>;
   }
@@ -80,27 +128,16 @@ export function CatalogPagedResults<TData extends RowData>({
           {deleteError}
         </p>
       ) : null}
-      <div className="catalog-results-actions">
-        <Button 
-          type="button" 
-          disabled={!hasSelection}
-          onClick={onEditSelected}
-        >
-          Edit Selected
-        </Button>
-        <Button
-          type="button"
-          variant="destructive"
-          disabled={!hasSelection || deleting}
-          onClick={onDeleteSelected}
-        >
-          {deleting ? "Deleting…" : "Delete Selected"}
-        </Button>
-        <Button type="button">{newItemLabel}</Button>
-        <Button type="button" onClick={onImport}>
-          Import
-        </Button>
-      </div>
+      <ManagementActions
+        hasSelection={hasSelection}
+        deleting={deleting}
+        onEditSelected={onEditSelected}
+        onDeleteSelected={onDeleteSelected}
+        onImport={onImport}
+        newItemLabel={newItemLabel}
+        newItemTo={newItemTo}
+        onNewItem={onNewItem}
+      />
     </>
   ) : null;
 
@@ -123,30 +160,40 @@ export function CatalogPagedResults<TData extends RowData>({
         columns={columns}
         rowSelection={rowSelection}
         onRowSelectionChange={onRowSelectionChange}
+        manualSorting
+        sorting={sorting}
+        onSortingChange={onSortingChange}
       />
-      <div className="catalog-pagination">
-        <p>
-          Page {pageIndex + 1} of {pageCount} ({totalCount} {countLabel})
-        </p>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={pageIndex === 0}
-            onClick={() => onPageChange(pageIndex - 1)}
-          >
-            Previous
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={pageIndex + 1 >= pageCount}
-            onClick={() => onPageChange(pageIndex + 1)}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      <Pagination className="mt-4">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              disabled={pageIndex === 0}
+              onClick={() => onPageChange(pageIndex - 1)}
+            />
+          </PaginationItem>
+          {pageItems(pageIndex, pageCount).map((item, index) => (
+            <PaginationItem key={item === "ellipsis" ? `ellipsis-${index}` : item}>
+              {item === "ellipsis" ? (
+                <PaginationEllipsis />
+              ) : (
+                <PaginationLink
+                  isActive={item === pageIndex + 1}
+                  onClick={() => onPageChange(item - 1)}
+                >
+                  {item}
+                </PaginationLink>
+              )}
+            </PaginationItem>
+          ))}
+          <PaginationItem>
+            <PaginationNext
+              disabled={pageIndex + 1 >= pageCount}
+              onClick={() => onPageChange(pageIndex + 1)}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </>
   );
 }

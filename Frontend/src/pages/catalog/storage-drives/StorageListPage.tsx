@@ -1,22 +1,17 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { catalogLeadColumns } from "@/components/catalog/CatalogLeadColumns";
 import { beginBulkEdit } from "@/lib/begin-bulk-edit";
-import {
-  enumSelectBulkColumn,
-  idSelectBulkColumn,
-  integerColumn,
-  nameBulkColumn,
-} from "@/components/bulk-edit-columns";
 import { deleteStorageDrives } from "@/api/catalog/bulk-delete";
 import {
+  createStorageDrive,
   storageDriveKeys,
   isStorageDriveFilterActive,
   type StorageDrive,
   type StorageDriveFilter,
   updateStorageDrives,
 } from "@/api/catalog/storage-drives";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldLabel } from "@/components/ui/field";
 import {
   createColumnHelper,
   type RowSelectionState,
@@ -44,45 +39,46 @@ import {
   CatalogRangeField,
 } from "@/components/catalog/CatalogFilterFields.tsx";
 import { usePcBuild } from "@/builds/use-pc-build";
+import { unsetCatalogItem } from "@/components/catalog/catalog-create";
+import { CatalogCreateDialog } from "@/components/catalog/CatalogCreateDialog";
 import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importStorageDrives } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import {
   CatalogFilterActions,
+  CatalogFilterGroup,
   CatalogNameField,
   CatalogEnumField,
   CatalogIdSelectField,
 } from "@/components/catalog/CatalogFilterFields";
+import { BulkEditDialog } from "@/components/BulkEditDialog";
 import {
-  BulkEditDialog,
-  type BulkEditColumn,
-} from "@/components/BulkEditDialog";
+  StorageEditColumns,
+  StorageFields,
+} from "@/pages/catalog/storage-drives/StorageEditColumns";
 import { useQueryClient } from "@tanstack/react-query";
 
 const EMPTY_ITEMS: StorageDrive[] = [];
+const emptyDrive = unsetCatalogItem<StorageDrive>({
+  id: "",
+  name: "",
+  manufacturerId: "",
+  manufacturerName: "",
+  media: "",
+  interface: "",
+  formFactor: "",
+  capacityGb: 0,
+  pcieGeneration: null,
+  rpm: null,
+  isM2: false,
+  moduleKey: null,
+  m2FormFactor: null,
+});
 const columnHelper = createColumnHelper<
   typeof dataTableFeatures,
   StorageDrive
 >();
-
-
-function storageDriveEditColumns(
-  manufacturers: { id: string; name: string }[],
-): BulkEditColumn<StorageDrive>[] {
-  return [
-    nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    enumSelectBulkColumn("Media", "media", STORAGE_MEDIAS),
-    enumSelectBulkColumn("Interface", "interface", STORAGE_INTERFACES),
-    enumSelectBulkColumn("Form factor", "formFactor", STORAGE_FORM_FACTORS),
-    integerColumn("Capacity (GB)", "capacityGb", { type: "number", min: 0 }),
-    enumSelectBulkColumn("PCIe generation", "pcieGeneration", PCIE_GENERATIONS, {
-      label: (generation) => generation.replace("Gen", "PCIe "),
-    }),
-    integerColumn("RPM", "rpm", { type: "number", fallback: undefined }),
-  ];
-}
 
 export function StorageListPage() {
   const queryClient = useQueryClient();
@@ -96,6 +92,7 @@ export function StorageListPage() {
   const query = useStorageDrives(params);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [editRows, setEditRows] = useState<StorageDrive[] | null>(null);
+  const [creating, setCreating] = useState(false);
   const { isAdmin } = useAuth();
 
   const columns = useMemo(
@@ -204,7 +201,7 @@ export function StorageListPage() {
       </p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
-          <FieldGroup className="catalog-filter-grid">
+          <CatalogFilterGroup>
             <CatalogCompatibleCheckbox
               checked={showOnlyCompatible}
               onCheckedChange={applyCompatibleFilter}
@@ -295,7 +292,7 @@ export function StorageListPage() {
               range={draft.rpm}
               onChange={(rpm) => setDraft((current) => ({ ...current, rpm }))}
             />
-          </FieldGroup>
+          </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
         <div className="catalog-results">
@@ -310,6 +307,7 @@ export function StorageListPage() {
             emptyMessage="No storage drives in the catalog yet."
             isAdmin={isAdmin}
             newItemLabel="New Storage Drive"
+            onNewItem={() => setCreating(true)}
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
@@ -320,17 +318,26 @@ export function StorageListPage() {
             onEditSelected={startEditing}
             pageIndex={pageIndex}
             pageCount={pageCount}
-            totalCount={totalCount}
-            countLabel="drives"
             onPageChange={goToPage}
           />
         </div>
       </div>
+      {creating ? (
+        <CatalogCreateDialog
+          title="New storage drive"
+          item={emptyDrive}
+          fields={StorageFields(manufacturers)}
+          queryKey={storageDriveKeys.all}
+          detailPath={(id) => `/catalog/storage/${id}`}
+          onClose={() => setCreating(false)}
+          create={createStorageDrive}
+        />
+      ) : null}
       {editRows ? (
         <BulkEditDialog
           title="Edit Storage Drives"
           rows={editRows}
-          columns={storageDriveEditColumns(manufacturers)}
+          columns={StorageEditColumns(manufacturers)}
           onClose={() => setEditRows(null)}
           onSave={async (rows) => {
             await updateStorageDrives(rows);

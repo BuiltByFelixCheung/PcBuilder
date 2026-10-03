@@ -6,8 +6,11 @@ import { parseApiError } from "@/api/errors.ts";
 import {
   createManufacturer,
   deleteManufacturer,
+  MANUFACTURER_PRODUCT_TYPES,
   masterDataKeys,
   updateManufacturer,
+  type Manufacturer,
+  type ManufacturerProductType,
 } from "@/api/master-data";
 import { MasterDataEditorFrame } from "@/components/master-data/MasterDataEditorFrame";
 import { FormTextField } from "@/components/FormTextField";
@@ -18,12 +21,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FieldGroup } from "@/components/ui/field";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  FieldDescription,
+  FieldGroup,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field";
 import {
   applyApiFieldErrors,
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
 import { useState } from "react";
+
+const manufacturerProductTypeSchema = z.enum(
+  MANUFACTURER_PRODUCT_TYPES.map((type) => type.value) as [
+    ManufacturerProductType,
+    ...ManufacturerProductType[],
+  ],
+);
 
 const manufacturerFormSchema = z.object({
   name: z
@@ -31,13 +47,14 @@ const manufacturerFormSchema = z.object({
     .trim()
     .min(1, "Name is required.")
     .max(100, "Name must not exceed 100 characters."),
+  productTypes: z.array(manufacturerProductTypeSchema),
 });
 
 type ManufacturerFormValues = z.infer<typeof manufacturerFormSchema>;
 
 type ManufacturerFormDialogProps = {
   editingId: string;
-  manufacturers: readonly { id: string; name: string }[];
+  manufacturers: readonly Manufacturer[];
   manufacturersSettled: boolean;
   onClose: () => void;
 };
@@ -87,7 +104,7 @@ function ManufacturerForm({
   manufacturer,
   onClose,
 }: Readonly<{
-  manufacturer: { id: string; name: string } | undefined;
+  manufacturer: Manufacturer | undefined;
   onClose: () => void;
 }>) {
   return <ManufacturerFields manufacturer={manufacturer} onClose={onClose} />;
@@ -97,7 +114,7 @@ function ManufacturerFields({
   manufacturer,
   onClose,
 }: Readonly<{
-  manufacturer: { id: string; name: string } | undefined;
+  manufacturer: Manufacturer | undefined;
   onClose: () => void;
 }>) {
   const queryClient = useQueryClient();
@@ -105,14 +122,18 @@ function ManufacturerFields({
     resolver: zodResolver(manufacturerFormSchema),
     defaultValues: {
       name: manufacturer?.name ?? "",
+      productTypes: manufacturer?.productTypes ?? [],
     },
   });
   const {
     register,
     handleSubmit,
     setError,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = form;
+  const selectedProductTypes = watch("productTypes");
   const [isDeleting, setIsDeleting] = useState(false);
   async function onSubmit(values: ManufacturerFormValues) {
     try {
@@ -165,6 +186,40 @@ function ManufacturerFields({
           error={errors.name}
           registration={register("name")}
         />
+        <FieldSet>
+          <FieldLegend variant="label">Product lines</FieldLegend>
+          <FieldDescription>
+            Create forms offer this manufacturer only for the lines selected
+            here.
+          </FieldDescription>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {MANUFACTURER_PRODUCT_TYPES.map((type) => {
+              const checked = selectedProductTypes.includes(type.value);
+              return (
+                <label
+                  key={type.value}
+                  className="flex items-center gap-2 text-sm"
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(next) => {
+                      const productTypes =
+                        next === true
+                          ? [...new Set([...selectedProductTypes, type.value])]
+                          : selectedProductTypes.filter(
+                              (value) => value !== type.value,
+                            );
+                      setValue("productTypes", productTypes, {
+                        shouldDirty: true,
+                      });
+                    }}
+                  />
+                  {type.label}
+                </label>
+              );
+            })}
+          </div>
+        </FieldSet>
       </FieldGroup>
       <DialogFooter>
         {manufacturer ? (

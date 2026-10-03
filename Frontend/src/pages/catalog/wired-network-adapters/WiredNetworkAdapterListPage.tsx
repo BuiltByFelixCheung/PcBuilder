@@ -2,25 +2,19 @@ import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { deleteWiredNetworkAdapters } from "@/api/catalog/bulk-delete";
 import {
+  createWiredNetworkAdapter,
   wiredNetworkAdapterKeys,
   isWiredNetworkAdapterFilterActive,
   updateWiredNetworkAdapters,
   type WiredNetworkAdapter,
   type WiredNetworkAdapterFilter,
 } from "@/api/catalog/wired-network-adapters";
-import { FieldGroup } from "@/components/ui/field";
 import {
   createColumnHelper,
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
-import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
-import {
-  enumSelectBulkColumn,
-  idSelectBulkColumn,
-  nameBulkColumn,
-  numberBulkColumn,
-} from "@/components/bulk-edit-columns";
+import { catalogLeadColumns } from "@/components/catalog/CatalogLeadColumns";
 import { beginBulkEdit } from "@/lib/begin-bulk-edit";
 import { useMotherboardOnlyCompatibility } from "@/hooks/use-motherboard-compatibility";
 import { useAuth } from "@/auth/use-auth";
@@ -38,47 +32,43 @@ import {
   WIRED_HOST_INTERFACES,
 } from "@/api/enums";
 import { CatalogCompatibleCheckbox } from "@/components/catalog/CatalogFilterFields.tsx";
+import { unsetCatalogItem } from "@/components/catalog/catalog-create";
+import { CatalogCreateDialog } from "@/components/catalog/CatalogCreateDialog";
 import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importWiredNetworkAdapters } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import {
   CatalogFilterActions,
+  CatalogFilterGroup,
   CatalogNameField,
   CatalogEnumField,
   CatalogIdSelectField,
   CatalogRangeField,
 } from "@/components/catalog/CatalogFilterFields";
-import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
+import { BulkEditDialog } from "@/components/BulkEditDialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { toInteger } from "@/api/helper";
+import {
+  WiredNetworkAdapterEditColumns,
+  WiredNetworkAdapterFields,
+} from "@/pages/catalog/wired-network-adapters/WiredNetworkAdapterEditColumns";
 
 const EMPTY_ITEMS: WiredNetworkAdapter[] = [];
+const emptyAdapter = unsetCatalogItem<WiredNetworkAdapter>({
+  id: "",
+  name: "",
+  manufacturerId: "",
+  manufacturerName: "",
+  hostInterface: "",
+  maxSpeedMbps: 0,
+  usbVersion: null,
+  usbType: null,
+  pcieSlotType: null,
+});
 const columnHelper = createColumnHelper<
   typeof dataTableFeatures,
   WiredNetworkAdapter
 >();
-
-function bulkEditColumns(
-  manufacturers: { id: string; name: string }[],
-): BulkEditColumn<WiredNetworkAdapter>[] {
-  return [
-    nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    enumSelectBulkColumn("Interface", "hostInterface", WIRED_HOST_INTERFACES),
-    numberBulkColumn("Max speed (Mbps)", "maxSpeedMbps", {
-      parse: toInteger,
-      fallback: 0,
-    }),
-    enumSelectBulkColumn("USB version", "usbVersion", USB_VERSIONS, {
-      empty: "null",
-    }),
-    enumSelectBulkColumn("USB type", "usbType", USB_TYPES, { empty: "keep" }),
-    enumSelectBulkColumn("PCIe slot", "pcieSlotType", PCIE_SLOT_TYPES, {
-      empty: "keep",
-    }),
-  ];
-}
 
 export function WiredNetworkAdapterListPage() {
   const queryClient = useQueryClient();
@@ -93,7 +83,8 @@ export function WiredNetworkAdapterListPage() {
   const manufacturers = useCatalogManufacturers("wirednetworkadapter");
   const query = useWiredNetworkAdapters(params);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [editRows, setEditRows] = useState<WiredNetworkAdapter[]|null>(null);
+  const [editRows, setEditRows] = useState<WiredNetworkAdapter[] | null>(null);
+  const [creating, setCreating] = useState(false);
 
   const { isAdmin } = useAuth();
 
@@ -192,7 +183,7 @@ export function WiredNetworkAdapterListPage() {
       </p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
-          <FieldGroup className="catalog-filter-grid">
+          <CatalogFilterGroup>
             <CatalogCompatibleCheckbox
               checked={showOnlyCompatible}
               onCheckedChange={applyCompatibleFilter}
@@ -259,7 +250,7 @@ export function WiredNetworkAdapterListPage() {
                 setDraft((current) => ({ ...current, pcieSlotType }))
               }
             />
-          </FieldGroup>
+          </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
         <div className="catalog-results">
@@ -274,6 +265,7 @@ export function WiredNetworkAdapterListPage() {
             emptyMessage="No wired network adapters in the catalog yet."
             isAdmin={isAdmin}
             newItemLabel="New Wired Network Adapter"
+            onNewItem={() => setCreating(true)}
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
@@ -284,17 +276,26 @@ export function WiredNetworkAdapterListPage() {
             onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
-            totalCount={totalCount}
-            countLabel="adapters"
             onPageChange={goToPage}
           />
         </div>
       </div>
+      {creating ? (
+        <CatalogCreateDialog
+          title="New wired network adapter"
+          item={emptyAdapter}
+          fields={WiredNetworkAdapterFields(manufacturers)}
+          queryKey={wiredNetworkAdapterKeys.all}
+          detailPath={(id) => `/catalog/wired-network-adapters/${id}`}
+          onClose={() => setCreating(false)}
+          create={createWiredNetworkAdapter}
+        />
+      ) : null}
       {editRows ? (
         <BulkEditDialog
           title="Edit Wired Network Adapters"
           rows={editRows}
-          columns={bulkEditColumns(manufacturers)}
+          columns={WiredNetworkAdapterEditColumns(manufacturers)}
           onClose={() => setEditRows(null)}
           onSave={async (rows) => {
             await updateWiredNetworkAdapters(rows);

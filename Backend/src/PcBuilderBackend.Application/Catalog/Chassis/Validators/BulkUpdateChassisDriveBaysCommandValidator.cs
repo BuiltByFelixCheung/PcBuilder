@@ -13,16 +13,20 @@ public class BulkUpdateChassisDriveBaysCommandValidator
 
         RuleFor(x => x.DriveBays)
             .Must(BeUniqueByFormFactor)
-            .WithMessage("Duplicate drive bay form factors are not allowed.")
+            .WithMessage("Duplicate drive bay size sets are not allowed.")
             .When(x => x.DriveBays.Count > 0);
 
         RuleForEach(x => x.DriveBays).ChildRules(bay =>
         {
-            bay.RuleFor(b => b.FormFactor).IsInEnum();
+            bay.RuleFor(b => b.FormFactors).NotEmpty();
+            bay.RuleForEach(b => b.FormFactors).IsInEnum();
+            bay.RuleFor(b => b.FormFactors)
+                .Must(factors => factors.Distinct().Count() == factors.Length)
+                .WithMessage("A drive bay cannot list the same size twice.");
             bay.RuleFor(b => b.SlotCount).GreaterThan(0);
         });
     }
 
     private static bool BeUniqueByFormFactor(List<ChassisDriveBayDto> bays) =>
-        bays.GroupBy(x => x.FormFactor).All(g => g.Count() == 1);
+        bays.Select(bay => string.Join(',', bay.FormFactors.Order())).Distinct().Count() == bays.Count;
 }

@@ -5,7 +5,7 @@ namespace PcBuilderBackend.Domain.Entities;
 public class ChassisRadiator : BaseEntity
 {
     public Guid ChassisId { get; private set; }
-    public RadiatorLength Length { get; private set; }
+    public RadiatorClass Length { get; private set; }
     public RadiatorMountLocation MountLocation { get; private set; }
     public int RadiatorCount { get; private set; }
     public Chassis Chassis { get; private set; } = null!;
@@ -14,7 +14,7 @@ public class ChassisRadiator : BaseEntity
 
     public ChassisRadiator(
         Guid chassisId,
-        RadiatorLength length,
+        RadiatorClass length,
         RadiatorMountLocation mountLocation,
         int radiatorCount)
     {
@@ -23,7 +23,7 @@ public class ChassisRadiator : BaseEntity
 
     public void UpdateSpecs(
         Guid chassisId,
-        RadiatorLength length,
+        RadiatorClass length,
         RadiatorMountLocation mountLocation,
         int radiatorCount)
     {
@@ -33,7 +33,7 @@ public class ChassisRadiator : BaseEntity
 
     private void SetSpecs(
         Guid chassisId,
-        RadiatorLength length,
+        RadiatorClass length,
         RadiatorMountLocation mountLocation,
         int radiatorCount)
     {

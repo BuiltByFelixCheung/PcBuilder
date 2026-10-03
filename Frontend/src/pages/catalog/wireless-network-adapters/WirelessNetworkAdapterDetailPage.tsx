@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { parseApiError } from "@/api/errors.ts";
 import { PageStatus } from "@/components/PageStatus.tsx";
 import { useWirelessNetworkAdapter } from "@/hooks/use-wireless-network-adapters.ts";
+import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import { AddToBuildButton } from "@/builds";
 import {
   formatBluetoothVersion,
@@ -9,11 +12,22 @@ import {
   formatWifiStandard,
 } from "@/api/enums";
 import { useAuth } from "@/auth/use-auth";
+import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
+import { Button } from "@/components/ui/button";
+import {
+  updateWirelessNetworkAdapter,
+  wirelessNetworkAdapterKeys,
+} from "@/api/catalog/wireless-network-adapters";
+import { WirelessNetworkAdapterFields } from "@/pages/catalog/wireless-network-adapters/WirelessNetworkAdapterEditColumns";
+
 export function WirelessNetworkAdapterDetailPage() {
   const { wirelessNetworkAdapterId } = useParams();
   const query = useWirelessNetworkAdapter(wirelessNetworkAdapterId);
   const adapter = query.data;
+  const queryClient = useQueryClient();
   const { isAdmin } = useAuth();
+  const [editing, setEditing] = useState(false);
+  const manufacturers = useCatalogManufacturers("wirelessnetworkadapter");
 
   if (query.isPending) {
     return <PageStatus>Loading wireless network adapter…</PageStatus>;
@@ -43,13 +57,34 @@ export function WirelessNetworkAdapterDetailPage() {
           Back to Wireless Network Adapters
         </Link>
       </p>
-      <h1>{adapter.name}</h1>
-      {!isAdmin && (
-        <AddToBuildButton
-          productType="wirelessnetworkadapter"
-          partId={adapter.id}
+      <div className="catalog-detail-title">
+        <h1>{adapter.name}</h1>
+        {!isAdmin && (
+          <AddToBuildButton
+            productType="wirelessnetworkadapter"
+            partId={adapter.id}
+          />
+        )}
+        {isAdmin && (
+          <Button type="button" onClick={() => setEditing(true)}>
+            Edit
+          </Button>
+        )}
+      </div>
+      {editing ? (
+        <CatalogEditDialog
+          title="Edit wireless network adapter"
+          item={adapter}
+          fields={WirelessNetworkAdapterFields(manufacturers)}
+          onClose={() => setEditing(false)}
+          onSave={async (item) => {
+            await updateWirelessNetworkAdapter(item);
+            await queryClient.invalidateQueries({
+              queryKey: wirelessNetworkAdapterKeys.detail(adapter.id),
+            });
+          }}
         />
-      )}
+      ) : null}
       <dl className="catalog-details">
         <div>
           <dt>Manufacturer</dt>

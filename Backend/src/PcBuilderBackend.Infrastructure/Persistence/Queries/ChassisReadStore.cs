@@ -83,7 +83,7 @@ public class ChassisReadStore(PcBuilderDbContext db, IMapper mapper) : IChassisR
             return [];
 
         return mapper.Map<List<ChassisDriveBayDto>>(
-            chassis.DriveBays.Where(x => x.IsActive).OrderBy(x => x.DriveBayFormFactor).ToList());
+            chassis.DriveBays.Where(x => x.IsActive).OrderBy(x => x.DriveBayFormFactors.FirstOrDefault()).ToList());
     }
 
     public async Task<List<ChassisFanMountDto>> ListFanMountsAsync(Guid chassisId, CancellationToken cancellationToken)

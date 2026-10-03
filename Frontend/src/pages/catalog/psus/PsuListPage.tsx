@@ -1,13 +1,7 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { catalogLeadColumns } from "@/components/catalog/catalog-lead-columns";
+import { catalogLeadColumns } from "@/components/catalog/CatalogLeadColumns";
 import { beginBulkEdit } from "@/lib/begin-bulk-edit";
-import {
-  enumSelectBulkColumn,
-  idSelectBulkColumn,
-  integerColumn,
-  nameBulkColumn,
-} from "@/components/bulk-edit-columns";
 import { deletePsus } from "@/api/catalog/bulk-delete";
 import {
   psuKeys,
@@ -16,7 +10,7 @@ import {
   type PsuListItem,
   updatePsus,
 } from "@/api/catalog/psus";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldLabel } from "@/components/ui/field";
 import {
   createColumnHelper,
   type RowSelectionState,
@@ -48,10 +42,12 @@ import { importPsus } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import {
   CatalogFilterActions,
+  CatalogFilterGroup,
   CatalogNameField,
   CatalogIdSelectField,
 } from "@/components/catalog/CatalogFilterFields";
-import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
+import { BulkEditDialog } from "@/components/BulkEditDialog";
+import { PsuEditColumns } from "@/pages/catalog/psus/PsuEditColumns";
 import { useQueryClient } from "@tanstack/react-query";
 
 const EMPTY_ITEMS: PsuListItem[] = [];
@@ -59,26 +55,6 @@ const columnHelper = createColumnHelper<
   typeof dataTableFeatures,
   PsuListItem
 >();
-
-
-function psuEditColumns(
-  manufacturers: { id: string; name: string }[],
-): BulkEditColumn<PsuListItem>[] {
-  const millimeters = (header: string, field: "lengthMm" | "widthMm" | "heightMm") =>
-    integerColumn<PsuListItem>(header, field, { type: "number", min: 0 });
-
-  return [
-    nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers, "Any"),
-    integerColumn("Wattage", "wattage", { type: "number", min: 0 }),
-    enumSelectBulkColumn("Modularity", "modularity", PSU_MODULARITIES),
-    enumSelectBulkColumn("Form factor", "formFactor", PSU_FORM_FACTORS),
-    millimeters("Length (mm)", "lengthMm"),
-    millimeters("Width (mm)", "widthMm"),
-    millimeters("Height (mm)", "heightMm"),
-  ];
-}
-
 
 export function PsuListPage() {
   const queryClient = useQueryClient();
@@ -199,7 +175,7 @@ export function PsuListPage() {
       </p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
-          <FieldGroup className="catalog-filter-grid">
+          <CatalogFilterGroup>
             <CatalogCompatibleCheckbox
               checked={showOnlyCompatible}
               onCheckedChange={applyCompatibleFilter}
@@ -301,7 +277,7 @@ export function PsuListPage() {
                 setDraft((current) => ({ ...current, heightMm }))
               }
             />
-          </FieldGroup>
+          </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
         <div className="catalog-results">
@@ -316,6 +292,7 @@ export function PsuListPage() {
             emptyMessage="No PSUs in the catalog yet."
             isAdmin={isAdmin}
             newItemLabel="New PSU"
+            newItemTo="/catalog/psus/new"
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
@@ -326,8 +303,6 @@ export function PsuListPage() {
             onImport={excelImport.openImport}
             pageIndex={pageIndex}
             pageCount={pageCount}
-            totalCount={totalCount}
-            countLabel="PSUs"
             onPageChange={goToPage}
           />
         </div>
@@ -336,7 +311,7 @@ export function PsuListPage() {
         <BulkEditDialog
           title="Edit PSUs"
           rows={editRows}
-          columns={psuEditColumns(manufacturers)}
+          columns={PsuEditColumns(manufacturers)}
           onClose={() => setEditRows(null)}
           onSave={async (rows) => {
             await updatePsus(rows);

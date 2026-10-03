@@ -16,7 +16,7 @@ internal static class ChassisChildCollections
         IEnumerable<PsuFormFactor> psuFormFactors)
     {
         foreach (var bay in driveBays)
-            entity.AddDriveBay(new ChassisDriveBay(entity.Id, bay.FormFactor, bay.SlotCount));
+            entity.AddDriveBay(new ChassisDriveBay(entity.Id, bay.FormFactors, bay.SlotCount));
 
         foreach (var mount in fanMounts)
             entity.AddFanMount(CreateFanMount(entity.Id, mount));

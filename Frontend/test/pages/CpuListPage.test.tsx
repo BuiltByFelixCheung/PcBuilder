@@ -40,7 +40,24 @@ vi.mock("@/api/master-data.ts", async () => {
 });
 
 import { CpuListPage } from "@/pages/catalog/cpus/CpuListPage.tsx";
+import { chooseOption } from "../helpers/choose-option.ts";
 import { renderWithQuery } from "../helpers/query.tsx";
+
+async function expectOpenChoices(
+  user: ReturnType<typeof userEvent.setup>,
+  label: string,
+  present: readonly string[],
+  absent: readonly string[],
+) {
+  await user.click(screen.getByLabelText(label));
+  for (const name of present) {
+    expect(await screen.findByRole("option", { name })).toBeInTheDocument();
+  }
+  for (const name of absent) {
+    expect(screen.queryByRole("option", { name })).not.toBeInTheDocument();
+  }
+  await user.keyboard("{Escape}");
+}
 
 const cpu: CpuListItem = {
   id: "cpu-1",
@@ -105,6 +122,28 @@ describe("CpuListPage", () => {
       }),
     );
     expect(screen.queryByLabelText("DDR")).not.toBeInTheDocument();
+  });
+
+  it("sorts the catalog from a column header", async () => {
+    listCpus.mockResolvedValue({
+      items: [cpu],
+      totalCount: 1,
+      pageIndex: 0,
+      pageSize: 10,
+    });
+    const user = userEvent.setup();
+    renderWithQuery(<CpuListPage />, { route: "/catalog/cpus" });
+    await screen.findByRole("link", { name: "Ryzen 7 7800X3D" });
+    await user.click(screen.getByRole("button", { name: "TDP" }));
+    await waitFor(() => {
+      expect(listCpus).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sortBy: "thermalDesignPower",
+          sortDirection: "asc",
+          pageIndex: 0,
+        }),
+      );
+    });
   });
 
   it("applies a name filter", async () => {
@@ -181,9 +220,10 @@ describe("CpuListPage", () => {
     await screen.findByRole("link", { name: "Ryzen 7 7800X3D" });
     expect(screen.getByText("Yes")).toBeInTheDocument();
 
-    await user.selectOptions(screen.getByLabelText("Manufacturer"), "amd");
-    await user.selectOptions(screen.getByLabelText("Socket"), "am5");
-    await user.selectOptions(screen.getByLabelText("Series"), "r7");
+    await chooseOption(user, "Manufacturer", "AMD");
+    await user.click(screen.getByRole("button", { name: "More filters" }));
+    await chooseOption(user, "Socket", "AM5");
+    await chooseOption(user, "Series", "Ryzen 7");
     await user.type(screen.getByLabelText("TDP (W)"), "65");
     await user.type(screen.getByLabelText("TDP max"), "170");
     await user.type(screen.getByLabelText("Power (W)"), "80");
@@ -214,13 +254,13 @@ describe("CpuListPage", () => {
     const user = userEvent.setup();
     renderWithQuery(<CpuListPage />, { route: "/catalog/cpus?name=7800" });
     await screen.findByRole("link", { name: "Ryzen 7 7800X3D" });
-    expect(screen.getByText("Page 1 of 3 (21 CPUs)")).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "pagination" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Next" }));
+    await user.click(screen.getByRole("button", { name: "Go to next page" }));
     expect(listCpus).toHaveBeenCalledWith(
       expect.objectContaining({ pageIndex: 1 }),
     );
-    await user.click(screen.getByRole("button", { name: "Previous" }));
+    await user.click(screen.getByRole("button", { name: "Go to previous page" }));
     expect(listCpus).toHaveBeenCalledWith(
       expect.objectContaining({ pageIndex: 0 }),
     );
@@ -275,6 +315,68 @@ describe("CpuListPage", () => {
         filter: expect.objectContaining({ motherboardId: expect.anything() }),
       }),
     );
+  });
+
+  it("limits bulk-edit series and socket choices to the manufacturer", async () => {
+    listManufacturersByProductType.mockResolvedValue([
+      { id: "amd", name: "AMD" },
+      { id: "intel", name: "Intel" },
+    ]);
+    listSockets.mockResolvedValue([
+      {
+        id: "am5",
+        name: "AM5",
+        manufacturerId: "amd",
+        manufacturerName: "AMD",
+      },
+      {
+        id: "lga1851",
+        name: "LGA1851",
+        manufacturerId: "intel",
+        manufacturerName: "Intel",
+      },
+    ]);
+    listCpuSeries.mockResolvedValue([
+      {
+        id: "r7",
+        name: "Ryzen 7",
+        manufacturerId: "amd",
+        manufacturerName: "AMD",
+        socketId: "am5",
+        socketName: "AM5",
+      },
+      {
+        id: "ultra",
+        name: "Core Ultra",
+        manufacturerId: "intel",
+        manufacturerName: "Intel",
+        socketId: "lga1851",
+        socketName: "LGA1851",
+      },
+    ]);
+    listCpus.mockResolvedValue({
+      items: [cpu],
+      totalCount: 1,
+      pageIndex: 0,
+      pageSize: 10,
+    });
+    const user = userEvent.setup();
+    renderWithQuery(<CpuListPage />, { route: "/catalog/cpus", isAdmin: true });
+
+    const row = await screen.findByRole("row", { name: /Ryzen 7 7800X3D/ });
+    await user.click(within(row).getByRole("checkbox"));
+    await user.click(screen.getByRole("button", { name: "Edit Selected" }));
+    await screen.findByRole("dialog", { name: "Edit CPUs" });
+    const seriesLabel = "Series for Ryzen 7 7800X3D";
+    const socketLabel = "Socket for Ryzen 7 7800X3D";
+
+    await expectOpenChoices(user, seriesLabel, ["Ryzen 7"], ["Core Ultra"]);
+    await expectOpenChoices(user, socketLabel, ["AM5"], ["LGA1851"]);
+    await chooseOption(user, "Manufacturer for Ryzen 7 7800X3D", "Intel");
+    await expectOpenChoices(user, seriesLabel, ["Core Ultra"], ["Ryzen 7"]);
+    await expectOpenChoices(user, socketLabel, ["LGA1851"], ["AM5"]);
+    expect(screen.getByLabelText(seriesLabel)).not.toHaveTextContent("Ryzen 7");
+    expect(screen.getByLabelText(socketLabel)).not.toHaveTextContent("AM5");
   });
 
   it("deletes the selected CPU", async () => {

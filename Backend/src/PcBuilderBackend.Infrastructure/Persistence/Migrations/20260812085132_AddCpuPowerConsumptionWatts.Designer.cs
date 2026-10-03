@@ -380,7 +380,7 @@ namespace PcBuilderBackend.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<RadiatorLength>("Length")
+                    b.Property<RadiatorClass>("Length")
                         .HasColumnType("radiator_length");
 
                     b.Property<RadiatorMountLocation>("MountLocation")
@@ -530,7 +530,7 @@ namespace PcBuilderBackend.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<RadiatorLength?>("RadiatorLength")
+                    b.Property<RadiatorClass?>("RadiatorLength")
                         .HasColumnType("radiator_length");
 
                     b.Property<CpuCoolerType>("Type")

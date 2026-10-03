@@ -2,6 +2,7 @@
 Document/
 .infisical.json
 *.md
+!AGENTS.md
 appsettings.*.json
 appsettings.json
 .sonarqube/

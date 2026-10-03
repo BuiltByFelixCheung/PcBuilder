@@ -37,11 +37,22 @@ public class ImportCpuCoolersHandler(
             var entity = new CpuCooler(
                 row.ManufacturerId,
                 row.Name,
-                row.MaxTdp,
                 row.Type,
                 row.CoolerHeightMm,
                 row.MaxRamHeightMm,
-                row.RadiatorLength);
+                row.RadiatorClass,
+                row.RadiatorLengthMm,
+                row.RadiatorWidthMm,
+                row.RadiatorHeightMm,
+                row.CoolerLengthMm,
+                row.CoolerWidthMm,
+                row.WaterBlockLengthMm,
+                row.WaterBlockWidthMm,
+                row.WaterBlockHeightMm,
+                row.FanThicknessMm,
+                row.FanWidthMm,
+                row.FanHeightMm,
+                row.FanCount);
 
             CreateCpuCoolerHandler.ApplySockets(
                 entity,

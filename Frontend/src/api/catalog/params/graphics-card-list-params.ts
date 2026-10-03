@@ -10,7 +10,11 @@ import {
   parseRange,
   setSearchFlag,
 } from "../../helper";
-import { catalogPagingFromSearch, setSearchRange } from "./list-search";
+import {
+  catalogPagingFromSearch,
+  setCatalogSortSearch,
+  setSearchRange,
+} from "./list-search";
 
 export const emptyGraphicsCardFilter: GraphicsCardFilter = {
   name: undefined,
@@ -30,6 +34,7 @@ export function graphicsCardListSearchFromParams(
 ): URLSearchParams {
   const search = new URLSearchParams();
   const filter = params.filter;
+  setCatalogSortSearch(search, params);
 
   if (params.pageIndex > 0) search.set("page", String(params.pageIndex));
   if (filter.name?.trim()) search.set("name", filter.name.trim());

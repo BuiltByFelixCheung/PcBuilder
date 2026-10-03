@@ -60,7 +60,7 @@ public class ImportChassisHandler(
 
         ChassisChildCollections.Apply(
             entity,
-            row.DriveBays.Select(bay => new ChassisDriveBayDto(bay.FormFactor, bay.SlotCount)),
+            row.DriveBays.Select(bay => new ChassisDriveBayDto(bay.FormFactors, bay.SlotCount)),
             row.FanMounts.Select(mount => new ChassisFanMountDto(
                 mount.Location,
                 mount.SingleDiameterOnly,

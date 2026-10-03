@@ -24,7 +24,7 @@ import {
 import {
   idSelectBulkColumn,
   nameBulkColumn,
-} from "@/components/bulk-edit-columns";
+} from "@/components/BulkEditColumns";
 import { FieldGroup } from "@/components/ui/field";
 import {
   createColumnHelper,
@@ -41,7 +41,10 @@ import {
 } from "@/components/filters/ListFilters";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
-import { BulkEditDialog, type BulkEditColumn } from "@/components/BulkEditDialog";
+import {
+  BulkEditDialog,
+  type BulkEditColumn,
+} from "@/components/BulkEditDialog";
 
 const EMPTY_ITEMS: CpuSeriesOption[] = [];
 const columnHelper = createColumnHelper<
@@ -61,7 +64,6 @@ const columns = columnHelper.columns([
   columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
   columnHelper.accessor("socketName", { header: "Socket" }),
 ]);
-
 
 function cpuSeriesEditColumns(
   manufacturers: { id: string; name: string }[],
@@ -108,8 +110,7 @@ export function CpuSeriesListPage() {
   const sockets = useSocketChoices(items);
   const socketOptions = socketsForManufacturer(sockets, draft.manufacturerId);
   const visibleItems = useMemo(
-    () =>
-      filterByNameAndFields(items, applied, ["manufacturerId", "socketId"]),
+    () => filterByNameAndFields(items, applied, ["manufacturerId", "socketId"]),
     [applied, items],
   );
   const bulkDelete = useBulkDelete({

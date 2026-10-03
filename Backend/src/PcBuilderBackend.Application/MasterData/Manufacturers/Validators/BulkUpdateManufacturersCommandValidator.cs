@@ -11,6 +11,7 @@ public class BulkUpdateManufacturersCommandValidator: AbstractValidator<BulkUpda
         {
             manufacturer.RuleFor(x => x.Id).NotEmpty().WithMessage("Id is required");
             manufacturer.RuleFor(x => x.Name).NotEmpty().WithMessage("Name is required").MaximumLength(200);
+            manufacturer.RuleForEach(x => x.ProductTypes).IsInEnum();
         });
     }
 }

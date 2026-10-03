@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { AxiosError } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CpuSeriesOption, SocketOption } from "@/api/master-data";
+import { chooseOption } from "../helpers/choose-option.ts";
 
 const listCpuSeries = vi.fn();
 const listSockets = vi.fn();
@@ -116,9 +117,10 @@ describe("CpuSeriesListPage", () => {
       "/master-data/cpu-series?edit=ryzen7000",
     );
 
-    await user.selectOptions(selectById(document, "cpu-series-manufacturer"), "intel");
-    expect(selectById(document, "cpu-series-socket").querySelector("option[value='am5']")).toBeNull();
-    await user.selectOptions(selectById(document, "cpu-series-socket"), "lga1851");
+    await chooseOption(user, "Manufacturer", "Intel");
+    await user.click(screen.getByLabelText("Socket"));
+    expect(screen.queryByRole("option", { name: "AM5" })).not.toBeInTheDocument();
+    await user.click(await screen.findByRole("option", { name: "LGA1851" }));
     await user.click(screen.getByRole("button", { name: "Apply filters" }));
     expect(screen.queryByRole("link", { name: "Ryzen 7000" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Core Ultra" })).toBeInTheDocument();

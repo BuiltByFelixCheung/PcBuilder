@@ -73,7 +73,7 @@ public class ChassisBulkCreateTests : IDisposable
         MaxPsuLengthMm = 180,
         PsuFormFactors = [PsuFormFactor.Atx],
         MbFormFactors = [MbFormFactor.Atx],
-        DriveBays = [new ChassisDriveBayDto(DriveBayFormFactor.Inch35, 2)],
+        DriveBays = [new ChassisDriveBayDto([DriveBayFormFactor.Inch35], 2)],
         FanMounts =
         [
             new ChassisFanMountDto(
@@ -86,7 +86,7 @@ public class ChassisBulkCreateTests : IDisposable
         [
             new ChassisRadiatorDto
             {
-                Length = RadiatorLength.Mm360,
+                Length = RadiatorClass.Mm360,
                 Location = RadiatorMountLocation.Top,
                 RadiatorCount = 1
             }

@@ -1,5 +1,6 @@
 import { api } from "../client";
 import {
+  catalogApiSortField,
   hasCompleteRange,
   type PagedRequest,
   type PagedResult,
@@ -130,7 +131,7 @@ export function listMotherboards(params: MotherboardListParams) {
   const paging = {
     pageIndex: params.pageIndex,
     pageSize: params.pageSize,
-    sortBy: params.sortBy ?? "name",
+    sortBy: catalogApiSortField(params.sortBy),
     sortDirection: params.sortDirection ?? "asc",
   };
 
@@ -181,6 +182,68 @@ function toMotherboardFilterBody(filter: MotherboardFilter): MotherboardFilter {
 
 export function updateMotherboards(motherboards: MotherboardListItem[]) {
   return api
-    .put("/catalog/motherboard/bulk", { motherboards: motherboards })
+    .put("/catalog/motherboard/bulk", { motherboards })
+    .then((response) => response.data);
+}
+
+const motherboardChildKeys = ["pcieSlots", "m2Slots", "usbPorts"] as const satisfies readonly (keyof MotherboardDetail)[];
+
+export function motherboardListItem(detail: MotherboardDetail): MotherboardListItem {
+  const item = { ...detail };
+  for (const key of motherboardChildKeys) delete item[key];
+  return item;
+}
+
+export function updateMotherboard(motherboard: MotherboardListItem) {
+  return api
+    .put("/catalog/motherboard", motherboard)
+    .then((response) => response.data);
+}
+
+export function updateMotherboardPcieSlots(
+  motherboardId: string,
+  pcieSlots: MotherboardPcieSlot[],
+) {
+  return api
+    .put<MotherboardPcieSlot[]>(
+      `/catalog/motherboard/${motherboardId}/pcie-slot`,
+      pcieSlots,
+    )
+    .then((response) => response.data);
+}
+
+export function updateMotherboardM2Slots(
+  motherboardId: string,
+  m2Slots: MotherboardM2Slot[],
+) {
+  return api
+    .put<MotherboardM2Slot[]>(
+      `/catalog/motherboard/${motherboardId}/m2-slot`,
+      m2Slots,
+    )
+    .then((response) => response.data);
+}
+
+export function updateMotherboardUsbPorts(
+  motherboardId: string,
+  usbPorts: MotherboardUsbPort[],
+) {
+  return api
+    .put<MotherboardUsbPort[]>(
+      `/catalog/motherboard/${motherboardId}/usb-port`,
+      usbPorts,
+    )
+    .then((response) => response.data);
+}
+
+export function createMotherboard(
+  motherboard: MotherboardListItem & {
+    pcieSlots: MotherboardPcieSlot[];
+    m2Slots: MotherboardM2Slot[];
+    usbPorts: MotherboardUsbPort[];
+  },
+) {
+  return api
+    .post<{ id: string }>("/catalog/motherboard", motherboard)
     .then((response) => response.data);
 }

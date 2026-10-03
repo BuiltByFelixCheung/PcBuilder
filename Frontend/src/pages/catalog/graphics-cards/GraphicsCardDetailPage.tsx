@@ -1,11 +1,20 @@
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { parseApiError } from "@/api/errors.ts";
 import { PageStatus } from "@/components/PageStatus.tsx";
-
 import { useGraphicsCard } from "@/hooks/use-graphics-cards.ts";
+import { useGraphicsCardFilterOptions } from "@/hooks/use-graphics-card-filter-options";
 import { builderHref, usePcBuild } from "@/builds";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/auth/use-auth";
+import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
+import {
+  graphicsCardKeys,
+  graphicsCardListItem,
+  updateGraphicsCard,
+} from "@/api/catalog/graphics-cards";
+import { GraphicsCardFields } from "@/pages/catalog/graphics-cards/GraphicsCardEditColumns";
 
 export function GraphicsCardDetailPage() {
   const { graphicsCardId } = useParams();
@@ -13,7 +22,10 @@ export function GraphicsCardDetailPage() {
   const graphicsCard = query.data;
   const currentBuild = usePcBuild();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { isAdmin } = useAuth();
+  const [editing, setEditing] = useState(false);
+  const { manufacturers, gpus } = useGraphicsCardFilterOptions();
 
   if (query.isPending) {
     return <PageStatus>Loading Graphics Card…</PageStatus>;
@@ -39,21 +51,42 @@ export function GraphicsCardDetailPage() {
       <p>
         <Link to="/catalog/graphics-cards">Back to Graphics Cards</Link>
       </p>
-      <h1>{graphicsCard.name}</h1>
-      {!isAdmin && (
-        <Button
-          onClick={() => {
-            if (
-              !currentBuild.graphicsCardId ||
-              currentBuild.graphicsCardId !== graphicsCard.id
-            )
-              currentBuild.addToBuild("graphicscard", graphicsCard.id);
-            navigate(builderHref(currentBuild.sourceId));
+      <div className="catalog-detail-title">
+        <h1>{graphicsCard.name}</h1>
+        {!isAdmin && (
+          <Button
+            onClick={() => {
+              if (
+                !currentBuild.graphicsCardId ||
+                currentBuild.graphicsCardId !== graphicsCard.id
+              )
+                currentBuild.addToBuild("graphicscard", graphicsCard.id);
+              navigate(builderHref(currentBuild.sourceId));
+            }}
+          >
+            Add to Build
+          </Button>
+        )}
+        {isAdmin && (
+          <Button type="button" onClick={() => setEditing(true)}>
+            Edit
+          </Button>
+        )}
+      </div>
+      {editing ? (
+        <CatalogEditDialog
+          title="Edit graphics card"
+          item={graphicsCardListItem(graphicsCard)}
+          fields={GraphicsCardFields(manufacturers, gpus)}
+          onClose={() => setEditing(false)}
+          onSave={async (item) => {
+            await updateGraphicsCard(item);
+            await queryClient.invalidateQueries({
+              queryKey: graphicsCardKeys.detail(graphicsCard.id),
+            });
           }}
-        >
-          Add to Build
-        </Button>
-      )}
+        />
+      ) : null}
       <dl className="catalog-details">
         <div>
           <dt>Manufacturer</dt>

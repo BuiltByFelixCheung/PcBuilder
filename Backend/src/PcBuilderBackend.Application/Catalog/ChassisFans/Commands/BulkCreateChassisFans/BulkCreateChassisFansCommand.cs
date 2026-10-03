@@ -1,7 +1,6 @@
 using MediatR;
 using PcBuilderBackend.Application.Catalog.ChassisFans.Dto;
 using PcBuilderBackend.Domain.Enums;
-using PcBuilderBackend.Application.Catalog.ChassisFans;
 
 namespace PcBuilderBackend.Application.Catalog.ChassisFans.Commands.BulkCreateChassisFans;
 

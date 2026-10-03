@@ -14,11 +14,19 @@ internal sealed class CpuCoolerConfiguration : IEntityTypeConfiguration<CpuCoole
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.Property(c => c.MaxTdp)
-            .IsRequired();
-
+        builder.Property(c => c.CoolerLengthMm).HasPrecision(6, 2);
+        builder.Property(c => c.CoolerWidthMm).HasPrecision(6, 2);
         builder.Property(c => c.CoolerHeightMm).HasPrecision(6, 2);
         builder.Property(c => c.MaxRamHeightMm).HasPrecision(6, 2);
+        builder.Property(c => c.RadiatorLengthMm).HasPrecision(6, 2);
+        builder.Property(c => c.RadiatorWidthMm).HasPrecision(6, 2);
+        builder.Property(c => c.RadiatorHeightMm).HasPrecision(6, 2);
+        builder.Property(c => c.WaterBlockLengthMm).HasPrecision(6, 2);
+        builder.Property(c => c.WaterBlockWidthMm).HasPrecision(6, 2);
+        builder.Property(c => c.WaterBlockHeightMm).HasPrecision(6, 2);
+        builder.Property(c => c.FanThicknessMm).HasPrecision(6, 2);
+        builder.Property(c => c.FanWidthMm).HasPrecision(6, 2);
+        builder.Property(c => c.FanHeightMm).HasPrecision(6, 2);
 
         builder.HasOne(c => c.Manufacturer)
             .WithMany(m => m.CpuCoolers)

@@ -1,7 +1,11 @@
 import type { MotherboardFilter, MotherboardListParams } from "../motherboards";
 import { toInteger, emptyToUndefined, parseRange, setSearchFlag } from "../../helper";
 import type { DdrGeneration, MbFormFactor, RamFormFactor } from "../../enums";
-import { catalogPagingFromSearch, setSearchRange } from "./list-search";
+import {
+  catalogPagingFromSearch,
+  setCatalogSortSearch,
+  setSearchRange,
+} from "./list-search";
 
 export const emptyMotherboardFilter: MotherboardFilter = {
   name: "",
@@ -21,6 +25,7 @@ export function motherboardListSearchFromParams(
 ): URLSearchParams {
   const search = new URLSearchParams();
   const filter = params.filter;
+  setCatalogSortSearch(search, params);
 
   setSearchValue(
     search,

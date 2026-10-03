@@ -1,7 +1,11 @@
 import type { ChassisFilter, ChassisListParams } from "../chassis";
 import { emptyToUndefined, parseRange } from "../../helper";
 import { MB_FORM_FACTORS, type MbFormFactor } from "../../enums";
-import { catalogPagingFromSearch, setSearchRange } from "./list-search";
+import {
+  catalogPagingFromSearch,
+  setCatalogSortSearch,
+  setSearchRange,
+} from "./list-search";
 
 export const emptyChassisFilter: ChassisFilter = {
   name: undefined,
@@ -21,6 +25,7 @@ export function chassisListSearchFromParams(
 ): URLSearchParams {
   const search = new URLSearchParams();
   const filter = params.filter;
+  setCatalogSortSearch(search, params);
 
   if (params.pageIndex > 0) search.set("page", String(params.pageIndex));
   if (filter.name?.trim()) search.set("name", filter.name.trim());

@@ -1,5 +1,6 @@
 import { api } from "../client";
 import {
+  catalogApiSortField,
   hasCompleteRange,
   type PagedRequest,
   type PagedResult,
@@ -79,7 +80,7 @@ export function listCpus(params: CpuListParams) {
   const paging = {
     pageIndex: params.pageIndex,
     pageSize: params.pageSize,
-    sortBy: params.sortBy ?? "name",
+    sortBy: catalogApiSortField(params.sortBy),
     sortDirection: params.sortDirection ?? "asc",
   };
 
@@ -119,6 +120,53 @@ function toCpuFilterBody(filter: CpuFilter): CpuFilter {
   };
 }
 
+export function cpuListItem(detail: CpuDetail): CpuListItem {
+  return {
+    id: detail.id,
+    name: detail.name,
+    manufacturerId: detail.manufacturerId,
+    manufacturerName: detail.manufacturerName,
+    seriesId: detail.seriesId,
+    seriesName: detail.seriesName,
+    socketId: detail.socketId,
+    socketName: detail.socketName,
+    maxMemoryGb: detail.maxMemoryGb,
+    integratedGraphics: detail.integratedGraphics,
+    includedStockCooler: detail.includedStockCooler,
+    thermalDesignPower: detail.thermalDesignPower,
+    powerConsumptionWatts: detail.powerConsumptionWatts,
+  };
+}
+
 export function updateCpus(cpus: CpuListItem[]) {
   return api.put("/catalog/cpu/bulk", { cpus }).then((response) => response.data);
+}
+
+export function updateCpu(cpu: CpuListItem) {
+  return api
+    .put("/catalog/cpu", cpu)
+    .then((response) => response.data);
+}
+
+export function updateCpuRamCompats(cpuId: string, ramCompats: CpuRamCompat[]) {
+  return api
+    .put<CpuRamCompat[]>(`/catalog/cpu/${cpuId}/ram-compats`, ramCompats)
+    .then((response) => response.data);
+}
+
+export function updateCpuSupportChipsets(cpuId: string, supportChipsets: CpuSupportChipset[]) {
+  return api
+    .put<CpuSupportChipset[]>(`/catalog/cpu/${cpuId}/support-chipsets`, supportChipsets)
+    .then((response) => response.data);
+}
+
+export function createCpu(
+  cpu: CpuListItem & {
+    ramCompats: CpuRamCompat[];
+    supportChipsets: CpuSupportChipset[];
+  },
+) {
+  return api
+    .post<{ id: string }>("/catalog/cpu", cpu)
+    .then((response) => response.data);
 }

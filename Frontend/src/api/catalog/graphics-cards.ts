@@ -1,5 +1,6 @@
 import { api } from "../client";
 import {
+  catalogApiSortField,
   hasCompleteRange,
   type PagedRequest,
   type PagedResult,
@@ -86,7 +87,7 @@ export function listGraphicsCards(params: GraphicsCardListParams) {
   const paging = {
     pageIndex: params.pageIndex,
     pageSize: params.pageSize,
-    sortBy: params.sortBy ?? "name",
+    sortBy: catalogApiSortField(params.sortBy),
     sortDirection: params.sortDirection ?? "asc",
   };
 
@@ -134,8 +135,43 @@ function toGraphicsCardFilterBody(
   };
 }
 
+export function graphicsCardListItem(
+  detail: GraphicsCardDetail,
+): GraphicsCardListItem {
+  return {
+    id: detail.id,
+    name: detail.name,
+    manufacturerId: detail.manufacturerId,
+    manufacturerName: detail.manufacturerName,
+    gpuId: detail.gpuId,
+    gpuName: detail.gpuName,
+    videoMemoryGb: detail.videoMemoryGb,
+    pcieSlotsUsed: detail.pcieSlotsUsed,
+    pcieGeneration: detail.pcieGeneration,
+    isLowProfile: detail.isLowProfile,
+    lengthMm: detail.lengthMm,
+    widthMm: detail.widthMm,
+    heightMm: detail.heightMm,
+    powerConsumptionWatts: detail.powerConsumptionWatts,
+    powerConnectorType: detail.powerConnectorType,
+    powerConnectorCount: detail.powerConnectorCount,
+  };
+}
+
 export function updateGraphicsCards(graphicsCards: GraphicsCardListItem[]) {
   return api
     .put("/catalog/graphics-card/bulk", { cards: graphicsCards })
+    .then((response) => response.data);
+}
+
+export function updateGraphicsCard(card: GraphicsCardListItem) {
+  return api
+    .put("/catalog/graphics-card", card)
+    .then((response) => response.data);
+}
+
+export function createGraphicsCard(card: GraphicsCardListItem) {
+  return api
+    .post<{ id: string }>("/catalog/graphics-card", card)
     .then((response) => response.data);
 }

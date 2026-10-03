@@ -1,6 +1,10 @@
 import type { CpuFilter, CpuListParams } from "@/api/catalog/cpus";
 import { emptyToUndefined, parseRange } from "../../helper";
-import { catalogPagingFromSearch, setSearchRange } from "./list-search";
+import {
+  catalogPagingFromSearch,
+  setCatalogSortSearch,
+  setSearchRange,
+} from "./list-search";
 
 export const emptyCpuFilter: CpuFilter = {
   name: "",
@@ -20,6 +24,7 @@ export function cpuListSearchFromParams(
 ): URLSearchParams {
   const search = new URLSearchParams();
   const filter = params.filter;
+  setCatalogSortSearch(search, params);
 
   if (params.pageIndex > 0) search.set("page", String(params.pageIndex));
   if (filter.name?.trim()) search.set("name", filter.name.trim());

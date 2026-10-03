@@ -25,7 +25,7 @@ internal static class NpgsqlEnumConfiguration
         options.MapEnum<DriveBayFormFactor>("drive_bay_form_factor");
         options.MapEnum<FanDiameterMm>("fan_diameter_mm");
         options.MapEnum<FanMountLocation>("fan_mount_location");
-        options.MapEnum<RadiatorLength>("radiator_length");
+        options.MapEnum<RadiatorClass>("radiator_class");
         options.MapEnum<RadiatorMountLocation>("radiator_mount_location");
         options.MapEnum<StorageFormFactor>("storage_form_factor");
         options.MapEnum<StorageInterface>("storage_interface");
@@ -37,6 +37,7 @@ internal static class NpgsqlEnumConfiguration
         options.MapEnum<UsbVersion>("usb_version");
         options.MapEnum<UsbType>("usb_type");
         options.MapEnum<PcBuildPartType>("pc_build_part_type");
+        options.MapEnum<ProductType>("product_type");
     }
 
     public static void ConfigurePostgresEnums(this ModelBuilder modelBuilder)
@@ -58,7 +59,7 @@ internal static class NpgsqlEnumConfiguration
         modelBuilder.HasPostgresEnum<DriveBayFormFactor>(name: "drive_bay_form_factor");
         modelBuilder.HasPostgresEnum<FanDiameterMm>(name: "fan_diameter_mm");
         modelBuilder.HasPostgresEnum<FanMountLocation>(name: "fan_mount_location");
-        modelBuilder.HasPostgresEnum<RadiatorLength>(name: "radiator_length");
+        modelBuilder.HasPostgresEnum<RadiatorClass>(name: "radiator_class");
         modelBuilder.HasPostgresEnum<RadiatorMountLocation>(name: "radiator_mount_location");
         modelBuilder.HasPostgresEnum<StorageFormFactor>(name: "storage_form_factor");
         modelBuilder.HasPostgresEnum<StorageInterface>(name: "storage_interface");
@@ -70,5 +71,6 @@ internal static class NpgsqlEnumConfiguration
         modelBuilder.HasPostgresEnum<UsbVersion>(name: "usb_version");
         modelBuilder.HasPostgresEnum<UsbType>(name: "usb_type");
         modelBuilder.HasPostgresEnum<PcBuildPartType>(name: "pc_build_part_type");
+        modelBuilder.HasPostgresEnum<ProductType>(name: "product_type");
     }
 }

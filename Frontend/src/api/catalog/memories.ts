@@ -1,5 +1,6 @@
 import { api } from "../client";
 import {
+  catalogApiSortField,
   hasCompleteRange,
   type PagedRequest,
   type PagedResult,
@@ -73,7 +74,7 @@ export function listMemories(params: MemoryListParams) {
   const paging = {
     pageIndex: params.pageIndex,
     pageSize: params.pageSize,
-    sortBy: params.sortBy ?? "name",
+    sortBy: catalogApiSortField(params.sortBy),
     sortDirection: params.sortDirection ?? "asc",
   };
 
@@ -118,5 +119,15 @@ function toMemoryFilterBody(filter: MemoryFilter): MemoryFilter {
 export function updateMemories(memories: MemoryDetail[]) {
   return api
     .put("/catalog/ram/bulk", { memories })
+    .then((response) => response.data);
+}
+
+export function updateMemory(memory: MemoryDetail) {
+  return api.put("/catalog/ram", memory).then((response) => response.data);
+}
+
+export function createMemory(memory: MemoryDetail) {
+  return api
+    .post<{ id: string }>("/catalog/ram", memory)
     .then((response) => response.data);
 }

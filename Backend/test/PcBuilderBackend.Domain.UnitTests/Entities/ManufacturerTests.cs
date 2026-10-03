@@ -1,5 +1,6 @@
 using FluentAssertions;
 using PcBuilderBackend.Domain.Entities;
+using PcBuilderBackend.Domain.Enums;
 
 namespace PcBuilderBackend.Domain.UnitTests.Entities;
 
@@ -40,5 +41,26 @@ public class ManufacturerTests
 
         manufacturer.Name.Should().Be("Seasonic");
         manufacturer.UpdatedAtUtc.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void SetProductTypes_stores_distinct_sorted_values()
+    {
+        var manufacturer = new Manufacturer("Cooler Master");
+
+        manufacturer.SetProductTypes([ProductType.Ram, ProductType.CpuCooler, ProductType.CpuCooler]);
+
+        manufacturer.ProductTypes.Should().Equal(ProductType.CpuCooler, ProductType.Ram);
+        manufacturer.UpdatedAtUtc.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void SetProductTypes_rejects_undefined_values()
+    {
+        var manufacturer = new Manufacturer("Cooler Master");
+
+        var act = () => manufacturer.SetProductTypes([(ProductType)int.MaxValue]);
+
+        act.Should().Throw<ArgumentException>().WithParameterName("productTypes");
     }
 }

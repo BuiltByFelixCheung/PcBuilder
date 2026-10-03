@@ -23,7 +23,8 @@ public class UpdateManufacturerHandler(
         if (entity == null || !entity.IsActive) return null;
 
         entity.Rename(request.Name);
-        entity.UpdatedAtUtc = DateTime.UtcNow;
+        if (request.ProductTypes is not null)
+            entity.SetProductTypes(request.ProductTypes);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         EntityLog.Updated(logger, EntityLog.Manufacturer, entity.Id);
         await cache.RemoveByPrefixAsync(MasterDataCacheKeys.Manufacturers.Prefix, cancellationToken);

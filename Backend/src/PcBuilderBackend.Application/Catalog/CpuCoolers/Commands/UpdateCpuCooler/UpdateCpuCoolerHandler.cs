@@ -27,11 +27,22 @@ public class UpdateCpuCoolerHandler(
         entity.Rename(request.Name);
         entity.UpdateManufacturer(request.ManufacturerId);
         entity.UpdateSpecs(
-            request.MaxTdp,
             request.Type,
             request.CoolerHeightMm,
             request.MaxRamHeightMm,
-            request.RadiatorLength);
+            request.RadiatorClass,
+            request.RadiatorLengthMm,
+            request.RadiatorWidthMm,
+            request.RadiatorHeightMm,
+            request.CoolerLengthMm,
+            request.CoolerWidthMm,
+            request.WaterBlockLengthMm,
+            request.WaterBlockWidthMm,
+            request.WaterBlockHeightMm,
+            request.FanThicknessMm,
+            request.FanWidthMm,
+            request.FanHeightMm,
+            request.FanCount);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

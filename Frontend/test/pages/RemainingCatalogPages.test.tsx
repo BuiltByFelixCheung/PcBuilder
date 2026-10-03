@@ -1,8 +1,8 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { PsuDetail } from "@/api/catalog/psus";
+import type { PsuDetail, PsuListItem } from "@/api/catalog/psus";
 import type { StorageDrive } from "@/api/catalog/storage-drives";
 import type { CpuCoolerDetail } from "@/api/catalog/cpu-coolers";
 import type { ChassisFan } from "@/api/catalog/chassis-fans";
@@ -11,6 +11,9 @@ import type { WirelessNetworkAdapter } from "@/api/catalog/wireless-network-adap
 
 const listPsus = vi.fn();
 const getPsuById = vi.fn();
+const updatePsu = vi.fn();
+const updatePsuCables = vi.fn();
+const updateCpuCoolerSockets = vi.fn();
 const listStorageDrives = vi.fn();
 const getStorageDriveById = vi.fn();
 const listCpuCoolers = vi.fn();
@@ -33,6 +36,8 @@ vi.mock("@/api/catalog/psus", async () => {
     ...actual,
     listPsus: (...args: unknown[]) => listPsus(...args),
     getPsuById: (...args: unknown[]) => getPsuById(...args),
+    updatePsu: (...args: unknown[]) => updatePsu(...args),
+    updatePsuCables: (...args: unknown[]) => updatePsuCables(...args),
   };
 });
 
@@ -55,6 +60,8 @@ vi.mock("@/api/catalog/cpu-coolers", async () => {
     ...actual,
     listCpuCoolers: (...args: unknown[]) => listCpuCoolers(...args),
     getCpuCoolerById: (...args: unknown[]) => getCpuCoolerById(...args),
+    updateCpuCoolerSockets: (...args: unknown[]) =>
+      updateCpuCoolerSockets(...args),
   };
 });
 
@@ -176,7 +183,6 @@ const cooler: CpuCoolerDetail = {
   name: "NH-D15",
   manufacturerId: "noctua",
   manufacturerName: "Noctua",
-  maxTdp: 220,
   type: "Air",
   coolerHeightMm: 165,
   sockets: [{ socketId: "am5", socketName: "AM5" }],
@@ -222,6 +228,9 @@ describe("remaining catalog pages", () => {
     listSockets.mockReset().mockResolvedValue([{ id: "am5", name: "AM5" }]);
     listPsus.mockReset().mockResolvedValue(paged(psu));
     getPsuById.mockReset().mockResolvedValue(psu);
+    updatePsu.mockReset().mockResolvedValue(undefined);
+    updatePsuCables.mockReset().mockResolvedValue([]);
+    updateCpuCoolerSockets.mockReset().mockResolvedValue([]);
     listStorageDrives.mockReset().mockResolvedValue(paged(drive));
     getStorageDriveById.mockReset().mockResolvedValue(drive);
     listCpuCoolers.mockReset().mockResolvedValue(paged(cooler));
@@ -268,6 +277,54 @@ describe("remaining catalog pages", () => {
     );
   });
 
+  it("saves a PSU list item and replaces cables", async () => {
+    const user = userEvent.setup();
+    renderWithQuery(
+      <Routes>
+        <Route path="/catalog/psus/:psuId" element={<PsuDetailPage />} />
+      </Routes>,
+      { route: "/catalog/psus/psu-1", isAdmin: true },
+    );
+    const title = await screen.findByRole("heading", { name: "RM850x" });
+    await user.click(
+      within(title.parentElement!).getByRole("button", { name: "Edit" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => {
+      expect(updatePsu).toHaveBeenCalledTimes(1);
+    });
+    const [saved] = updatePsu.mock.calls[0] as [PsuListItem];
+    expect(saved.name).toBe("RM850x");
+    expect(saved).not.toHaveProperty("cables");
+
+    await user.click(screen.getByRole("button", { name: "Edit cables" }));
+    await user.click(screen.getByRole("button", { name: "Remove row 1" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => {
+      expect(updatePsuCables).toHaveBeenCalledWith("psu-1", []);
+    });
+  });
+
+  it("replaces CPU cooler sockets", async () => {
+    const user = userEvent.setup();
+    renderWithQuery(
+      <Routes>
+        <Route
+          path="/catalog/cpu-coolers/:cpuCoolerId"
+          element={<CpuCoolerDetailPage />}
+        />
+      </Routes>,
+      { route: "/catalog/cpu-coolers/cooler-1", isAdmin: true },
+    );
+    await screen.findByRole("heading", { name: "NH-D15" });
+    await user.click(screen.getByRole("button", { name: "Edit sockets" }));
+    await user.click(screen.getByRole("checkbox", { name: "AM5" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => {
+      expect(updateCpuCoolerSockets).toHaveBeenCalledWith("cooler-1", []);
+    });
+  });
+
   it("lists storage and shows drive details", async () => {
     const list = renderWithQuery(<StorageListPage />, {
       route: "/catalog/storage",
@@ -306,6 +363,7 @@ describe("remaining catalog pages", () => {
       "href",
       "/catalog/cpu-coolers/cooler-1",
     );
+    await user.click(screen.getByRole("button", { name: "More filters" }));
     await user.type(screen.getByLabelText("Height (mm)"), "140");
     await user.type(screen.getByLabelText("Height max"), "170");
     await user.click(screen.getByRole("button", { name: "Apply filters" }));

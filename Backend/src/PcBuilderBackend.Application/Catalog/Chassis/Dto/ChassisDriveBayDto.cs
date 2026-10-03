@@ -2,4 +2,4 @@ using PcBuilderBackend.Domain.Enums;
 
 namespace PcBuilderBackend.Application.Catalog.Chassis.Dto;
 
-public record ChassisDriveBayDto(DriveBayFormFactor FormFactor, int SlotCount);
+public record ChassisDriveBayDto(DriveBayFormFactor[] FormFactors, int SlotCount);

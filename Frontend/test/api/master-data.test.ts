@@ -33,6 +33,7 @@ import {
   listSockets,
   masterDataKeys,
   updateChipset,
+  updateManufacturer,
 } from "@/api/master-data.ts";
 
 describe("master-data API", () => {
@@ -54,6 +55,16 @@ describe("master-data API", () => {
       "manufacturers",
       "cpu",
     ]);
+  });
+
+  it("updates a manufacturer with its id", async () => {
+    put.mockResolvedValue({ data: { id: "amd", name: "AMD", productTypes: ["Cpu"] } });
+    await updateManufacturer("amd", { name: "AMD", productTypes: ["Cpu"] });
+    expect(put).toHaveBeenCalledWith("/master-data/manufacturer", {
+      id: "amd",
+      name: "AMD",
+      productTypes: ["Cpu"],
+    });
   });
 
   it("lists manufacturers, sockets, and CPU series", async () => {

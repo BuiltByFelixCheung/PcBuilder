@@ -3,10 +3,9 @@ import type {
   RowData,
   RowSelectionState,
 } from "@tanstack/react-table";
-import { Link } from "react-router-dom";
 import { parseApiError } from "@/api/errors.ts";
+import { ManagementActions } from "@/components/ManagementActions";
 import { PageStatus } from "@/components/PageStatus";
-import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumns } from "@/components/ui/data-table";
 
 type MasterDataResultsProps<TData extends RowData> = {
@@ -78,36 +77,16 @@ export function MasterDataResults<TData extends RowData>({
           {deleteError}
         </p>
       ) : null}
-      <div className="catalog-results-actions">
-        <Button
-          type="button"
-          disabled={!hasSelection || !onEditSelected}
-          onClick={onEditSelected}
-        >
-          Edit Selected
-        </Button>
-        <Button
-          type="button"
-          variant="destructive"
-          disabled={!hasSelection || deleting}
-          onClick={onDeleteSelected}
-        >
-          {deleting ? "Deleting…" : "Delete Selected"}
-        </Button>
-        <Button asChild>
-          <Link
-            style={{ textDecoration: "none", color: "black" }}
-            to={newItemTo}
-          >
-            {newItemLabel}
-          </Link>
-        </Button>
-        {showImport ? (
-          <Button type="button" onClick={onImport}>
-            Import
-          </Button>
-        ) : null}
-      </div>
+      <ManagementActions
+        hasSelection={hasSelection}
+        deleting={deleting}
+        onEditSelected={onEditSelected}
+        onDeleteSelected={onDeleteSelected}
+        onImport={onImport}
+        showImport={showImport}
+        newItemLabel={newItemLabel}
+        newItemTo={newItemTo}
+      />
       {keepTableWhenEmpty ? (
         <>
           {emptyStatus}

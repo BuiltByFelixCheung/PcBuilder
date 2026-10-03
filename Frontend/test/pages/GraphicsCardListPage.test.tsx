@@ -32,6 +32,7 @@ vi.mock("@/api/master-data.ts", async () => {
 });
 
 import { GraphicsCardListPage } from "@/pages/catalog/graphics-cards/GraphicsCardListPage.tsx";
+import { chooseOption } from "../helpers/choose-option.ts";
 import { renderWithQuery } from "../helpers/query.tsx";
 
 const card: GraphicsCardListItem = {
@@ -113,13 +114,14 @@ describe("GraphicsCardListPage", () => {
     });
     await screen.findByRole("link", { name: "TUF RTX 4070" });
     await user.type(screen.getByLabelText("Name"), "4070");
-    await user.selectOptions(screen.getByLabelText("Manufacturer"), "asus");
+    await chooseOption(user, "Manufacturer", "ASUS");
+    await user.click(screen.getByRole("button", { name: "More filters" }));
     await user.selectOptions(
       screen.getByLabelText("GPU Manufacturer"),
       "nvidia",
     );
     await user.selectOptions(screen.getByLabelText("GPU Series"), "rtx40");
-    await user.selectOptions(screen.getByLabelText("GPU"), "4070");
+    await chooseOption(user, "GPU", "RTX 4070");
     await user.selectOptions(screen.getByLabelText("Video Memory"), "12");
     await user.click(screen.getByRole("button", { name: "Apply filters" }));
     expect(listGraphicsCards).toHaveBeenCalledWith(

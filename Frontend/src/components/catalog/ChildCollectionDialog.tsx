@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import axios from "axios";
+import { cn } from "cn";
 import { parseApiError } from "@/api/errors.ts";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,10 +33,90 @@ type ChildCollectionDialogProps<T> = {
   onSave: (rows: T[]) => Promise<void>;
 };
 
-type DraftRow<T> = {
+export type CollectionDraft<T> = {
   key: string;
   value: T;
 };
+
+type DraftRow<T> = CollectionDraft<T>;
+
+export function EditableCollectionTable<T>({
+  rows,
+  columns,
+  disabled = false,
+  addLabel = "Add row",
+  scrollable = false,
+  createRow,
+  onChange,
+}: Readonly<{
+  rows: readonly CollectionDraft<T>[];
+  columns: readonly ChildCollectionColumn<T>[];
+  disabled?: boolean;
+  addLabel?: string;
+  scrollable?: boolean;
+  createRow: () => T;
+  onChange: (rows: CollectionDraft<T>[]) => void;
+}>) {
+  function updateRow(key: string, next: T) {
+    onChange(rows.map((row) => (row.key === key ? { key, value: next } : row)));
+  }
+
+  function addRow() {
+    onChange([...rows, { key: newRowKey(), value: createRow() }]);
+  }
+
+  function removeRow(key: string) {
+    onChange(rows.filter((row) => row.key !== key));
+  }
+
+  return (
+    <div
+      className={cn(
+        "grid gap-3",
+        scrollable &&
+          "min-h-0 min-w-0 flex-1 overflow-y-auto **:data-[slot=table-container]:min-w-0 [&_select]:w-auto [&_select]:min-w-24",
+      )}
+    >
+      <Table className={scrollable ? "w-max min-w-full" : undefined}>
+        <TableHeader>
+          <TableRow>
+            {columns.map((column) => (
+              <TableHead key={column.header}>{column.header}</TableHead>
+            ))}
+            <TableHead />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((row, index) => (
+            <TableRow key={row.key}>
+              {columns.map((column) => (
+                <TableCell key={column.header} data-label={column.header}>
+                  {column.cell(row.value, (next) => updateRow(row.key, next))}
+                </TableCell>
+              ))}
+              <TableCell>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={disabled}
+                  aria-label={`Remove row ${index + 1}`}
+                  onClick={() => removeRow(row.key)}
+                >
+                  Remove
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <div>
+        <Button type="button" variant="outline" disabled={disabled} onClick={addRow}>
+          {addLabel}
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export function ChildCollectionDialog<T>({
   title,
@@ -50,23 +131,6 @@ export function ChildCollectionDialog<T>({
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  function updateRow(key: string, next: T) {
-    setDrafts((current) =>
-      current.map((row) => (row.key === key ? { key, value: next } : row)),
-    );
-  }
-
-  function addRow() {
-    setDrafts((current) => [
-      ...current,
-      { key: newRowKey(), value: createRow() },
-    ]);
-  }
-
-  function removeRow(key: string) {
-    setDrafts((current) => current.filter((row) => row.key !== key));
-  }
 
   async function save() {
     setSaving(true);
@@ -88,51 +152,24 @@ export function ChildCollectionDialog<T>({
         if (!open && !saving) onClose();
       }}
     >
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-full min-w-0 max-w-[calc(100%-2rem)] flex-col overflow-hidden sm:max-w-2xl">
+        <DialogHeader className="shrink-0">
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         {error ? (
-          <p className="form-error" role="alert">
+          <p className="form-error shrink-0" role="alert">
             {error}
           </p>
         ) : null}
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {columns.map((column) => (
-                <TableHead key={column.header}>{column.header}</TableHead>
-              ))}
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {drafts.map((row, index) => (
-              <TableRow key={row.key}>
-                {columns.map((column) => (
-                  <TableCell key={column.header}>
-                    {column.cell(row.value, (next) => updateRow(row.key, next))}
-                  </TableCell>
-                ))}
-                <TableCell>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={saving}
-                    aria-label={`Remove row ${index + 1}`}
-                    onClick={() => removeRow(row.key)}
-                  >
-                    Remove
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <DialogFooter>
-          <Button type="button" variant="outline" disabled={saving} onClick={addRow}>
-            Add row
-          </Button>
+        <EditableCollectionTable
+          rows={drafts}
+          columns={columns}
+          disabled={saving}
+          scrollable
+          createRow={createRow}
+          onChange={setDrafts}
+        />
+        <DialogFooter className="shrink-0">
           <Button
             type="button"
             variant="outline"

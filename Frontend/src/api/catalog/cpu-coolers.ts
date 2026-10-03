@@ -1,20 +1,20 @@
 import { api } from "../client";
 import {
+  catalogApiSortField,
   hasCompleteRange,
   type PagedRequest,
   type PagedResult,
   type RangeFilter,
 } from "../paging";
-import type { CpuCoolerType, RadiatorLength } from "../enums";
+import type { CpuCoolerType, RadiatorClass } from "../enums";
 
 export type CpuCoolerFilter = {
   manufacturerId?: string;
   name?: string;
   type?: CpuCoolerType;
-  maxTdp?: RangeFilter;
   coolerHeightMm?: RangeFilter;
   maxRamHeightMm?: RangeFilter;
-  radiatorLength?: RadiatorLength;
+  radiatorClass?: RadiatorClass;
   socketId?: string;
   cpuId?: string;
   chassisId?: string;
@@ -31,11 +31,22 @@ export type CpuCoolerListItem = {
   name: string;
   manufacturerId: string;
   manufacturerName: string;
-  maxTdp: number;
   type: CpuCoolerType;
+  coolerLengthMm?: number | null;
+  coolerWidthMm?: number | null;
   coolerHeightMm?: number | null;
   maxRamHeightMm?: number | null;
-  radiatorLength?: RadiatorLength | null;
+  radiatorClass?: RadiatorClass | null;
+  radiatorLengthMm?: number | null;
+  radiatorWidthMm?: number | null;
+  radiatorHeightMm?: number | null;
+  waterBlockLengthMm?: number | null;
+  waterBlockWidthMm?: number | null;
+  waterBlockHeightMm?: number | null;
+  fanThicknessMm?: number | null;
+  fanWidthMm?: number | null;
+  fanHeightMm?: number | null;
+  fanCount?: number | null;
 };
 
 export type CpuCoolerSocket = {
@@ -61,10 +72,9 @@ export function isCpuCoolerFilterActive(filter: CpuCoolerFilter): boolean {
     filter.name?.trim() ||
     filter.manufacturerId ||
     filter.type ||
-    hasCompleteRange(filter.maxTdp) ||
     hasCompleteRange(filter.coolerHeightMm) ||
     hasCompleteRange(filter.maxRamHeightMm) ||
-    filter.radiatorLength ||
+    filter.radiatorClass ||
     filter.socketId ||
     filter.cpuId ||
     filter.chassisId ||
@@ -77,7 +87,7 @@ export function listCpuCoolers(params: CpuCoolerListParams) {
   const paging = {
     pageIndex: params.pageIndex,
     pageSize: params.pageSize,
-    sortBy: params.sortBy ?? "name",
+    sortBy: catalogApiSortField(params.sortBy),
     sortDirection: params.sortDirection ?? "asc",
   };
 
@@ -108,14 +118,13 @@ function toCpuCoolerFilterBody(filter: CpuCoolerFilter): CpuCoolerFilter {
     name: filter.name?.trim() || undefined,
     manufacturerId: filter.manufacturerId,
     type: filter.type,
-    maxTdp: hasCompleteRange(filter.maxTdp) ? filter.maxTdp : undefined,
     coolerHeightMm: hasCompleteRange(filter.coolerHeightMm)
       ? filter.coolerHeightMm
       : undefined,
     maxRamHeightMm: hasCompleteRange(filter.maxRamHeightMm)
       ? filter.maxRamHeightMm
       : undefined,
-    radiatorLength: filter.radiatorLength,
+    radiatorClass: filter.radiatorClass,
     socketId: filter.socketId,
     cpuId: filter.cpuId,
     chassisId: filter.chassisId,
@@ -124,6 +133,54 @@ function toCpuCoolerFilterBody(filter: CpuCoolerFilter): CpuCoolerFilter {
   };
 }
 
+export function cpuCoolerListItem(detail: CpuCoolerDetail): CpuCoolerListItem {
+  return {
+    id: detail.id,
+    name: detail.name,
+    manufacturerId: detail.manufacturerId,
+    manufacturerName: detail.manufacturerName,
+    type: detail.type,
+    coolerLengthMm: detail.coolerLengthMm,
+    coolerWidthMm: detail.coolerWidthMm,
+    coolerHeightMm: detail.coolerHeightMm,
+    maxRamHeightMm: detail.maxRamHeightMm,
+    radiatorClass: detail.radiatorClass,
+    radiatorLengthMm: detail.radiatorLengthMm,
+    radiatorWidthMm: detail.radiatorWidthMm,
+    radiatorHeightMm: detail.radiatorHeightMm,
+    waterBlockLengthMm: detail.waterBlockLengthMm,
+    waterBlockWidthMm: detail.waterBlockWidthMm,
+    waterBlockHeightMm: detail.waterBlockHeightMm,
+    fanThicknessMm: detail.fanThicknessMm,
+    fanWidthMm: detail.fanWidthMm,
+    fanHeightMm: detail.fanHeightMm,
+    fanCount: detail.fanCount,
+  };
+}
+
 export function updateCpuCoolers(cpuCoolers: CpuCoolerListItem[]) {
   return api.put("/catalog/cpu-cooler/bulk", { cpuCoolers });
+}
+
+export function updateCpuCooler(cooler: CpuCoolerListItem) {
+  return api
+    .put("/catalog/cpu-cooler", cooler)
+    .then((response) => response.data);
+}
+
+export function updateCpuCoolerSockets(
+  cpuCoolerId: string,
+  sockets: CpuCoolerSocket[],
+) {
+  return api
+    .put<CpuCoolerSocket[]>(`/catalog/cpu-cooler/${cpuCoolerId}/socket`, sockets)
+    .then((response) => response.data);
+}
+
+export function createCpuCooler(
+  cooler: CpuCoolerListItem & { sockets: CpuCoolerSocket[] },
+) {
+  return api
+    .post<{ id: string }>("/catalog/cpu-cooler", cooler)
+    .then((response) => response.data);
 }

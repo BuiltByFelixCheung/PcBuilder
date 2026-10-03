@@ -61,6 +61,20 @@ describe("cpu API", () => {
     expect(post).not.toHaveBeenCalled();
   });
 
+  it("maps related name columns onto entity sort paths", async () => {
+    get.mockResolvedValue({
+      data: { items: [], totalCount: 0, pageIndex: 0, pageSize: 10 },
+    });
+    await listCpus({
+      ...paging,
+      sortBy: "manufacturerName",
+      filter: { name: "" },
+    });
+    expect(get).toHaveBeenCalledWith("/catalog/cpu", {
+      params: { ...paging, sortBy: "manufacturer.name" },
+    });
+  });
+
   it("lists with POST /query when a filter is set", async () => {
     post.mockResolvedValue({
       data: { items: [item], totalCount: 1, pageIndex: 0, pageSize: 10 },

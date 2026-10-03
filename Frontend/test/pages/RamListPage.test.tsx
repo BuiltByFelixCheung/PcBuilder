@@ -81,6 +81,7 @@ describe("RamListPage", () => {
     await screen.findByRole("link", { name: "Trident Z5" });
     await user.type(screen.getByLabelText("Name"), "Trident");
     await user.selectOptions(screen.getByLabelText("Manufacturer"), "gskill");
+    await user.click(screen.getByRole("button", { name: "More filters" }));
     await user.selectOptions(screen.getByLabelText("DDR Generation"), "Ddr5");
     await user.selectOptions(screen.getByLabelText("Module Size"), "16");
     await user.click(screen.getByRole("button", { name: "Apply filters" }));

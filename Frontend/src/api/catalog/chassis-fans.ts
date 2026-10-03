@@ -1,5 +1,9 @@
 import { api } from "../client";
-import type { PagedRequest, PagedResult } from "../paging";
+import {
+  catalogApiSortField,
+  type PagedRequest,
+  type PagedResult,
+} from "../paging";
 import type { FanDiameterMm } from "../enums";
 
 export type ChassisFanFilter = {
@@ -46,7 +50,7 @@ export function listChassisFans(params: ChassisFanListParams) {
   const paging = {
     pageIndex: params.pageIndex,
     pageSize: params.pageSize,
-    sortBy: params.sortBy ?? "name",
+    sortBy: catalogApiSortField(params.sortBy),
     sortDirection: params.sortDirection ?? "asc",
   };
 
@@ -79,5 +83,17 @@ export function getChassisFanById(id: string) {
 export function updateChassisFans(fans: ChassisFan[]) {
   return api
     .put<ChassisFan[]>("/catalog/chassis-fan/bulk", { fans })
+    .then((response) => response.data);
+}
+
+export function updateChassisFan(fan: ChassisFan) {
+  return api
+    .put("/catalog/chassis-fan", fan)
+    .then((response) => response.data);
+}
+
+export function createChassisFan(fan: ChassisFan) {
+  return api
+    .post<{ id: string }>("/catalog/chassis-fan", fan)
     .then((response) => response.data);
 }

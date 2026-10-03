@@ -1,5 +1,6 @@
 import { api } from "../client";
 import {
+  catalogApiSortField,
   hasCompleteRange,
   type PagedRequest,
   type PagedResult,
@@ -77,7 +78,7 @@ export function listStorageDrives(params: StorageDriveListParams) {
   const paging = {
     pageIndex: params.pageIndex,
     pageSize: params.pageSize,
-    sortBy: params.sortBy ?? "name",
+    sortBy: catalogApiSortField(params.sortBy),
     sortDirection: params.sortDirection ?? "asc",
   };
 
@@ -125,5 +126,17 @@ function toStorageDriveFilterBody(
 export function updateStorageDrives(storageDrives: StorageDrive[]) {
   return api
     .put("/catalog/storage-drive/bulk", { drives: storageDrives })
+    .then((response) => response.data);
+}
+
+export function updateStorageDrive(drive: StorageDrive) {
+  return api
+    .put("/catalog/storage-drive", drive)
+    .then((response) => response.data);
+}
+
+export function createStorageDrive(drive: StorageDrive) {
+  return api
+    .post<{ id: string }>("/catalog/storage-drive", drive)
     .then((response) => response.data);
 }

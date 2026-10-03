@@ -11,6 +11,7 @@ import type {
 } from "../../enums";
 import {
   catalogPagingFromSearch,
+  setCatalogSortSearch,
   setPageSearch,
   setSearchRange,
 } from "./list-search";
@@ -48,6 +49,7 @@ export function wiredNetworkAdapterListSearchFromParams(
 ): URLSearchParams {
   const search = new URLSearchParams();
   const filter = params.filter;
+  setCatalogSortSearch(search, params);
   setPageSearch(search, params.pageIndex);
   setSearchValue(search, "name", filter.name?.trim());
   setSearchValue(search, "manufacturerId", filter.manufacturerId);

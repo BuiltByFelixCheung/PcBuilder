@@ -27,11 +27,22 @@ public class BulkCreateCpuCoolersHandler(
             var entity = new CpuCooler(
                 dto.ManufacturerId,
                 dto.Name,
-                dto.MaxTdp,
                 dto.Type,
                 dto.CoolerHeightMm,
                 dto.MaxRamHeightMm,
-                dto.RadiatorLength);
+                dto.RadiatorClass,
+                dto.RadiatorLengthMm,
+                dto.RadiatorWidthMm,
+                dto.RadiatorHeightMm,
+                dto.CoolerLengthMm,
+                dto.CoolerWidthMm,
+                dto.WaterBlockLengthMm,
+                dto.WaterBlockWidthMm,
+                dto.WaterBlockHeightMm,
+                dto.FanThicknessMm,
+                dto.FanWidthMm,
+                dto.FanHeightMm,
+                dto.FanCount);
 
             CreateCpuCoolerHandler.ApplySockets(entity, dto.Sockets);
 

@@ -1,7 +1,14 @@
-import { toOptionalNumber } from "@/api/helper";
+import { Children, isValidElement, useState, type ReactNode } from "react";
+import { ChevronsUpDown } from "lucide-react";
+import { DecimalInput } from "@/components/catalog/DecimalInput";
 import type { RangeFilter } from "@/api/paging";
-import { Field, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { formSelectClassName, SelectField } from "@/components/filters/ListFilters";
 
 export {
@@ -20,12 +27,10 @@ export function CatalogCompatibleCheckbox({
 }>) {
   return (
     <Field orientation="horizontal">
-      <input
+      <Checkbox
         id="show-only-compatible"
-        type="checkbox"
-        className="size-4 shrink-0"
         checked={checked}
-        onChange={(event) => onCheckedChange(event.target.checked)}
+        onCheckedChange={(value) => onCheckedChange(value === true)}
       />
       <FieldLabel htmlFor="show-only-compatible">
         Show only compatible
@@ -51,30 +56,25 @@ export function CatalogRangeField({
     <Field>
       <FieldLabel htmlFor={`${id}-min`}>{label}</FieldLabel>
       <div className="flex gap-2">
-        <Input
+        <DecimalInput
           id={`${id}-min`}
-          type="number"
-          min={0}
           placeholder="Min"
-          value={range?.min ?? ""}
-          onChange={(event) =>
+          value={range?.min}
+          onValue={(min) =>
             onChange({
-              min: toOptionalNumber(event.target.value),
+              min,
               max: range?.max ?? null,
             })
           }
         />
-        <Input
-          id={`${id}-max`}
-          type="number"
-          min={0}
+        <DecimalInput
+          label={maxAriaLabel}
           placeholder="Max"
-          aria-label={maxAriaLabel}
-          value={range?.max ?? ""}
-          onChange={(event) =>
+          value={range?.max}
+          onValue={(max) =>
             onChange({
               min: range?.min ?? null,
-              max: toOptionalNumber(event.target.value),
+              max,
             })
           }
         />
@@ -144,6 +144,36 @@ export function CatalogEnumField<T extends string>({
       }))}
       onValueChange={(next) => onChange((next || undefined) as T | undefined)}
     />
+  );
+}
+
+const VISIBLE_FILTER_COUNT = 3;
+
+export function CatalogFilterGroup({
+  children,
+}: Readonly<{ children: ReactNode }>) {
+  const fields = Children.toArray(children).filter((child) =>
+    isValidElement(child),
+  );
+  const visible = fields.slice(0, VISIBLE_FILTER_COUNT);
+  const extra = fields.slice(VISIBLE_FILTER_COUNT);
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <FieldGroup className="catalog-filter-grid">{visible}</FieldGroup>
+      {extra.length > 0 ? (
+        <Collapsible open={open} onOpenChange={setOpen}>
+          <CollapsibleContent className="catalog-filter-more-fields">
+            <FieldGroup className="catalog-filter-grid">{extra}</FieldGroup>
+          </CollapsibleContent>
+          <CollapsibleTrigger className="catalog-filter-more">
+            {open ? "Fewer filters" : "More filters"}
+            <ChevronsUpDown />
+          </CollapsibleTrigger>
+        </Collapsible>
+      ) : null}
+    </>
   );
 }
 

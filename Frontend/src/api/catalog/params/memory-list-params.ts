@@ -1,7 +1,11 @@
 import type { MemoryFilter, MemoryListParams } from "../memories";
 import { toInteger, emptyToUndefined, parseRange } from "../../helper";
 import type { DdrGeneration, RamRank, RamFormFactor } from "../../enums";
-import { catalogPagingFromSearch, setSearchRange } from "./list-search";
+import {
+  catalogPagingFromSearch,
+  setCatalogSortSearch,
+  setSearchRange,
+} from "./list-search";
 
 export const emptyMemoryFilter: MemoryFilter = {
   name: undefined,
@@ -21,6 +25,7 @@ export function memoryListSearchFromParams(
 ): URLSearchParams {
   const search = new URLSearchParams();
   const filter = params.filter;
+  setCatalogSortSearch(search, params);
 
   if (params.pageIndex > 0) search.set("page", String(params.pageIndex));
   if (filter.name?.trim()) search.set("name", filter.name.trim());

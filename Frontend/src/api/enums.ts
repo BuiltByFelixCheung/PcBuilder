@@ -77,13 +77,19 @@ export function formatFanDiameterMm(diameter: FanDiameterMm): string {
   return `${stripMmPrefix(diameter)} mm`;
 }
 
-export const DRIVE_BAY_FORM_FACTORS = ["2.5", "3.5", "5.25"] as const;
+export const DRIVE_BAY_FORM_FACTORS = ["Inch25", "Inch35", "Inch525"] as const;
 export type DriveBayFormFactor = (typeof DRIVE_BAY_FORM_FACTORS)[number];
+
+export function formatDriveBayFormFactor(formFactor: DriveBayFormFactor): string {
+  if (formFactor === "Inch25") return "2.5";
+  if (formFactor === "Inch35") return "3.5";
+  return "5.25";
+}
 
 export const PCIE_SLOT_ORIENTATIONS = ["Vertical", "Horizontal"] as const;
 export type PcieSlotOrientation = (typeof PCIE_SLOT_ORIENTATIONS)[number];
 
-export const RADIATOR_LENGTHS = [
+export const RADIATOR_CLASSES = [
   "Mm120",
   "Mm140",
   "Mm240",
@@ -91,9 +97,9 @@ export const RADIATOR_LENGTHS = [
   "Mm360",
   "Mm420",
 ] as const;
-export type RadiatorLength = (typeof RADIATOR_LENGTHS)[number];
+export type RadiatorClass = (typeof RADIATOR_CLASSES)[number];
 
-export function formatRadiatorLength(length: RadiatorLength): string {
+export function formatRadiatorClass(length: RadiatorClass): string {
   return `${stripMmPrefix(length)} mm`;
 }
 

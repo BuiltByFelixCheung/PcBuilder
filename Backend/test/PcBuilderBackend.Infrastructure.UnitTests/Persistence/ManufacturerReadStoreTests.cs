@@ -28,4 +28,17 @@ public class ManufacturerReadStoreTests
         act.Should().Throw<ArgumentOutOfRangeException>()
             .WithParameterName("productType");
     }
+
+    [Fact]
+    public void FilterByProductType_matches_assigned_lines()
+    {
+        var manufacturer = new Manufacturer("Cooler Master");
+        manufacturer.SetProductTypes([ProductType.CpuCooler]);
+        var source = new[] { manufacturer }.AsQueryable();
+
+        ManufacturerReadStore.FilterByProductType(source, ProductType.CpuCooler)
+            .Should().ContainSingle()
+            .Which.Should().BeSameAs(manufacturer);
+        ManufacturerReadStore.FilterByProductType(source, ProductType.Ram).Should().BeEmpty();
+    }
 }
