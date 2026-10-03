@@ -284,8 +284,7 @@ function chipsetOptions(
   );
   for (const chipset of selected) {
     if (options.some((option) => option.id === chipset.chipsetId)) continue;
-    const known = chipsets.find((option) => option.id === chipset.chipsetId);
-    if (known) continue;
+    if (chipsets.some((option) => option.id === chipset.chipsetId)) continue;
     options.push({
       id: chipset.chipsetId,
       name: chipset.chipsetName,

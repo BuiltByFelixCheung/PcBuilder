@@ -12,8 +12,7 @@ public class GraphicsCardRepository(PcBuilderDbContext db) : IGraphicsCardReposi
     
     public async Task<GraphicsCard?> GetWithChildrenAsync(Guid id, CancellationToken cancellationToken) =>
         await db.GraphicsCards
-            .Include(x => x.Gpu)
-            .ThenInclude(x => x.Series)
+            .Include(x => x.Gpu.Series)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     
     public async Task<IReadOnlyList<GraphicsCard>> GetByIdsAsync(

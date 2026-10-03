@@ -1,13 +1,9 @@
-using PcBuilderBackend.Application.Catalog.CpuCoolers;
 using PcBuilderBackend.Domain.Enums;
 
-namespace PcBuilderBackend.Application.Catalog.CpuCoolers.Dto;
+namespace PcBuilderBackend.Domain.ValueObjects;
 
-public class CpuCoolerImportRow : ICpuCoolerFields
+public record CpuCoolerSpecs
 {
-    public int RowNumber { get; init; }
-    public string Name { get; init; } = string.Empty;
-    public Guid ManufacturerId { get; init; }
     public CpuCoolerType Type { get; init; }
     public decimal? CoolerLengthMm { get; init; }
     public decimal? CoolerWidthMm { get; init; }
@@ -24,5 +20,4 @@ public class CpuCoolerImportRow : ICpuCoolerFields
     public decimal? FanWidthMm { get; init; }
     public decimal? FanHeightMm { get; init; }
     public int? FanCount { get; init; }
-    public List<CpuCoolerSocketImportRow> Sockets { get; init; } = [];
 }

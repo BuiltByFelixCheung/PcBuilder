@@ -39,15 +39,26 @@ internal static class ManufacturerProductTypeGuard
                 throw new InvalidOperationException(
                     $"No product type is registered for {entry.Entity.GetType().Name}.");
 
-            var manufacturer = context.Set<Manufacturer>().Find(entry.Entity.ManufacturerId)
-                ?? throw new ArgumentException(
-                    "Manufacturer was not found.",
-                    nameof(ProductEntity.ManufacturerId));
-
-            if (!manufacturer.ProductTypes.Contains(productType))
-                throw new ArgumentException(
-                    $"{manufacturer.Name} does not produce {productType}.",
-                    nameof(ProductEntity.ManufacturerId));
+            var manufacturerId = entry.Entity.ManufacturerId;
+            var manufacturer = FindManufacturer(context, manufacturerId);
+            EnsureProductLine(manufacturer, productType, manufacturerId);
         }
+    }
+
+    private static Manufacturer FindManufacturer(DbContext context, Guid manufacturerId) =>
+        context.Set<Manufacturer>().Find(manufacturerId)
+            ?? throw new ArgumentException(
+                "Manufacturer was not found.",
+                nameof(manufacturerId));
+
+    private static void EnsureProductLine(
+        Manufacturer manufacturer,
+        ProductType productType,
+        Guid manufacturerId)
+    {
+        if (!manufacturer.ProductTypes.Contains(productType))
+            throw new ArgumentException(
+                $"{manufacturer.Name} does not produce {productType}.",
+                nameof(manufacturerId));
     }
 }

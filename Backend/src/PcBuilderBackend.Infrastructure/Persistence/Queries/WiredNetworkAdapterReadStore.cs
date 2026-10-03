@@ -65,6 +65,7 @@ public sealed class WiredNetworkAdapterReadStore(PcBuilderDbContext db, IMapper 
             .AsNoTracking()
             .Include(m => m.PcieSlots)
             .Include(m => m.UsbPorts)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(m => m.Id == filter.MotherboardId.Value, cancellationToken);
 
         if (motherboard is null)

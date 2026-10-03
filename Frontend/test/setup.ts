@@ -3,9 +3,15 @@ import { cleanup } from "@testing-library/react";
 import { afterEach } from "vitest";
 
 class ResizeObserverStub {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  observe() {
+    // jsdom has no ResizeObserver; tests only need the interface.
+  }
+  unobserve() {
+    // jsdom has no ResizeObserver; tests only need the interface.
+  }
+  disconnect() {
+    // jsdom has no ResizeObserver; tests only need the interface.
+  }
 }
 
 globalThis.ResizeObserver = ResizeObserverStub;

@@ -75,6 +75,7 @@ public sealed class WirelessNetworkAdapterReadStore(PcBuilderDbContext db, IMapp
             .Include(m => m.UsbPorts)
             .Include(m => m.M2Slots)
             .ThenInclude(s => s.FormFactors)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(m => m.Id == filter.MotherboardId.Value, cancellationToken);
 
         if (motherboard is null)

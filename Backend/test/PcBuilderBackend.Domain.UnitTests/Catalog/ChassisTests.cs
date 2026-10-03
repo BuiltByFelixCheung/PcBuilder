@@ -159,10 +159,28 @@ public class ChassisTests
         var chassis = Create();
         chassis.AddRadiator(new ChassisRadiator(chassis.Id, RadiatorClass.Mm360, RadiatorMountLocation.Top, 1));
 
-        var airOk = new CpuCooler(ManufacturerId, "NH-D15", CpuCoolerType.Air, 150, 35, null);
-        var airTall = new CpuCooler(ManufacturerId, "Tall", CpuCoolerType.Air, 180, 35, null);
-        var aio = new CpuCooler(ManufacturerId, "360", CpuCoolerType.Water, null, null, RadiatorClass.Mm360);
-        var aioWrong = new CpuCooler(ManufacturerId, "240", CpuCoolerType.Water, null, null, RadiatorClass.Mm240);
+        var airOk = new CpuCooler(ManufacturerId, "NH-D15", new CpuCoolerSpecs
+        {
+            Type = CpuCoolerType.Air,
+            CoolerHeightMm = 150,
+            MaxRamHeightMm = 35
+        });
+        var airTall = new CpuCooler(ManufacturerId, "Tall", new CpuCoolerSpecs
+        {
+            Type = CpuCoolerType.Air,
+            CoolerHeightMm = 180,
+            MaxRamHeightMm = 35
+        });
+        var aio = new CpuCooler(ManufacturerId, "360", new CpuCoolerSpecs
+        {
+            Type = CpuCoolerType.Water,
+            RadiatorClass = RadiatorClass.Mm360
+        });
+        var aioWrong = new CpuCooler(ManufacturerId, "240", new CpuCoolerSpecs
+        {
+            Type = CpuCoolerType.Water,
+            RadiatorClass = RadiatorClass.Mm240
+        });
 
         chassis.CheckCpuCoolerCompatibility(airOk).Should().BeTrue();
         chassis.CheckCpuCoolerCompatibility(airTall).Should().BeFalse();

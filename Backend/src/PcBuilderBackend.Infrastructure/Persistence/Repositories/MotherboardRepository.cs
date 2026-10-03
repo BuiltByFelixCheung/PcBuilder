@@ -16,6 +16,7 @@ public class MotherboardRepository(PcBuilderDbContext db) : IMotherboardReposito
             .Include(x => x.M2Slots)
                 .ThenInclude(x => x.FormFactors)
             .Include(x => x.UsbPorts)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     
     public async Task<IReadOnlyList<Motherboard>> GetByIdsAsync(

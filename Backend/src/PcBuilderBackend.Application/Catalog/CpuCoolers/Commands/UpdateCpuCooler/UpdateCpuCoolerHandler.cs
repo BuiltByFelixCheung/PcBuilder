@@ -1,6 +1,7 @@
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using PcBuilderBackend.Application.Catalog.CpuCoolers;
 using PcBuilderBackend.Application.Catalog.CpuCoolers.Dto;
 using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.Common.Logging;
@@ -26,23 +27,7 @@ public class UpdateCpuCoolerHandler(
 
         entity.Rename(request.Name);
         entity.UpdateManufacturer(request.ManufacturerId);
-        entity.UpdateSpecs(
-            request.Type,
-            request.CoolerHeightMm,
-            request.MaxRamHeightMm,
-            request.RadiatorClass,
-            request.RadiatorLengthMm,
-            request.RadiatorWidthMm,
-            request.RadiatorHeightMm,
-            request.CoolerLengthMm,
-            request.CoolerWidthMm,
-            request.WaterBlockLengthMm,
-            request.WaterBlockWidthMm,
-            request.WaterBlockHeightMm,
-            request.FanThicknessMm,
-            request.FanWidthMm,
-            request.FanHeightMm,
-            request.FanCount);
+        entity.UpdateSpecs(request.ToSpecs());
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

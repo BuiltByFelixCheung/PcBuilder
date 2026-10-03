@@ -47,13 +47,7 @@ export function SocketCheckboxGroup({
                 <Checkbox
                   checked={checked}
                   onCheckedChange={(next) =>
-                    onChange(
-                      next === true
-                        ? selectedIds.includes(socket.id)
-                          ? [...selectedIds]
-                          : [...selectedIds, socket.id]
-                        : selectedIds.filter((id) => id !== socket.id),
-                    )
+                    onChange(nextSocketIds(selectedIds, socket.id, next === true))
                   }
                 />
                 {socket.name}
@@ -64,6 +58,16 @@ export function SocketCheckboxGroup({
       ))}
     </fieldset>
   );
+}
+
+function nextSocketIds(
+  selectedIds: readonly string[],
+  socketId: string,
+  checked: boolean,
+) {
+  if (!checked) return selectedIds.filter((id) => id !== socketId);
+  if (selectedIds.includes(socketId)) return [...selectedIds];
+  return [...selectedIds, socketId];
 }
 
 function selectedSockets(

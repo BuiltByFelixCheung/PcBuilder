@@ -15,6 +15,7 @@ public sealed class CpuRepository(PcBuilderDbContext db) : ICpuRepository
             .Include(x => x.RamCompats)
             .Include(x => x.SupportedChipsets)
                 .ThenInclude(x => x.Chipset)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
     public async Task<IReadOnlyList<Cpu>> GetByIdsAsync(

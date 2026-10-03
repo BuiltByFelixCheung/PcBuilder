@@ -9,12 +9,12 @@
       (function () {
         try {
           var stored = localStorage.getItem("theme");
-          var theme =
-            stored === "light" || stored === "dark"
-              ? stored
-              : window.matchMedia("(prefers-color-scheme: dark)").matches
-                ? "dark"
-                : "light";
+          var theme = "light";
+          if (stored === "light" || stored === "dark") {
+            theme = stored;
+          } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            theme = "dark";
+          }
           document.documentElement.classList.toggle("dark", theme === "dark");
         } catch {
           /* keep the light palette when storage is unavailable */

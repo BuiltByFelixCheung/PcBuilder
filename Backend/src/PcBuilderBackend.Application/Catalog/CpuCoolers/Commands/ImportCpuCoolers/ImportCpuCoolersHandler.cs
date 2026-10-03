@@ -1,6 +1,7 @@
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using PcBuilderBackend.Application.Catalog.CpuCoolers;
 using PcBuilderBackend.Application.Catalog.CpuCoolers.Commands.CreateCpuCooler;
 using PcBuilderBackend.Application.Catalog.CpuCoolers.Dto;
 using PcBuilderBackend.Application.Common.Interfaces;
@@ -34,25 +35,7 @@ public class ImportCpuCoolersHandler(
 
         foreach (var row in rows)
         {
-            var entity = new CpuCooler(
-                row.ManufacturerId,
-                row.Name,
-                row.Type,
-                row.CoolerHeightMm,
-                row.MaxRamHeightMm,
-                row.RadiatorClass,
-                row.RadiatorLengthMm,
-                row.RadiatorWidthMm,
-                row.RadiatorHeightMm,
-                row.CoolerLengthMm,
-                row.CoolerWidthMm,
-                row.WaterBlockLengthMm,
-                row.WaterBlockWidthMm,
-                row.WaterBlockHeightMm,
-                row.FanThicknessMm,
-                row.FanWidthMm,
-                row.FanHeightMm,
-                row.FanCount);
+            var entity = new CpuCooler(row.ManufacturerId, row.Name, row.ToSpecs());
 
             CreateCpuCoolerHandler.ApplySockets(
                 entity,

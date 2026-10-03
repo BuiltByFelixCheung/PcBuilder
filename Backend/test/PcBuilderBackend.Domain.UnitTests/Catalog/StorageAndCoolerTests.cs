@@ -94,19 +94,18 @@ public class StorageAndCoolerTests
     [Fact]
     public void Air_cooler_requires_heights_and_checks_cpu_tdp_and_ram_clearance()
     {
-        var cooler = new CpuCooler(
-            ManufacturerId,
-            "NH-D15",
-            CpuCoolerType.Air,
-            165,
-            32,
-            null,
-            coolerLengthMm: 150,
-            coolerWidthMm: 135,
-            fanThicknessMm: 140,
-            fanWidthMm: 150,
-            fanHeightMm: 25,
-            fanCount: 2);
+        var cooler = new CpuCooler(ManufacturerId, "NH-D15", new CpuCoolerSpecs
+        {
+            Type = CpuCoolerType.Air,
+            CoolerHeightMm = 165,
+            MaxRamHeightMm = 32,
+            CoolerLengthMm = 150,
+            CoolerWidthMm = 135,
+            FanThicknessMm = 140,
+            FanWidthMm = 150,
+            FanHeightMm = 25,
+            FanCount = 2
+        });
         cooler.CoolerLengthMm.Should().Be(150);
         cooler.CoolerWidthMm.Should().Be(135);
         cooler.FanThicknessMm.Should().Be(140);
@@ -182,19 +181,17 @@ public class StorageAndCoolerTests
     [Fact]
     public void Liquid_cooler_requires_radiator_class_and_stores_optional_dimensions()
     {
-        var ok = new CpuCooler(
-            ManufacturerId,
-            "360",
-            CpuCoolerType.Water,
-            null,
-            null,
-            RadiatorClass.Mm360,
-            394,
-            120,
-            27,
-            waterBlockLengthMm: 78,
-            waterBlockWidthMm: 72,
-            waterBlockHeightMm: 55);
+        var ok = new CpuCooler(ManufacturerId, "360", new CpuCoolerSpecs
+        {
+            Type = CpuCoolerType.Water,
+            RadiatorClass = RadiatorClass.Mm360,
+            RadiatorLengthMm = 394,
+            RadiatorWidthMm = 120,
+            RadiatorHeightMm = 27,
+            WaterBlockLengthMm = 78,
+            WaterBlockWidthMm = 72,
+            WaterBlockHeightMm = 55
+        });
         ok.CoolerHeightMm.Should().BeNull();
         ok.CoolerLengthMm.Should().BeNull();
         ok.RadiatorLengthMm.Should().Be(394);
@@ -204,7 +201,10 @@ public class StorageAndCoolerTests
         ok.WaterBlockWidthMm.Should().Be(72);
         ok.WaterBlockHeightMm.Should().Be(55);
 
-        var missing = () => new CpuCooler(ManufacturerId, "360", CpuCoolerType.Water, null, null, null);
+        var missing = () => new CpuCooler(ManufacturerId, "360", new CpuCoolerSpecs
+        {
+            Type = CpuCoolerType.Water
+        });
         missing.Should().Throw<ArgumentException>().WithParameterName("radiatorClass");
     }
 

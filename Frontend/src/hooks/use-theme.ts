@@ -20,7 +20,7 @@ function applyTheme(theme: Theme) {
 }
 
 export function useTheme() {
-  const [theme, setThemeState] = useState<Theme>(
+  const [theme, setTheme] = useState<Theme>(
     () => storedTheme() ?? systemTheme(),
   );
 
@@ -32,16 +32,16 @@ export function useTheme() {
     if (typeof window.matchMedia !== "function") return;
     const query = window.matchMedia(DARK_QUERY);
     const onChange = () => {
-      if (storedTheme() == null) setThemeState(systemTheme());
+      if (storedTheme() == null) setTheme(systemTheme());
     };
     query.addEventListener("change", onChange);
     return () => query.removeEventListener("change", onChange);
   }, []);
 
-  function setTheme(next: Theme) {
+  function persistTheme(next: Theme) {
     localStorage.setItem(STORAGE_KEY, next);
-    setThemeState(next);
+    setTheme(next);
   }
 
-  return { theme, setTheme };
+  return { theme, setTheme: persistTheme };
 }

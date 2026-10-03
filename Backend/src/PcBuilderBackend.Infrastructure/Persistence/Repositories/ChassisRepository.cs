@@ -18,6 +18,7 @@ public class ChassisRepository(PcBuilderDbContext db) : IChassisRepository
             .Include(x => x.PcieSlots)
             .Include(x => x.PsuFormFactors)
             .Include(x => x.Radiators)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
     public async Task<IReadOnlyList<Chassis>> GetByIdsAsync(

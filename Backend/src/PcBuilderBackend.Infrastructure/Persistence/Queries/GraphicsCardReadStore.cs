@@ -15,8 +15,7 @@ public class GraphicsCardReadStore(PcBuilderDbContext db, IMapper mapper) : IGra
     public async Task<GraphicsCardDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
         await db.GraphicsCards
             .AsNoTracking()
-            .Include(x => x.Gpu)
-            .ThenInclude(x => x.Series)
+            .Include(x => x.Gpu.Series)
             .Where(x => x.Id == id && x.IsActive)
             .ProjectTo<GraphicsCardDto>(mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);
@@ -25,8 +24,7 @@ public class GraphicsCardReadStore(PcBuilderDbContext db, IMapper mapper) : IGra
         CancellationToken cancellationToken) =>
         await db.GraphicsCards
             .AsNoTracking()
-            .Include(x => x.Gpu)
-            .ThenInclude(x => x.Series)
+            .Include(x => x.Gpu.Series)
             .ApplySorting(request.SortFields, request.SortDirection)
             .ToPagedResultAsync<GraphicsCard, GraphicsCardListItemDto>(
                 request.PageIndex,
@@ -41,8 +39,7 @@ public class GraphicsCardReadStore(PcBuilderDbContext db, IMapper mapper) : IGra
 
         var queryable = db.GraphicsCards.AsNoTracking()
             .Include(x => x.Manufacturer)
-            .Include(x => x.Gpu)
-            .ThenInclude(x => x.Series)
+            .Include(x => x.Gpu.Series)
             .WhereIfHasText(filter.Name, name => x => x.Name.Contains(name))
             .WhereIf(filter.ManufacturerId.HasValue, x => x.ManufacturerId == filter.ManufacturerId)
             .WhereIf(filter.GpuId.HasValue, x => x.GpuId == filter.GpuId)

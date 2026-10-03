@@ -15,6 +15,7 @@ public class CatalogRepository(PcBuilderDbContext context) : ICatalogRepository
             .Include(c => c.PsuFormFactors)
             .Include(c => c.MbFormFactors)
             .Include(c => c.Radiators)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(c => c.Id == id);
 
     public Task<ChassisFan?> GetChassisFanByIdAsync(Guid id) =>
@@ -28,6 +29,7 @@ public class CatalogRepository(PcBuilderDbContext context) : ICatalogRepository
             .Include(c => c.Socket)
             .Include(c => c.RamCompats)
             .Include(c => c.SupportedChipsets)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(c => c.Id == id);
 
     public Task<CpuCooler?> GetCpuCoolerByIdAsync(Guid id) =>
@@ -45,6 +47,7 @@ public class CatalogRepository(PcBuilderDbContext context) : ICatalogRepository
             .Include(m => m.M2Slots)
             .ThenInclude(s => s.FormFactors)
             .Include(m => m.UsbPorts)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(m => m.Id == id);
 
     public Task<Ram?> GetRamByIdAsync(Guid id) =>

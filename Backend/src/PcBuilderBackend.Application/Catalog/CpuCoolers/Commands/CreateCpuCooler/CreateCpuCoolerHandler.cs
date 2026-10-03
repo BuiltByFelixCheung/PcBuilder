@@ -1,6 +1,7 @@
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using PcBuilderBackend.Application.Catalog.CpuCoolers;
 using PcBuilderBackend.Application.Catalog.CpuCoolers.Dto;
 using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.Common.Logging;
@@ -17,25 +18,7 @@ public class CreateCpuCoolerHandler(
 {
     public async Task<CpuCoolerDto> Handle(CreateCpuCoolerCommand request, CancellationToken cancellationToken)
     {
-        var entity = new CpuCooler(
-            request.ManufacturerId,
-            request.Name,
-            request.Type,
-            request.CoolerHeightMm,
-            request.MaxRamHeightMm,
-            request.RadiatorClass,
-            request.RadiatorLengthMm,
-            request.RadiatorWidthMm,
-            request.RadiatorHeightMm,
-            request.CoolerLengthMm,
-            request.CoolerWidthMm,
-            request.WaterBlockLengthMm,
-            request.WaterBlockWidthMm,
-            request.WaterBlockHeightMm,
-            request.FanThicknessMm,
-            request.FanWidthMm,
-            request.FanHeightMm,
-            request.FanCount);
+        var entity = new CpuCooler(request.ManufacturerId, request.Name, request.ToSpecs());
 
         ApplySockets(entity, request.Sockets);
 

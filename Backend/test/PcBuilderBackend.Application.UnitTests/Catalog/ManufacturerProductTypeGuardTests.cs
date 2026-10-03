@@ -23,7 +23,7 @@ public class ManufacturerProductTypeGuardTests
 
         act.Should().Throw<ArgumentException>()
             .WithMessage("Kingston does not produce Socket.*")
-            .WithParameterName("ManufacturerId");
+            .WithParameterName("manufacturerId");
     }
 
     [Fact]

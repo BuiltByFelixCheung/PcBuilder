@@ -581,7 +581,12 @@ public class CatalogReadStoreTests : IDisposable
 
     private CpuCooler SeedCpuCooler(string name)
     {
-        var cooler = new CpuCooler(_manufacturer.Id, name, CpuCoolerType.Air, 165, 32, null);
+        var cooler = new CpuCooler(_manufacturer.Id, name, new CpuCoolerSpecs
+        {
+            Type = CpuCoolerType.Air,
+            CoolerHeightMm = 165,
+            MaxRamHeightMm = 32
+        });
         cooler.AddCpuCoolerSocket(new CpuCoolerSocket(cooler.Id, _socket.Id));
         _db.CpuCoolers.Add(cooler);
         _db.SaveChanges();
