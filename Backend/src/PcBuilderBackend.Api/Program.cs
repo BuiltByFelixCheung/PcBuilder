@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using InfisicalConfiguration;
+using Microsoft.AspNetCore.HttpOverrides;
 using PcBuilderBackend.Api.Endpoints.Auth;
 using PcBuilderBackend.Api.Endpoints.Build;
 using PcBuilderBackend.Api.Endpoints.Catalog;
@@ -50,11 +51,19 @@ builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApiAuthentication(builder.Configuration);
 builder.Services.AddAntiforgery();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
+app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
 {

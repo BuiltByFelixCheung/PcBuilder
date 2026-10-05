@@ -1,0 +1,17 @@
+.git
+.github
+.idea
+.vscode
+**/.vs
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/coverage
+**/*.user
+Datasheets
+Backend/test
+.sonarqube
+.sonarlint
+_inspect_xlsx
+_xlsx_tmp
