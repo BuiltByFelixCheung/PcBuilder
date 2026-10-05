@@ -18,13 +18,15 @@ namespace PcBuilderBackend.Application.UnitTests.Auth;
 public class AuthTests
 {
     [Fact]
-    public void Register_validator_requires_email_password_and_names()
+    public void Register_validator_requires_email_password_and_username()
     {
         var validator = new RegisterCommandValidator();
 
-        validator.Validate(new RegisterCommand("", "short", "", "")).IsValid.Should().BeFalse();
-        validator.Validate(new RegisterCommand("user@localhost", "ChangeMe!12", "Ada", "Lovelace"))
+        validator.Validate(new RegisterCommand("", "short", "")).IsValid.Should().BeFalse();
+        validator.Validate(new RegisterCommand("user@localhost", "ChangeMe!12", "Ada"))
             .IsValid.Should().BeTrue();
+        validator.Validate(new RegisterCommand("user@localhost", "ChangeMe!12", "user@localhost"))
+            .IsValid.Should().BeFalse();
     }
 
     [Fact]
@@ -42,13 +44,13 @@ public class AuthTests
         var identity = Substitute.For<IIdentityService>();
         var expected = new RegisterResultDto(
             true,
-            new CurrentUserDto(Guid.NewGuid(), "a@b.c", "Ada", "Lovelace", ["Member"]),
+            new CurrentUserDto(Guid.NewGuid(), "a@b.c", "Ada", ["Member"]),
             new Dictionary<string, string[]>());
-        identity.RegisterMemberAsync("a@b.c", "pw", "Ada", "Lovelace", Arg.Any<CancellationToken>())
+        identity.RegisterMemberAsync("a@b.c", "pw", "Ada", Arg.Any<CancellationToken>())
             .Returns(expected);
 
         var result = await new RegisterHandler(identity)
-            .Handle(new RegisterCommand("a@b.c", "pw", "Ada", "Lovelace"), CancellationToken.None);
+            .Handle(new RegisterCommand("a@b.c", "pw", "Ada"), CancellationToken.None);
 
         result.Should().Be(expected);
     }
@@ -58,7 +60,7 @@ public class AuthTests
     {
         var identity = Substitute.For<IIdentityService>();
         var tokens = Substitute.For<ITokenService>();
-        var user = new CurrentUserDto(Guid.NewGuid(), "a@b.c", "Ada", "Lovelace", ["Member"]);
+        var user = new CurrentUserDto(Guid.NewGuid(), "a@b.c", "Ada", ["Member"]);
 
         identity.PasswordSignInAsync("a@b.c", "pw", Arg.Any<CancellationToken>())
             .Returns(new PasswordSignInResultDto(false, true, null));
@@ -89,7 +91,7 @@ public class AuthTests
         var tokens = Substitute.For<ITokenService>();
         var identity = Substitute.For<IIdentityService>();
         var current = Substitute.For<ICurrentUser>();
-        var user = new CurrentUserDto(Guid.NewGuid(), "a@b.c", "Ada", "Lovelace", ["Member"]);
+        var user = new CurrentUserDto(Guid.NewGuid(), "a@b.c", "Ada", ["Member"]);
         var pair = new AuthTokensDto("a", "b", 1, user);
 
         tokens.RotateAsync("old", Arg.Any<CancellationToken>()).Returns(pair);

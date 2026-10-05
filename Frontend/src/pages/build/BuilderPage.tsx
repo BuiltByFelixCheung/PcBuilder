@@ -52,6 +52,7 @@ import { useStorageDrive } from "@/hooks/use-storage-drives";
 import { useWiredNetworkAdapter } from "@/hooks/use-wired-network-adapters";
 import { useWirelessNetworkAdapter } from "@/hooks/use-wireless-network-adapters";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Field,
   FieldError,
@@ -59,6 +60,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -96,13 +98,36 @@ function formatCompatibilityLabel(value: string): string {
 
 function CompatibilityStatus({
   query,
-}: Readonly<{ query: CompatibilityQuery }>) {
+  enabled,
+}: Readonly<{ query: CompatibilityQuery; enabled: boolean }>) {
+  return (
+    <Card className="builder-compatibility h-fit w-full">
+      <CardHeader>
+        <CardTitle>
+          <h2>Compatibility</h2>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="text-muted-foreground">
+        <CompatibilityDetails query={query} enabled={enabled} />
+      </CardContent>
+    </Card>
+  );
+}
+
+function CompatibilityDetails({
+  query,
+  enabled,
+}: Readonly<{ query: CompatibilityQuery; enabled: boolean }>) {
+  if (!enabled) {
+    return <p>Add parts to check compatibility.</p>;
+  }
+
   if (query.isPending && !query.data) {
-    return <p className="catalog-lead">Checking compatibility…</p>;
+    return <p>Checking compatibility…</p>;
   }
 
   if (query.isError) {
-    return <p className="catalog-lead">{parseApiError(query.error).message}</p>;
+    return <p>{parseApiError(query.error).message}</p>;
   }
 
   if (!query.data) {
@@ -110,15 +135,12 @@ function CompatibilityStatus({
   }
 
   return (
-    <div className="mb-6">
-      <h2>Compatibility</h2>
-      <p className="catalog-lead">
-        {formatCompatibilityLabel(query.data.status)}
-      </p>
+    <div className="flex flex-col gap-3">
+      <p>{formatCompatibilityLabel(query.data.status)}</p>
       {query.data.issues.length === 0 ? (
-        <p className="catalog-lead">No issues.</p>
+        <p>No issues.</p>
       ) : (
-        <ul className="catalog-lead list-disc pl-5">
+        <ul className="list-disc space-y-1 pl-5">
           {query.data.issues.map((issue, index) => (
             <li key={issueKey(issue, index)}>
               {formatCompatibilityLabel(issue.reason)}
@@ -147,24 +169,30 @@ function SaveBuildDialog({
   open,
   name,
   description,
+  isPublic,
+  canSetVisibility,
   nameError,
   descriptionError,
   formError,
   isSaving,
   onNameChange,
   onDescriptionChange,
+  onIsPublicChange,
   onCancel,
   onSubmit,
 }: Readonly<{
   open: boolean;
   name: string;
   description: string;
+  isPublic: boolean;
+  canSetVisibility: boolean;
   nameError?: string;
   descriptionError?: string;
   formError?: string;
   isSaving: boolean;
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
+  onIsPublicChange: (value: boolean) => void;
   onCancel: () => void;
   onSubmit: () => void;
 }>) {
@@ -216,6 +244,23 @@ function SaveBuildDialog({
                 errors={descriptionError ? [{ message: descriptionError }] : []}
               />
             </Field>
+            {canSetVisibility ? (
+              <Field>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="build-public"
+                    checked={isPublic}
+                    onCheckedChange={(checked) =>
+                      onIsPublicChange(checked === true)
+                    }
+                  />
+                  <FieldLabel htmlFor="build-public">Public</FieldLabel>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Listed on Browse Builds for anyone to view.
+                </p>
+              </Field>
+            ) : null}
             <div className="flex flex-wrap gap-2">
               <Button type="submit" disabled={isSaving}>
                 {isSaving ? "Saving..." : "Save"}
@@ -421,6 +466,7 @@ function useSaveBuildDialog(input: {
   fields: PcBuildFields | undefined;
   sourceId: string | null;
   isPublic: boolean;
+  canSetVisibility: boolean;
   workspaceName: string;
   workspaceDescription: string;
   resetBuild: () => void;
@@ -430,6 +476,7 @@ function useSaveBuildDialog(input: {
     fields,
     sourceId,
     isPublic,
+    canSetVisibility,
     workspaceName,
     workspaceDescription,
     resetBuild,
@@ -440,6 +487,7 @@ function useSaveBuildDialog(input: {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [saveName, setSaveName] = useState("");
   const [saveDescription, setSaveDescription] = useState("");
+  const [saveIsPublic, setSaveIsPublic] = useState(false);
   const [nameError, setNameError] = useState<string>();
   const [descriptionError, setDescriptionError] = useState<string>();
   const [formError, setFormError] = useState<string>();
@@ -448,6 +496,7 @@ function useSaveBuildDialog(input: {
   function openSaveDialog() {
     setSaveName(workspaceName);
     setSaveDescription(workspaceDescription);
+    setSaveIsPublic(isPublic);
     setNameError(undefined);
     setDescriptionError(undefined);
     setFormError(undefined);
@@ -468,6 +517,7 @@ function useSaveBuildDialog(input: {
     }
     setFormError(undefined);
     setIsSaving(true);
+    const isPublicToSave = canSetVisibility ? saveIsPublic : false;
     try {
       const saved = sourceId
         ? await updatePcBuild({
@@ -475,9 +525,14 @@ function useSaveBuildDialog(input: {
             ...fields,
             name,
             description,
-            isPublic,
+            isPublic: isPublicToSave,
           })
-        : await createPcBuild({ ...fields, name, description });
+        : await createPcBuild({
+            ...fields,
+            name,
+            description,
+            isPublic: isPublicToSave,
+          });
       queryClient.setQueryData(pcBuildKeys.detail(saved.id), saved);
       setSaveDialogOpen(false);
       skipHydrateRef.current = true;
@@ -494,6 +549,8 @@ function useSaveBuildDialog(input: {
     saveDialogOpen,
     saveName,
     saveDescription,
+    saveIsPublic,
+    canSetVisibility,
     nameError,
     descriptionError,
     formError,
@@ -502,6 +559,7 @@ function useSaveBuildDialog(input: {
     submitSave,
     setSaveName,
     setSaveDescription,
+    setSaveIsPublic,
     closeSaveDialog: () => setSaveDialogOpen(false),
   };
 }
@@ -547,6 +605,7 @@ export function BuilderPage() {
     fields,
     sourceId: build.sourceId,
     isPublic: build.isPublic,
+    canSetVisibility: Boolean(auth?.isMember),
     workspaceName: build.name,
     workspaceDescription: build.description,
     resetBuild: build.resetBuild,
@@ -630,12 +689,15 @@ function BuilderWorkspace({
         open={save.saveDialogOpen}
         name={save.saveName}
         description={save.saveDescription}
+        isPublic={save.saveIsPublic}
+        canSetVisibility={save.canSetVisibility}
         nameError={save.nameError}
         descriptionError={save.descriptionError}
         formError={save.formError}
         isSaving={save.isSaving}
         onNameChange={save.setSaveName}
         onDescriptionChange={save.setSaveDescription}
+        onIsPublicChange={save.setSaveIsPublic}
         onCancel={save.closeSaveDialog}
         onSubmit={() => void save.submitSave()}
       />
@@ -656,146 +718,150 @@ function BuilderWorkspace({
           onClear={onClear}
         />
       </div>
-      {hasParts ? <CompatibilityStatus query={compatibility} /> : null}
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Component</TableHead>
-            <TableHead>Selected</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <SingularSlot
-            label="Chassis"
-            chooseLabel="Choose a chassis"
-            catalogHref="/catalog/chassis"
-            detailHref={catalogDetailHref(
-              "/catalog/chassis",
-              displayed.chassisId,
-            )}
-            productType="chassis"
-            partId={displayed.chassisId}
-            query={chassis}
-            readOnly={isViewing}
-          />
-          <SingularSlot
-            label="Motherboard"
-            chooseLabel="Choose a motherboard"
-            catalogHref="/catalog/motherboards"
-            detailHref={catalogDetailHref(
-              "/catalog/motherboards",
-              displayed.motherboardId,
-            )}
-            productType="motherboard"
-            partId={displayed.motherboardId}
-            query={motherboard}
-            readOnly={isViewing}
-          />
-          <SingularSlot
-            label="CPU"
-            chooseLabel="Choose a CPU"
-            catalogHref="/catalog/cpus"
-            detailHref={catalogDetailHref("/catalog/cpus", displayed.cpuId)}
-            productType="cpu"
-            partId={displayed.cpuId}
-            query={cpu}
-            readOnly={isViewing}
-          />
-          <SingularSlot
-            label="CPU cooler"
-            chooseLabel="Choose a CPU cooler"
-            catalogHref="/catalog/cpu-coolers"
-            detailHref={catalogDetailHref(
-              "/catalog/cpu-coolers",
-              displayed.cpuCoolerId,
-            )}
-            productType="cpucooler"
-            partId={displayed.cpuCoolerId}
-            query={cpuCooler}
-            readOnly={isViewing}
-          />
-          <SingularSlot
-            label="Memory"
-            chooseLabel="Choose a memory kit"
-            catalogHref="/catalog/memories"
-            detailHref={catalogDetailHref(
-              "/catalog/memories",
-              displayed.ramKitId,
-            )}
-            productType="ram"
-            partId={displayed.ramKitId}
-            query={ram}
-            readOnly={isViewing}
-          />
-          <SingularSlot
-            label="Graphics card"
-            chooseLabel="Choose a graphics card"
-            catalogHref="/catalog/graphics-cards"
-            detailHref={catalogDetailHref(
-              "/catalog/graphics-cards",
-              displayed.graphicsCardId,
-            )}
-            productType="graphicscard"
-            partId={displayed.graphicsCardId}
-            query={graphicsCard}
-            readOnly={isViewing}
-          />
-          <SingularSlot
-            label="Power supply"
-            chooseLabel="Choose a PSU"
-            catalogHref="/catalog/psus"
-            detailHref={catalogDetailHref("/catalog/psus", displayed.psuId)}
-            productType="psu"
-            partId={displayed.psuId}
-            query={psu}
-            readOnly={isViewing}
-          />
-          <SingularSlot
-            label="Storage"
-            chooseLabel="Choose storage"
-            addLabel="Add storage"
-            catalogHref="/catalog/storage"
-            productType="storagedrive"
-            parts={displayed.storageDevices}
-            usePart={useStorageDrive}
-            detailHref={(id) => `/catalog/storage/${id}`}
-            readOnly={isViewing}
-          />
-          <SingularSlot
-            label="Chassis fans"
-            chooseLabel="Choose chassis fans"
-            addLabel="Add a chassis fan"
-            catalogHref="/catalog/chassis-fans"
-            productType="chassisfan"
-            parts={displayed.chassisFans}
-            usePart={useChassisFan}
-            detailHref={(id) => `/catalog/chassis-fans/${id}`}
-            readOnly={isViewing}
-          />
-          <SingularSlot
-            label="Wired network"
-            chooseLabel="Choose a wired adapter"
-            addLabel="Add a wired adapter"
-            catalogHref="/catalog/wired-network-adapters"
-            productType="wirednetworkadapter"
-            parts={displayed.wiredNetworkAdapters}
-            usePart={useWiredNetworkAdapter}
-            detailHref={(id) => `/catalog/wired-network-adapters/${id}`}
-            readOnly={isViewing}
-          />
-          <SingularSlot
-            label="Wireless network"
-            chooseLabel="Choose a wireless adapter"
-            addLabel="Add a wireless adapter"
-            catalogHref="/catalog/wireless-network-adapters"
-            productType="wirelessnetworkadapter"
-            parts={displayed.wirelessNetworkAdapters}
-            usePart={useWirelessNetworkAdapter}
-            detailHref={(id) => `/catalog/wireless-network-adapters/${id}`}
-            readOnly={isViewing}
-          />
-        </TableBody>
-      </Table>
+      <div className="grid items-start gap-6 min-[1025px]:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]">
+        <CompatibilityStatus query={compatibility} enabled={hasParts} />
+        <div className="min-w-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Component</TableHead>
+                <TableHead>Selected</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <SingularSlot
+                label="Chassis"
+                chooseLabel="Choose a chassis"
+                catalogHref="/catalog/chassis"
+                detailHref={catalogDetailHref(
+                  "/catalog/chassis",
+                  displayed.chassisId,
+                )}
+                productType="chassis"
+                partId={displayed.chassisId}
+                query={chassis}
+                readOnly={isViewing}
+              />
+              <SingularSlot
+                label="Motherboard"
+                chooseLabel="Choose a motherboard"
+                catalogHref="/catalog/motherboards"
+                detailHref={catalogDetailHref(
+                  "/catalog/motherboards",
+                  displayed.motherboardId,
+                )}
+                productType="motherboard"
+                partId={displayed.motherboardId}
+                query={motherboard}
+                readOnly={isViewing}
+              />
+              <SingularSlot
+                label="CPU"
+                chooseLabel="Choose a CPU"
+                catalogHref="/catalog/cpus"
+                detailHref={catalogDetailHref("/catalog/cpus", displayed.cpuId)}
+                productType="cpu"
+                partId={displayed.cpuId}
+                query={cpu}
+                readOnly={isViewing}
+              />
+              <SingularSlot
+                label="CPU cooler"
+                chooseLabel="Choose a CPU cooler"
+                catalogHref="/catalog/cpu-coolers"
+                detailHref={catalogDetailHref(
+                  "/catalog/cpu-coolers",
+                  displayed.cpuCoolerId,
+                )}
+                productType="cpucooler"
+                partId={displayed.cpuCoolerId}
+                query={cpuCooler}
+                readOnly={isViewing}
+              />
+              <SingularSlot
+                label="Memory"
+                chooseLabel="Choose a memory kit"
+                catalogHref="/catalog/memories"
+                detailHref={catalogDetailHref(
+                  "/catalog/memories",
+                  displayed.ramKitId,
+                )}
+                productType="ram"
+                partId={displayed.ramKitId}
+                query={ram}
+                readOnly={isViewing}
+              />
+              <SingularSlot
+                label="Graphics card"
+                chooseLabel="Choose a graphics card"
+                catalogHref="/catalog/graphics-cards"
+                detailHref={catalogDetailHref(
+                  "/catalog/graphics-cards",
+                  displayed.graphicsCardId,
+                )}
+                productType="graphicscard"
+                partId={displayed.graphicsCardId}
+                query={graphicsCard}
+                readOnly={isViewing}
+              />
+              <SingularSlot
+                label="Power supply"
+                chooseLabel="Choose a PSU"
+                catalogHref="/catalog/psus"
+                detailHref={catalogDetailHref("/catalog/psus", displayed.psuId)}
+                productType="psu"
+                partId={displayed.psuId}
+                query={psu}
+                readOnly={isViewing}
+              />
+              <SingularSlot
+                label="Storage"
+                chooseLabel="Choose storage"
+                addLabel="Add storage"
+                catalogHref="/catalog/storage"
+                productType="storagedrive"
+                parts={displayed.storageDevices}
+                usePart={useStorageDrive}
+                detailHref={(id) => `/catalog/storage/${id}`}
+                readOnly={isViewing}
+              />
+              <SingularSlot
+                label="Chassis fans"
+                chooseLabel="Choose chassis fans"
+                addLabel="Add a chassis fan"
+                catalogHref="/catalog/chassis-fans"
+                productType="chassisfan"
+                parts={displayed.chassisFans}
+                usePart={useChassisFan}
+                detailHref={(id) => `/catalog/chassis-fans/${id}`}
+                readOnly={isViewing}
+              />
+              <SingularSlot
+                label="Wired network"
+                chooseLabel="Choose a wired adapter"
+                addLabel="Add a wired adapter"
+                catalogHref="/catalog/wired-network-adapters"
+                productType="wirednetworkadapter"
+                parts={displayed.wiredNetworkAdapters}
+                usePart={useWiredNetworkAdapter}
+                detailHref={(id) => `/catalog/wired-network-adapters/${id}`}
+                readOnly={isViewing}
+              />
+              <SingularSlot
+                label="Wireless network"
+                chooseLabel="Choose a wireless adapter"
+                addLabel="Add a wireless adapter"
+                catalogHref="/catalog/wireless-network-adapters"
+                productType="wirelessnetworkadapter"
+                parts={displayed.wirelessNetworkAdapters}
+                usePart={useWirelessNetworkAdapter}
+                detailHref={(id) => `/catalog/wireless-network-adapters/${id}`}
+                readOnly={isViewing}
+              />
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     </section>
   );
 }

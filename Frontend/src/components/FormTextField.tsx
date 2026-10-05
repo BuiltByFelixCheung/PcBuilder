@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import type { FieldError, UseFormRegisterReturn } from "react-hook-form";
 import {
   Field,
@@ -12,6 +12,7 @@ type FormTextFieldProps = Omit<ComponentProps<typeof Input>, "aria-invalid"> & {
   id: string;
   label: string;
   hint?: string;
+  labelAction?: ReactNode;
   error?: FieldError;
   registration: UseFormRegisterReturn;
 };
@@ -20,13 +21,17 @@ export function FormTextField({
   id,
   label,
   hint,
+  labelAction,
   error,
   registration,
   ...inputProps
 }: Readonly<FormTextFieldProps>) {
   return (
     <Field data-invalid={error ? true : undefined}>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <div className="field-label-row">
+        <FieldLabel htmlFor={id}>{label}</FieldLabel>
+        {labelAction}
+      </div>
       <Input
         id={id}
         aria-invalid={error ? true : undefined}

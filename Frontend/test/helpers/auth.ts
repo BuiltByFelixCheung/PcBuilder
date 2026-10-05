@@ -8,8 +8,7 @@ import {
 export const testUser: CurrentUser = {
   id: "user-1",
   email: "a@b.c",
-  firstName: "Ann",
-  lastName: "Builder",
+  userName: "annbuilder",
   roles: [AuthRoles.Member],
 };
 

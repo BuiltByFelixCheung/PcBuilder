@@ -6,7 +6,6 @@ using PcBuilderBackend.Application.Build.Dto;
 using PcBuilderBackend.Application.Common.Dto;
 using PcBuilderBackend.Application.Common.Extensions;
 using PcBuilderBackend.Application.Common.Interfaces;
-using PcBuilderBackend.Domain.Entities;
 
 namespace PcBuilderBackend.Infrastructure.Persistence.Queries;
 
@@ -26,7 +25,7 @@ public class PcBuildReadStore(PcBuilderDbContext context, ICurrentUser user, IMa
             .AsNoTracking()
             .Where(p => p.IsActive && p.User != null && p.User.IsPublic)
             .ApplySorting(request.SortFields, request.SortDirection)
-            .ToPagedResultAsync<PcBuild, PcBuildListItemDto>(
+            .ToPagedResultAsync<Domain.Entities.PcBuild, PcBuildListItemDto>(
                 request.PageIndex,
                 request.PageSize,
                 mapper.ConfigurationProvider,
@@ -43,7 +42,7 @@ public class PcBuildReadStore(PcBuilderDbContext context, ICurrentUser user, IMa
             .AsNoTracking()
             .Where(p => p.IsActive && p.User != null && p.User.UserId == userId)
             .ApplySorting(request.SortFields, request.SortDirection)
-            .ToPagedResultAsync<PcBuild, PcBuildListItemDto>(
+            .ToPagedResultAsync<Domain.Entities.PcBuild, PcBuildListItemDto>(
                 request.PageIndex,
                 request.PageSize,
                 mapper.ConfigurationProvider,

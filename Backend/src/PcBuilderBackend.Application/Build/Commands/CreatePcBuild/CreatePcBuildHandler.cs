@@ -76,7 +76,7 @@ public class CreatePcBuildHandler(
 
         if (currentUser.IsInRole(AuthRoles.Member) && currentUser.UserId is { } userId)
         {
-            var pcBuildUser = new PcBuildUser(pcBuild.Id, userId, true);
+            var pcBuildUser = new PcBuildUser(pcBuild.Id, userId, command.IsPublic);
             pcBuilds.AddUser(pcBuildUser);
             await unitOfWork.SaveChangesAsync(cancellationToken);
             EntityLog.Created(logger, EntityLog.PcBuild, pcBuild.Id);

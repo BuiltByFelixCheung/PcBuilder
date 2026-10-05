@@ -24,8 +24,7 @@ describe("RegisterPage", () => {
         <RegisterPage />
       </MemoryRouter>,
     );
-    await user.type(screen.getByLabelText("First name"), "Ann");
-    await user.type(screen.getByLabelText("Last name"), "Builder");
+    await user.type(screen.getByLabelText("Username"), "annbuilder");
     await user.type(screen.getByLabelText("Email"), "ann@example.com");
     await user.type(screen.getByLabelText("Password"), "Password1!");
     await user.type(screen.getByLabelText("Confirm password"), "Password2!");
@@ -43,8 +42,7 @@ describe("RegisterPage", () => {
         <RegisterPage />
       </MemoryRouter>,
     );
-    await user.type(screen.getByLabelText("First name"), "Ann");
-    await user.type(screen.getByLabelText("Last name"), "Builder");
+    await user.type(screen.getByLabelText("Username"), "annbuilder");
     await user.type(screen.getByLabelText("Email"), "ann@example.com");
     await user.type(screen.getByLabelText("Password"), "Password1!");
     await user.type(screen.getByLabelText("Confirm password"), "Password1!");
@@ -52,8 +50,7 @@ describe("RegisterPage", () => {
     expect(auth.register).toHaveBeenCalledWith({
       email: "ann@example.com",
       password: "Password1!",
-      firstName: "Ann",
-      lastName: "Builder",
+      userName: "annbuilder",
     });
   });
 
@@ -74,8 +71,7 @@ describe("RegisterPage", () => {
         <RegisterPage />
       </MemoryRouter>,
     );
-    await user.type(screen.getByLabelText("First name"), "Ann");
-    await user.type(screen.getByLabelText("Last name"), "Builder");
+    await user.type(screen.getByLabelText("Username"), "annbuilder");
     await user.type(screen.getByLabelText("Email"), "ann@example.com");
     await user.type(screen.getByLabelText("Password"), "Password1!");
     await user.type(screen.getByLabelText("Confirm password"), "Password1!");

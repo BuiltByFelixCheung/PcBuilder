@@ -1,11 +1,13 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
+using PcBuilderBackend.Application.Auth.Dto;
 using PcBuilderBackend.Application.Build;
 using PcBuilderBackend.Application.Build.Commands.CreatePcBuild;
 using PcBuilderBackend.Application.Build.Dto;
 using PcBuilderBackend.Application.Build.Queries;
 using PcBuilderBackend.Application.Common.Authorization;
+using PcBuilderBackend.Application.Common.Dto;
 using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.UnitTests.Support;
 using PcBuilderBackend.Domain.Entities;
@@ -71,10 +73,34 @@ public class PcBuildHandlerTests : IDisposable
             unitOfWork,
             _fx.Mapper);
 
-        await handler.Handle(ValidCreate(), CancellationToken.None);
+        await handler.Handle(ValidCreate() with { IsPublic = true }, CancellationToken.None);
 
         pcBuilds.Received(1).AddUser(Arg.Is<PcBuildUser>(u => u.UserId == userId && u.IsPublic));
         await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Member_create_can_stay_private()
+    {
+        var userId = Guid.NewGuid();
+        var pcBuilds = Substitute.For<IPcBuildRepository>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.IsAuthenticated.Returns(true);
+        currentUser.IsInRole(AuthRoles.Member).Returns(true);
+        currentUser.UserId.Returns(userId);
+
+        var handler = new CreatePcBuildHandler(
+            pcBuilds,
+            CompatibleChecker(),
+            NullLogger<CreatePcBuildHandler>.Instance,
+            currentUser,
+            unitOfWork,
+            _fx.Mapper);
+
+        await handler.Handle(ValidCreate() with { IsPublic = false }, CancellationToken.None);
+
+        pcBuilds.Received(1).AddUser(Arg.Is<PcBuildUser>(u => u.UserId == userId && !u.IsPublic));
     }
 
     [Fact]
@@ -116,8 +142,9 @@ public class PcBuildHandlerTests : IDisposable
         });
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.UserId.Returns(Guid.NewGuid());
+        var identity = Substitute.For<IIdentityService>();
 
-        var act = () => new GetPcBuildByIdHandler(store, currentUser)
+        var act = () => new GetPcBuildByIdHandler(store, currentUser, identity)
             .Handle(new GetPcBuildByIdQuery(id), CancellationToken.None);
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>();
@@ -127,22 +154,57 @@ public class PcBuildHandlerTests : IDisposable
     public async Task Get_by_id_allows_public_build()
     {
         var id = Guid.NewGuid();
+        var ownerId = Guid.NewGuid();
         var dto = new PcBuildDto
         {
             Id = id,
             Name = "Public",
-            UserId = Guid.NewGuid(),
+            UserId = ownerId,
             IsPublic = true
         };
         var store = Substitute.For<IPcBuildReadStore>();
         store.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(dto);
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.UserId.Returns(Guid.NewGuid());
+        var identity = Substitute.For<IIdentityService>();
+        identity.GetUserAsync(ownerId, Arg.Any<CancellationToken>())
+            .Returns(new CurrentUserDto(ownerId, "a@b.c", "annbuilder", ["Member"]));
 
-        var result = await new GetPcBuildByIdHandler(store, currentUser)
+        var result = await new GetPcBuildByIdHandler(store, currentUser, identity)
             .Handle(new GetPcBuildByIdQuery(id), CancellationToken.None);
 
-        result.Should().BeSameAs(dto);
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(id);
+        result.UserName.Should().Be("annbuilder");
+    }
+
+    [Fact]
+    public async Task List_public_sets_user_name_from_identity()
+    {
+        var userId = Guid.NewGuid();
+        var store = Substitute.For<IPcBuildReadStore>();
+        store.ListPublicAsync(Arg.Any<PagedRequest>(), Arg.Any<CancellationToken>())
+            .Returns(new PagedResult<PcBuildListItemDto>
+            {
+                Items =
+                [
+                    new PcBuildListItemDto
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Office",
+                        UserId = userId,
+                        IsPublic = true
+                    }
+                ]
+            });
+        var identity = Substitute.For<IIdentityService>();
+        identity.GetUserAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(new CurrentUserDto(userId, "a@b.c", "annbuilder", ["Member"]));
+
+        var result = await new ListPublicPcBuildsHandler(store, identity)
+            .Handle(new ListPublicPcBuildsQuery(new PagedRequest()), CancellationToken.None);
+
+        result.Items.Should().ContainSingle(item => item.UserName == "annbuilder");
     }
 
     private static ICompatibilityChecker CompatibleChecker()
@@ -157,6 +219,7 @@ public class PcBuildHandlerTests : IDisposable
         new(
             "My build",
             null,
+            false,
             Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),

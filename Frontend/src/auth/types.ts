@@ -8,8 +8,7 @@ export type AuthRole = (typeof AuthRoles)[keyof typeof AuthRoles];
 export type CurrentUser = {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  userName: string;
   roles: string[];
 };
 
@@ -23,8 +22,7 @@ export type AuthTokens = {
 export type RegisterInput = {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  userName: string;
 };
 
 export type ForgotPasswordInput = {

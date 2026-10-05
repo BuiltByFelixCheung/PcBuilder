@@ -19,6 +19,13 @@ import {
   wirelessNetworkAdapterKeys,
 } from "@/api/catalog/wireless-network-adapters";
 import { WirelessNetworkAdapterFields } from "@/pages/catalog/wireless-network-adapters/WirelessNetworkAdapterEditColumns";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from "@/components/ui/table";
 
 export function WirelessNetworkAdapterDetailPage() {
   const { wirelessNetworkAdapterId } = useParams();
@@ -85,72 +92,122 @@ export function WirelessNetworkAdapterDetailPage() {
           }}
         />
       ) : null}
-      <dl className="catalog-details">
+      <div className="catalog-table-pair">
         <div>
-          <dt>Manufacturer</dt>
-          <dd>{adapter.manufacturerName}</dd>
+          <div className="catalog-detail-subtitle">
+            <h2>Basic information</h2>
+          </div>
+          <Table>
+            <TableBody>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Manufacturer
+                </TableHead>
+                <TableCell>{adapter.manufacturerName}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Wi-Fi
+                </TableHead>
+                <TableCell>
+                  {formatWifiStandard(adapter.wifiStandard)}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Bluetooth
+                </TableHead>
+                <TableCell>
+                  {adapter.bluetoothVersion
+                    ? formatBluetoothVersion(adapter.bluetoothVersion)
+                    : "—"}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Host interface
+                </TableHead>
+                <TableCell>{adapter.hostInterface}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Max speed
+                </TableHead>
+                <TableCell>{adapter.maxSpeedMbps} Mbps</TableCell>
+              </TableRow>
+              {adapter.maxSpeedMbps5G && (
+                <TableRow>
+                  <TableHead className="table-stub" scope="row">
+                    5 GHz max
+                  </TableHead>
+                  <TableCell>{adapter.maxSpeedMbps5G} Mbps</TableCell>
+                </TableRow>
+              )}
+              {adapter.maxSpeedMbps6G && (
+                <TableRow>
+                  <TableHead className="table-stub" scope="row">
+                    6 GHz max
+                  </TableHead>
+                  <TableCell>{adapter.maxSpeedMbps6G} Mbps</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
         <div>
-          <dt>Wi-Fi</dt>
-          <dd>{formatWifiStandard(adapter.wifiStandard)}</dd>
+          <div className="catalog-detail-subtitle">
+            <h2>Interface</h2>
+          </div>
+          <Table>
+            <TableBody>
+              {adapter.hostInterface === "Pcie" && (
+                <TableRow>
+                  <TableHead className="table-stub" scope="row">
+                    PCIe slot
+                  </TableHead>
+                  <TableCell>{adapter.pcieSlotType}</TableCell>
+                </TableRow>
+              )}
+              {adapter.hostInterface === "M2" && (
+                <>
+                  <TableRow>
+                    <TableHead className="table-stub" scope="row">
+                      M.2 key
+                    </TableHead>
+                    <TableCell>{adapter.key ?? "—"}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead className="table-stub" scope="row">
+                      M.2 form factor
+                    </TableHead>
+                    <TableCell>
+                      {adapter.m2FormFactor
+                        ? formatM2FormFactor(adapter.m2FormFactor)
+                        : "—"}
+                    </TableCell>
+                  </TableRow>
+                </>
+              )}
+              {adapter.hostInterface === "Usb" && (
+                <>
+                  <TableRow>
+                    <TableHead className="table-stub" scope="row">
+                      USB version
+                    </TableHead>
+                    <TableCell>{adapter.usbVersion}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead className="table-stub" scope="row">
+                      USB type
+                    </TableHead>
+                    <TableCell>{adapter.usbType}</TableCell>
+                  </TableRow>
+                </>
+              )}
+            </TableBody>
+          </Table>
         </div>
-        <div>
-          <dt>Bluetooth</dt>
-          <dd>
-            {adapter.bluetoothVersion
-              ? formatBluetoothVersion(adapter.bluetoothVersion)
-              : "—"}
-          </dd>
-        </div>
-        <div>
-          <dt>Host interface</dt>
-          <dd>{adapter.hostInterface}</dd>
-        </div>
-        <div>
-          <dt>Max speed</dt>
-          <dd>{adapter.maxSpeedMbps} Mbps</dd>
-        </div>
-        <div>
-          <dt>5 GHz max</dt>
-          <dd>
-            {adapter.maxSpeedMbps5G != null
-              ? `${adapter.maxSpeedMbps5G} Mbps`
-              : "—"}
-          </dd>
-        </div>
-        <div>
-          <dt>6 GHz max</dt>
-          <dd>
-            {adapter.maxSpeedMbps6G != null
-              ? `${adapter.maxSpeedMbps6G} Mbps`
-              : "—"}
-          </dd>
-        </div>
-        <div>
-          <dt>PCIe slot</dt>
-          <dd>{adapter.pcieSlotType ?? "—"}</dd>
-        </div>
-        <div>
-          <dt>M.2 key</dt>
-          <dd>{adapter.key ?? "—"}</dd>
-        </div>
-        <div>
-          <dt>M.2 form factor</dt>
-          <dd>
-            {adapter.m2FormFactor
-              ? formatM2FormFactor(adapter.m2FormFactor)
-              : "—"}
-          </dd>
-        </div>
-        <div>
-          <dt>USB version</dt>
-          <dd>{adapter.usbVersion ?? "—"}</dd>
-        </div>
-        <div>
-          <dt>USB type</dt>
-          <dd>{adapter.usbType ?? "—"}</dd>
-        </div>
-      </dl>
+      </div>
     </section>
   );
 }

@@ -18,6 +18,7 @@ import {
 import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers";
 import { PsuFields } from "@/pages/catalog/psus/PsuEditColumns";
 import { cableColumns } from "@/pages/catalog/psus/PsuChildColumns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const emptyPsu = unsetCatalogItem<PsuListItem>({
   id: "",
@@ -49,27 +50,37 @@ export function PsuCreatePage() {
         void submit({
           queryKey: psuKeys.all,
           detailPath: (id) => `/catalog/psus/${id}`,
-          create: () => createPsu({ ...item, cables: collectionValues(cables) }),
+          create: () =>
+            createPsu({ ...item, cables: collectionValues(cables) }),
         })
       }
     >
-      <CatalogScalarFields
-        fields={PsuFields(manufacturers)}
-        item={item}
-        onChange={setItem}
-      />
-      <CatalogCollectionEditor
-        title="Cables"
-        columns={cableColumns}
-        rows={cables}
-        onChange={setCables}
-        disabled={saving}
-        createRow={(): PsuCable => ({
-          type: "Motherboard24Pin",
-          cablesCount: 1,
-          connectorsCount: 1,
-        })}
-      />
+      <div className="grid grid-cols-1 items-start gap-8 *:min-w-0 min-[1025px]:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Basic Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CatalogScalarFields
+              fields={PsuFields(manufacturers)}
+              item={item}
+              onChange={setItem}
+            />
+          </CardContent>
+        </Card>
+        <CatalogCollectionEditor
+          title="Cables"
+          columns={cableColumns}
+          rows={cables}
+          onChange={setCables}
+          disabled={saving}
+          createRow={(): PsuCable => ({
+            type: "Motherboard24Pin",
+            cablesCount: 1,
+            connectorsCount: 1,
+          })}
+        />
+      </div>
     </CatalogCreateForm>
   );
 }

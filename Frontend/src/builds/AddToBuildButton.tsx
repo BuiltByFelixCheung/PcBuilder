@@ -39,7 +39,7 @@ export function AddToBuildButton({
         type="button"
         onClick={() => {
           build.addToBuild(productType, partId, showQty ? qty : undefined);
-          navigate(builderHref(build.sourceId));
+          void navigate(builderHref(build.sourceId));
         }}
       >
         Add to Build

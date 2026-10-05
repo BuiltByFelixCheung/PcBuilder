@@ -11,12 +11,13 @@ public class PcBuildProfile : Profile
     {
         CreateMap<PcBuildPart, PcBuildPartDto>();
 
-        CreateMap<PcBuild, PcBuildListItemDto>()
+        CreateMap<Domain.Entities.PcBuild, PcBuildListItemDto>()
             .ForMember(d => d.UserId, o => o.MapFrom(s => s.User != null ? (Guid?)s.User.UserId : null))
-            .ForMember(d => d.IsPublic, o => o.MapFrom(s => s.User != null && s.User.IsPublic));
+            .ForMember(d => d.IsPublic, o => o.MapFrom(s => s.User != null && s.User.IsPublic))
+            .ForMember(d => d.UserName, o => o.Ignore());
 
-        CreateMap<PcBuild, PcBuildDto>()
-            .IncludeBase<PcBuild, PcBuildListItemDto>()
+        CreateMap<Domain.Entities.PcBuild, PcBuildDto>()
+            .IncludeBase<Domain.Entities.PcBuild, PcBuildListItemDto>()
             .ForMember(
                 d => d.ChassisFans,
                 o => o.MapFrom(s => s.Parts.Where(p => p.Type == PcBuildPartType.ChassisFan)))

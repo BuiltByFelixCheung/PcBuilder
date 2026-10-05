@@ -53,6 +53,7 @@ const savedBuild: PcBuildDetail = {
   name: "Office box",
   description: "Quiet",
   userId: "user-1",
+  userName: "annbuilder",
   isPublic: false,
   chassisId: "case-1",
   motherboardId: "mb-1",
@@ -191,8 +192,11 @@ describe("BuilderPage", () => {
     ).toBeInTheDocument();
     expect(checkPcBuildCompatibility).not.toHaveBeenCalled();
     expect(
-      screen.queryByRole("heading", { name: "Compatibility" }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("heading", { name: "Compatibility" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Add parts to check compatibility."),
+    ).toBeInTheDocument();
   });
 
   it("checks compatibility on load when a part is chosen", async () => {
@@ -347,6 +351,7 @@ describe("BuilderPage", () => {
     expect(
       await screen.findByRole("heading", { name: "Save build" }),
     ).toBeInTheDocument();
+    expect(screen.queryByLabelText("Public")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Save" }));
     expect(
       await screen.findByText("Build name is required."),
@@ -362,6 +367,7 @@ describe("BuilderPage", () => {
         description: "Quiet daily driver",
         chassisId: "case-1",
         cpuId: "cpu-9",
+        isPublic: false,
       }),
     );
     expect(
@@ -374,6 +380,31 @@ describe("BuilderPage", () => {
     expect(
       screen.getByRole("button", { name: "Choose a chassis" }),
     ).toBeInTheDocument();
+  });
+
+  it("lets a member publish when saving a new build", async () => {
+    createPcBuild.mockResolvedValue({
+      ...savedBuild,
+      id: "created-2",
+      name: "Showpiece",
+      isPublic: true,
+      ...completeDraft,
+    });
+    const user = userEvent.setup();
+    renderBuilder("/builds/current", completeDraft, ownerAuth);
+    expect(
+      await screen.findByRole("heading", { name: "Compatibility" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save build" }));
+    await user.type(screen.getByLabelText("Name"), "Showpiece");
+    await user.click(screen.getByLabelText("Public"));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(createPcBuild).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Showpiece",
+        isPublic: true,
+      }),
+    );
   });
 
   it("updates an existing build from the save dialog", async () => {
@@ -397,6 +428,7 @@ describe("BuilderPage", () => {
       expect.objectContaining({
         id: "build-1",
         name: "Office box v2",
+        isPublic: false,
       }),
     );
     expect(

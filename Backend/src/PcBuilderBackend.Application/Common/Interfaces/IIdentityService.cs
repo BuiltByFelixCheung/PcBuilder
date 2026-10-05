@@ -7,8 +7,7 @@ public interface IIdentityService
     Task<RegisterResultDto> RegisterMemberAsync(
         string email,
         string password,
-        string firstName,
-        string lastName,
+        string userName,
         CancellationToken cancellationToken);
 
     Task<PasswordSignInResultDto> PasswordSignInAsync(

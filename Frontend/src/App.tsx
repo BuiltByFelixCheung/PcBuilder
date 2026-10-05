@@ -38,6 +38,7 @@ import { ChassisListPage } from "./pages/catalog/chassis/ChassisListPage.tsx";
 import { MotherboardCreatePage } from "./pages/catalog/motherboards/MotherboardCreatePage.tsx";
 import { MotherboardDetailPage } from "./pages/catalog/motherboards/MotherboardDetailPage.tsx";
 import { MotherboardListPage } from "./pages/catalog/motherboards/MotherboardListPage.tsx";
+import { BrowseBuildPage } from "./pages/build/BrowseBuildsPage.tsx";
 import { BuilderPage } from "./pages/build/BuilderPage.tsx";
 import { RequireBuilder } from "./auth/RequireBuilder.tsx";
 import { ChipsetListPage } from "./pages/master-data/chipsets/ChipsetListPage.tsx";
@@ -47,6 +48,7 @@ import { GpuSeriesListPage } from "./pages/master-data/gpu-series/GpuSeriesListP
 import { GpuListPage } from "./pages/master-data/gpus/GpuListPage.tsx";
 import { ManufacturerListPage } from "./pages/master-data/manufacturers/ManufacturerListPage.tsx";
 import { SocketListPage } from "./pages/master-data/sockets/SocketListPage.tsx";
+import { ManageBuildsPage } from "./pages/build/ManageBuildsPage.tsx";
 
 export default function App() {
   return (
@@ -114,6 +116,7 @@ export default function App() {
           path="catalog/wireless-network-adapters/:wirelessNetworkAdapterId"
           element={<WirelessNetworkAdapterDetailPage />}
         />
+        <Route path="builds" element={<BrowseBuildPage />} />
         <Route element={<RequireBuilder />}>
           <Route path="builds/current" element={<BuilderPage />} />
           <Route path="builds/:buildId/edit" element={<BuilderPage />} />
@@ -122,6 +125,7 @@ export default function App() {
         <Route element={<RequireAuth />}>
           <Route path="account" element={<AccountPage />} />
           <Route path="change-password" element={<ChangePasswordPage />} />
+          <Route path="builds/me" element={<ManageBuildsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
         <Route element={<RequireAdmin />}>

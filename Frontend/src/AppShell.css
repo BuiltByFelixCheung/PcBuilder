@@ -315,6 +315,22 @@
   color: var(--muted-foreground);
 }
 
+.browse-builds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.browse-builds-card {
+  height: 100%;
+}
+
+.browse-builds-card [data-slot="card-footer"] {
+  margin-top: auto;
+}
+
 .catalog-layout {
   display: grid;
   grid-template-columns: minmax(13.5rem, 15.5rem) minmax(0, 1fr);
@@ -533,6 +549,10 @@
   margin: 24px 0 12px;
 }
 
+.catalog-page .builder-compatibility h2 {
+  margin: 0;
+}
+
 .catalog-page a:not([data-slot="button"]) {
   text-decoration: none;
 }
@@ -545,8 +565,18 @@
 .account-card {
   width: 100%;
   max-width: 440px;
+  box-sizing: border-box;
+  padding: 28px 24px 24px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) * 1.4);
+  background: var(--card);
+  box-shadow: var(--shadow);
   font-family: inherit;
   color: var(--muted-foreground);
+
+  @media (max-width: 1024px) {
+    padding: 24px 20px 20px;
+  }
 }
 
 .auth-card h1,
@@ -582,6 +612,26 @@
   font-size: 15px;
   font-weight: 500;
   letter-spacing: 0.01em;
+}
+
+.field-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.field-label-row a {
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.field-label-row a:hover {
+  text-decoration: underline;
 }
 
 .auth-field input,

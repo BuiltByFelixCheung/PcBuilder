@@ -34,8 +34,7 @@ const tokens: AuthTokens = {
   user: {
     id: "1",
     email: "a@b.c",
-    firstName: "Ann",
-    lastName: "Builder",
+    userName: "ann",
     roles: [AuthRoles.Admin, AuthRoles.Member],
   },
 };
@@ -56,8 +55,7 @@ function Probe() {
           void auth.register({
             email: "a@b.c",
             password: "pw",
-            firstName: "Ann",
-            lastName: "Builder",
+            userName: "ann",
           })
         }
       >

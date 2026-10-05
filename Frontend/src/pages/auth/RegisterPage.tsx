@@ -18,8 +18,7 @@ export function RegisterPage() {
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
+      userName: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -37,15 +36,13 @@ export function RegisterPage() {
       await registerAccount({
         email: values.email,
         password: values.password,
-        firstName: values.firstName,
-        lastName: values.lastName,
+        userName: values.userName,
       });
       void navigate("/account", { replace: true });
     } catch (error) {
       const parsed = parseApiError(error);
       applyApiFieldErrors(setError, parsed.fieldErrors, [
-        "firstName",
-        "lastName",
+        "userName",
         "email",
         "password",
         "confirmPassword",
@@ -57,7 +54,7 @@ export function RegisterPage() {
   return (
     <section className="auth-page">
       <form className="auth-card" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <h1>Create account</h1>
+        <h1 style={{ textAlign: "center" }}>Create account</h1>
         <p className="auth-lead">
           Register as a Member to save your PC builds.
         </p>
@@ -68,20 +65,12 @@ export function RegisterPage() {
         ) : null}
         <FieldGroup>
           <FormTextField
-            id="firstName"
-            label="First name"
-            autoComplete="given-name"
+            id="userName"
+            label="Username"
+            autoComplete="username"
             required
-            error={errors.firstName}
-            registration={register("firstName")}
-          />
-          <FormTextField
-            id="lastName"
-            label="Last name"
-            autoComplete="family-name"
-            required
-            error={errors.lastName}
-            registration={register("lastName")}
+            error={errors.userName}
+            registration={register("userName")}
           />
           <FormTextField
             id="email"
@@ -120,7 +109,7 @@ export function RegisterPage() {
         >
           {isSubmitting ? "Creating account…" : "Create account"}
         </Button>
-        <p className="auth-switch">
+        <p className="auth-switch" style={{ textAlign: "center" }}>
           Already have an account? <Link to="/login">Sign in</Link>
         </p>
       </form>

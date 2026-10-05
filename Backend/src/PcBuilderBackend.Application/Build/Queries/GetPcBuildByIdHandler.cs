@@ -4,7 +4,7 @@ using PcBuilderBackend.Application.Common.Interfaces;
 
 namespace PcBuilderBackend.Application.Build.Queries;
 
-public class GetPcBuildByIdHandler(IPcBuildReadStore store, ICurrentUser currentUser)
+public class GetPcBuildByIdHandler(IPcBuildReadStore store, ICurrentUser currentUser, IIdentityService identity)
     : IRequestHandler<GetPcBuildByIdQuery, PcBuildDto?>
 {
     public async Task<PcBuildDto?> Handle(GetPcBuildByIdQuery query, CancellationToken cancellationToken)
@@ -18,6 +18,6 @@ public class GetPcBuildByIdHandler(IPcBuildReadStore store, ICurrentUser current
             && currentUser.UserId != ownerId)
             throw new UnauthorizedAccessException();
 
-        return pcBuild;
+        return await PcBuildUserName.Attach(pcBuild, identity, cancellationToken);
     }
 }

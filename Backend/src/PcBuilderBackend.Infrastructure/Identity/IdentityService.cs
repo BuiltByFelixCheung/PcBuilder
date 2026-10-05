@@ -14,17 +14,14 @@ public class IdentityService(
     public async Task<RegisterResultDto> RegisterMemberAsync(
         string email,
         string password,
-        string firstName,
-        string lastName,
+        string userName,
         CancellationToken cancellationToken)
     {
         var user = new ApplicationUser
         {
             Id = Guid.NewGuid(),
-            UserName = email,
-            Email = email,
-            FirstName = firstName.Trim(),
-            LastName = lastName.Trim()
+            UserName = userName.Trim(),
+            Email = email
         };
 
         var createResult = await userManager.CreateAsync(user, password);
@@ -144,7 +141,7 @@ public class IdentityService(
     private async Task<CurrentUserDto> MapAsync(ApplicationUser user)
     {
         var roles = await userManager.GetRolesAsync(user);
-        return new CurrentUserDto(user.Id, user.Email!, user.FirstName, user.LastName, roles.ToList());
+        return new CurrentUserDto(user.Id, user.Email!, user.UserName!, roles.ToList());
     }
 
     private static Dictionary<string, string[]> ToErrors(IdentityResult result)
@@ -152,7 +149,8 @@ public class IdentityService(
         return result.Errors
             .GroupBy(error => error.Code switch
             {
-                "DuplicateEmail" or "InvalidEmail" or "DuplicateUserName" or "InvalidUserName" => "email",
+                "DuplicateEmail" or "InvalidEmail" => "email",
+                "DuplicateUserName" or "InvalidUserName" => "userName",
                 "InvalidToken" => "token",
                 _ when error.Code.Contains("Password", StringComparison.OrdinalIgnoreCase) => "password",
                 _ => "identity"

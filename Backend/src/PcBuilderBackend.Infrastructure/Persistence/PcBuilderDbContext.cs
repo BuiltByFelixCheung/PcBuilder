@@ -39,7 +39,7 @@ public class PcBuilderDbContext(DbContextOptions<PcBuilderDbContext> options)
     public DbSet<CpuCoolerSocket> CpuCoolerSockets { get; set; } = null!;
     public DbSet<CpuRamCompat> CpuRamCompats { get; set; } = null!;
     public DbSet<CpuSupportChipset> CpuSupportChipsets { get; set; } = null!;
-    public DbSet<PcBuild> PcBuilds { get; set; } = null!;
+    public DbSet<Domain.Entities.PcBuild> PcBuilds { get; set; } = null!;
     public DbSet<PcBuildUser> PcBuildUsers { get; set; } = null!;
     public DbSet<PcBuildPart> PcBuildParts { get; set; } = null!;
 
@@ -83,7 +83,7 @@ public class PcBuilderDbContext(DbContextOptions<PcBuilderDbContext> options)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ConfigurePostgresEnums();
+        NpgsqlEnumConfiguration.ConfigurePostgresEnums(modelBuilder);
 
         foreach (var clrType in modelBuilder.Model.GetEntityTypes()
                      .Select(entityType => entityType.ClrType)

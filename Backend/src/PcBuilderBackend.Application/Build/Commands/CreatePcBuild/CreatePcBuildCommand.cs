@@ -6,6 +6,7 @@ namespace PcBuilderBackend.Application.Build.Commands.CreatePcBuild;
 public record CreatePcBuildCommand(
     string Name,
     string? Description,
+    bool IsPublic,
     Guid ChassisId,
     Guid MotherboardId,
     Guid CpuId,

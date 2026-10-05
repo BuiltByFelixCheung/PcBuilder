@@ -19,10 +19,8 @@ export function AccountPage() {
         <p className="auth-lead">You are signed in.</p>
         <dl className="account-details">
           <div>
-            <dt>Name</dt>
-            <dd>
-              {user.firstName} {user.lastName}
-            </dd>
+            <dt>Username</dt>
+            <dd>{user.userName}</dd>
           </div>
           <div>
             <dt>Email</dt>
@@ -37,6 +35,15 @@ export function AccountPage() {
             </dd>
           </div>
         </dl>
+        {isMember && (
+          <button
+            type="button"
+            className="auth-submit"
+            onClick={() => void navigate("/builds/me")}
+          >
+            Manage My Builds
+          </button>
+        )}
         <button
           type="button"
           className="auth-submit"

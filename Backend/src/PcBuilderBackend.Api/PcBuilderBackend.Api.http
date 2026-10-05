@@ -35,8 +35,7 @@ Accept: application/json
 {
   "email": "member@localhost",
   "password": "ChangeMe!Member1",
-  "firstName": "Test",
-  "lastName": "Member"
+  "userName": "testmember"
 }
 
 ###

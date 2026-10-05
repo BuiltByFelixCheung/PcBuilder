@@ -16,8 +16,8 @@ public class ApplicationIdentityDbContext(DbContextOptions<ApplicationIdentityDb
 
         builder.Entity<ApplicationUser>(entity =>
         {
-            entity.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.UserName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.NormalizedUserName).HasMaxLength(100);
         });
 
         builder.Entity<RefreshToken>(entity =>

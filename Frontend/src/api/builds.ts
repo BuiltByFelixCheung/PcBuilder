@@ -1,5 +1,6 @@
 import { api } from "./client";
 import { type PagedRequest, type PagedResult } from "./paging";
+import type { BulkDeleteWrite } from "./types";
 
 export type PcBuildFields = {
   chassisId: string;
@@ -34,6 +35,7 @@ export type PcBuildListItem = {
   name: string;
   description: string;
   userId: string | null;
+  userName: string | null;
   isPublic: boolean;
 };
 
@@ -41,6 +43,11 @@ export type PcBuildDetail = PcBuildListItem & PcBuildFields;
 
 export const pcBuildKeys = {
   all: ["builds"] as const,
+  lists: () => [...pcBuildKeys.all, "list"] as const,
+  publicList: (request: PagedRequest) =>
+    [...pcBuildKeys.lists(), "public", request] as const,
+  myList: (request: PagedRequest) =>
+    [...pcBuildKeys.lists(), "me", request] as const,
   details: () => [...pcBuildKeys.all, "detail"] as const,
   detail: (id: string) => [...pcBuildKeys.details(), id] as const,
   compatibility: (draft: PcBuildDraft) =>
@@ -183,6 +190,7 @@ export type CompatibilityCheckResult = {
 export type CreatePcBuildCommand = PcBuildFields & {
   name: string;
   description: string;
+  isPublic: boolean;
 };
 
 export type UpdatePcBuildCommand = PcBuildFields & {
@@ -236,4 +244,12 @@ export function updatePcBuild(
   return api
     .put<PcBuildDetail>("/builds", build)
     .then((response) => response.data);
+}
+
+export function deletePcBuild(id: string): Promise<void> {
+  return api.delete(`/builds/${id}`).then(() => undefined);
+}
+
+export function deletePcBuilds(body: BulkDeleteWrite): Promise<void> {
+  return api.delete("/builds/bulk", { data: body }).then(() => undefined);
 }

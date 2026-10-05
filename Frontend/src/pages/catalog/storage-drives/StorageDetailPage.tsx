@@ -5,7 +5,7 @@ import { parseApiError } from "@/api/errors.ts";
 import { PageStatus } from "@/components/PageStatus.tsx";
 import { useStorageDrive } from "@/hooks/use-storage-drives.ts";
 import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
-import { formatM2FormFactor, formatStorageFormFactor } from "@/api/enums";
+
 import { AddToBuildButton } from "@/builds";
 import { useAuth } from "@/auth/use-auth";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
@@ -15,6 +15,14 @@ import {
   updateStorageDrive,
 } from "@/api/catalog/storage-drives";
 import { StorageFields } from "@/pages/catalog/storage-drives/StorageEditColumns";
+import { formatStorageFormFactor } from "@/api/enums";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from "@/components/ui/table";
 
 export function StorageDetailPage() {
   const { storageId } = useParams();
@@ -74,54 +82,82 @@ export function StorageDetailPage() {
           }}
         />
       ) : null}
-      <dl className="catalog-details">
+      <div className="catalog-table-pair">
         <div>
-          <dt>Manufacturer</dt>
-          <dd>{drive.manufacturerName}</dd>
+          <div className="catalog-detail-subtitle">
+            <h2>Basic information</h2>
+          </div>
+          <Table>
+            <TableBody>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Manufacturer
+                </TableHead>
+                <TableCell>{drive.manufacturerName}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Type
+                </TableHead>
+                <TableCell>{drive.media}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Interface
+                </TableHead>
+                <TableCell>{drive.interface}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </div>
         <div>
-          <dt>Media</dt>
-          <dd>{drive.media}</dd>
+          <div className="catalog-detail-subtitle">
+            <h2>Specifications</h2>
+          </div>
+          <Table>
+            <TableBody>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Form factor
+                </TableHead>
+                <TableCell>
+                  {formatStorageFormFactor(drive.formFactor)}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Capacity
+                </TableHead>
+                <TableCell>{drive.capacityGb} GB</TableCell>
+              </TableRow>
+              {drive.media === "Hdd" && (
+                <TableRow>
+                  <TableHead className="table-stub" scope="row">
+                    RPM
+                  </TableHead>
+                  <TableCell>{drive.rpm} RPM</TableCell>
+                </TableRow>
+              )}
+              {drive.isM2 && (
+                <>
+                  <TableRow>
+                    <TableHead className="table-stub" scope="row">
+                      M.2 key
+                    </TableHead>
+                    <TableCell>{drive.moduleKey}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead className="table-stub" scope="row">
+                      PCIe generation
+                    </TableHead>
+                    <TableCell>{drive.pcieGeneration}</TableCell>
+                  </TableRow>
+                </>
+              )}
+            </TableBody>
+          </Table>
         </div>
-        <div>
-          <dt>Interface</dt>
-          <dd>{drive.interface}</dd>
-        </div>
-        <div>
-          <dt>Form factor</dt>
-          <dd>{formatStorageFormFactor(drive.formFactor)}</dd>
-        </div>
-        <div>
-          <dt>Capacity</dt>
-          <dd>{drive.capacityGb} GB</dd>
-        </div>
-        <div>
-          <dt>PCIe generation</dt>
-          <dd>
-            {drive.pcieGeneration
-              ? drive.pcieGeneration.replace("Gen", "PCIe ")
-              : "—"}
-          </dd>
-        </div>
-        <div>
-          <dt>RPM</dt>
-          <dd>{drive.rpm ?? "—"}</dd>
-        </div>
-        <div>
-          <dt>M.2</dt>
-          <dd>{drive.isM2 ? "Yes" : "No"}</dd>
-        </div>
-        <div>
-          <dt>M.2 key</dt>
-          <dd>{drive.moduleKey ?? "—"}</dd>
-        </div>
-        <div>
-          <dt>M.2 form factor</dt>
-          <dd>
-            {drive.m2FormFactor ? formatM2FormFactor(drive.m2FormFactor) : "—"}
-          </dd>
-        </div>
-      </dl>
+      </div>
     </section>
   );
 }

@@ -14,6 +14,13 @@ import {
   wiredNetworkAdapterKeys,
 } from "@/api/catalog/wired-network-adapters";
 import { WiredNetworkAdapterFields } from "@/pages/catalog/wired-network-adapters/WiredNetworkAdapterEditColumns";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from "@/components/ui/table";
 
 export function WiredNetworkAdapterDetailPage() {
   const { wiredNetworkAdapterId } = useParams();
@@ -80,32 +87,68 @@ export function WiredNetworkAdapterDetailPage() {
           }}
         />
       ) : null}
-      <dl className="catalog-details">
+      <div className="catalog-table-pair">
         <div>
-          <dt>Manufacturer</dt>
-          <dd>{adapter.manufacturerName}</dd>
+          <div className="catalog-detail-subtitle">
+            <h2>Basic information</h2>
+          </div>
+          <Table>
+            <TableBody>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Manufacturer
+                </TableHead>
+                <TableCell>{adapter.manufacturerName}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Host interface
+                </TableHead>
+                <TableCell>{adapter.hostInterface}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Max speed
+                </TableHead>
+                <TableCell>{adapter.maxSpeedMbps} Mbps</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </div>
         <div>
-          <dt>Host interface</dt>
-          <dd>{adapter.hostInterface}</dd>
+          <div className="catalog-detail-subtitle">
+            <h2>Interface</h2>
+          </div>
+          <Table>
+            <TableBody>
+              {adapter.hostInterface === "Pcie" && (
+                <TableRow>
+                  <TableHead className="table-stub" scope="row">
+                    PCIe slot
+                  </TableHead>
+                  <TableCell>{adapter.pcieSlotType}</TableCell>
+                </TableRow>
+              )}
+              {adapter.hostInterface === "Usb" && (
+                <>
+                  <TableRow>
+                    <TableHead className="table-stub" scope="row">
+                      USB version
+                    </TableHead>
+                    <TableCell>{adapter.usbVersion ?? "—"}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead className="table-stub" scope="row">
+                      USB type
+                    </TableHead>
+                    <TableCell>{adapter.usbType ?? "—"}</TableCell>
+                  </TableRow>
+                </>
+              )}
+            </TableBody>
+          </Table>
         </div>
-        <div>
-          <dt>Max speed</dt>
-          <dd>{adapter.maxSpeedMbps} Mbps</dd>
-        </div>
-        <div>
-          <dt>PCIe slot</dt>
-          <dd>{adapter.pcieSlotType ?? "—"}</dd>
-        </div>
-        <div>
-          <dt>USB version</dt>
-          <dd>{adapter.usbVersion ?? "—"}</dd>
-        </div>
-        <div>
-          <dt>USB type</dt>
-          <dd>{adapter.usbType ?? "—"}</dd>
-        </div>
-      </dl>
+      </div>
     </section>
   );
 }

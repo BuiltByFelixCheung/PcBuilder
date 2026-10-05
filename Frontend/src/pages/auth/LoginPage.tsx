@@ -42,7 +42,7 @@ export function LoginPage() {
   return (
     <section className="auth-page">
       <form className="auth-card" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <h1>Sign in</h1>
+        <h1 style={{ textAlign: "center" }}>Sign in</h1>
         <p className="auth-lead">
           Use your PC Builder account to save and manage builds.
         </p>
@@ -69,6 +69,7 @@ export function LoginPage() {
             required
             error={errors.password}
             registration={register("password")}
+            labelAction={<Link to="/forgot-password">Reset password</Link>}
           />
         </FieldGroup>
         <Button
@@ -79,10 +80,8 @@ export function LoginPage() {
         >
           {isSubmitting ? "Signing in…" : "Sign in"}
         </Button>
-        <p className="auth-switch">
+        <p className="auth-switch" style={{ textAlign: "center" }}>
           New here? <Link to="/register">Create an account</Link>
-          <br />
-          Forgot your password? <Link to="/forgot-password">Reset it</Link>
         </p>
       </form>
     </section>

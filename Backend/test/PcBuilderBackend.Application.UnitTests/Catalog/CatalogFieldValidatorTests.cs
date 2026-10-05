@@ -155,6 +155,7 @@ public class CatalogFieldValidatorTests : IDisposable
         var valid = new CreatePcBuildCommand(
             "My build",
             "Quiet",
+            false,
             Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),

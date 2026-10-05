@@ -10,8 +10,7 @@ const tokens: AuthTokens = {
   user: {
     id: "1",
     email: "a@b.c",
-    firstName: "A",
-    lastName: "B",
+    userName: "ab",
     roles: [],
   },
 };

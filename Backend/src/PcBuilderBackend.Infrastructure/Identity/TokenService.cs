@@ -132,8 +132,7 @@ public class TokenService(
             new(JwtRegisteredClaimNames.Email, user.Email),
             new(ClaimTypes.Email, user.Email),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new("first_name", user.FirstName),
-            new("last_name", user.LastName)
+            new("user_name", user.UserName)
         };
         claims.AddRange(user.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
@@ -154,7 +153,7 @@ public class TokenService(
             .Join(db.Roles, userRole => userRole.RoleId, role => role.Id, (_, role) => role.Name!)
             .ToListAsync(cancellationToken);
 
-        return new CurrentUserDto(user.Id, user.Email!, user.FirstName, user.LastName, roles);
+        return new CurrentUserDto(user.Id, user.Email!, user.UserName!, roles);
     }
 
     private static string CreateRawRefreshToken() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));

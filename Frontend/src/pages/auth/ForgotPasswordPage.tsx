@@ -60,7 +60,7 @@ export function ForgotPasswordPage() {
         </div>
       </dialog>
       <form className="auth-card" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <h1>Forgot Password</h1>
+        <h1 style={{ textAlign: "center" }}>Forgot Password</h1>
         <p className="auth-lead">
           Enter your email address below and we'll send you a link to reset your
           password.

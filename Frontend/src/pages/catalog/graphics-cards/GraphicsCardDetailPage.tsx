@@ -15,6 +15,13 @@ import {
   updateGraphicsCard,
 } from "@/api/catalog/graphics-cards";
 import { GraphicsCardFields } from "@/pages/catalog/graphics-cards/GraphicsCardEditColumns";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from "@/components/ui/table";
 
 export function GraphicsCardDetailPage() {
   const { graphicsCardId } = useParams();
@@ -87,62 +94,114 @@ export function GraphicsCardDetailPage() {
           }}
         />
       ) : null}
-      <dl className="catalog-details">
-        <div>
-          <dt>Manufacturer</dt>
-          <dd>{graphicsCard.manufacturerName}</dd>
+      <div className="catalog-table-pair">
+        <div className="catalog-detail-stack">
+          <div>
+            <div className="catalog-detail-subtitle">
+              <h2>Basic information</h2>
+            </div>
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableHead className="table-stub" scope="row">
+                    Manufacturer
+                  </TableHead>
+                  <TableCell>{graphicsCard.manufacturerName}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableHead className="table-stub" scope="row">
+                    Video memory
+                  </TableHead>
+                  <TableCell>{graphicsCard.videoMemoryGb} GB</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableHead className="table-stub" scope="row">
+                    Slot width
+                  </TableHead>
+                  <TableCell>{graphicsCard.pcieSlotsUsed}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableHead className="table-stub" scope="row">
+                    PCIe generation
+                  </TableHead>
+                  <TableCell>{graphicsCard.pcieGeneration}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableHead className="table-stub" scope="row">
+                    Low profile
+                  </TableHead>
+                  <TableCell>
+                    {graphicsCard.isLowProfile ? "Yes" : "No"}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+          <div>
+            <div className="catalog-detail-subtitle">
+              <h2>{graphicsCard.gpuName}</h2>
+            </div>
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableHead className="table-stub" scope="row">
+                    Manufacturer
+                  </TableHead>
+                  <TableCell>{graphicsCard.gpuManufacturerName}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableHead className="table-stub" scope="row">
+                    Series
+                  </TableHead>
+                  <TableCell>{graphicsCard.gpuSeriesName}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
         </div>
         <div>
-          <dt>Video Memory</dt>
-          <dd>{graphicsCard.videoMemoryGb} GB</dd>
+          <div className="catalog-detail-subtitle">
+            <h2>Dimensions and power</h2>
+          </div>
+          <Table>
+            <TableBody>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Length
+                </TableHead>
+                <TableCell>{graphicsCard.lengthMm} mm</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Width
+                </TableHead>
+                <TableCell>{graphicsCard.widthMm} mm</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Height
+                </TableHead>
+                <TableCell>{graphicsCard.heightMm} mm</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Power consumption
+                </TableHead>
+                <TableCell>{graphicsCard.powerConsumptionWatts} W</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="table-stub" scope="row">
+                  Power connectors
+                </TableHead>
+                <TableCell>
+                  {graphicsCard.powerConnectorType} x{" "}
+                  {graphicsCard.powerConnectorCount}
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </div>
-        <div>
-          <dt>Slot Width</dt>
-          <dd>{graphicsCard.pcieSlotsUsed}</dd>
-        </div>
-        <div>
-          <dt>PCIe Generation</dt>
-          <dd>{graphicsCard.pcieGeneration}</dd>
-        </div>
-        <div>
-          <dt>Low Profile</dt>
-          <dd>{graphicsCard.isLowProfile ? "Yes" : "No"}</dd>
-        </div>
-        <div>
-          <dt>Length</dt>
-          <dd>{graphicsCard.lengthMm} mm</dd>
-        </div>
-        <div>
-          <dt>Width</dt>
-          <dd>{graphicsCard.widthMm} mm</dd>
-        </div>
-        <div>
-          <dt>Height</dt>
-          <dd>{graphicsCard.heightMm} mm</dd>
-        </div>
-        <div>
-          <dt>Power Consumption</dt>
-          <dd>{graphicsCard.powerConsumptionWatts} W</dd>
-        </div>
-        <div>
-          <dt>Power Connectors</dt>
-          <dd>
-            {graphicsCard.powerConnectorType} x{" "}
-            {graphicsCard.powerConnectorCount}
-          </dd>
-        </div>
-      </dl>
-      <h1>{graphicsCard.gpuName}</h1>
-      <dl className="catalog-details">
-        <div>
-          <dt>Manufacturer</dt>
-          <dd>{graphicsCard.gpuManufacturerName}</dd>
-        </div>
-        <div>
-          <dt>Series</dt>
-          <dd>{graphicsCard.gpuSeriesName}</dd>
-        </div>
-      </dl>
+      </div>
     </section>
   );
 }

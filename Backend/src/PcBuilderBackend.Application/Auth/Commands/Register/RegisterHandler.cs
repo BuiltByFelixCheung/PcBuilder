@@ -12,8 +12,7 @@ public class RegisterHandler(IIdentityService identityService)
         return identityService.RegisterMemberAsync(
             request.Email,
             request.Password,
-            request.FirstName,
-            request.LastName,
+            request.UserName,
             cancellationToken);
     }
 }

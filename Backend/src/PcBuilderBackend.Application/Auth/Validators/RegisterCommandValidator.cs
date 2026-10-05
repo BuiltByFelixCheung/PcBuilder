@@ -16,12 +16,13 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
             .NotEmpty()
             .MinimumLength(10);
 
-        RuleFor(x => x.FirstName)
+        RuleFor(x => x.UserName)
             .NotEmpty()
-            .MaximumLength(100);
-
-        RuleFor(x => x.LastName)
-            .NotEmpty()
-            .MaximumLength(100);
+            .MaximumLength(100)
+            .Must(name => !name.Contains('@'))
+            .WithMessage("Username cannot be an email address.")
+            .Must((command, userName) =>
+                !string.Equals(userName.Trim(), command.Email.Trim(), StringComparison.OrdinalIgnoreCase))
+            .WithMessage("Username must be different from email.");
     }
 }

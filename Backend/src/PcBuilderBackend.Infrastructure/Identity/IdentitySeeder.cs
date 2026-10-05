@@ -41,10 +41,8 @@ public static class IdentitySeeder
             admin = new ApplicationUser
             {
                 Id = Guid.NewGuid(),
-                UserName = email,
+                UserName = "admin",
                 Email = email,
-                FirstName = "Admin",
-                LastName = "User",
                 EmailConfirmed = true
             };
 

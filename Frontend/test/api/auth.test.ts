@@ -32,8 +32,7 @@ describe("auth API", () => {
       registerRequest({
         email: "a@b.c",
         password: "pw",
-        firstName: "A",
-        lastName: "B",
+        userName: "ab",
       }),
     ).resolves.toEqual({ ok: true });
     await logoutRequest();

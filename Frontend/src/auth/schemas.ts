@@ -11,8 +11,14 @@ export const loginSchema = z.object({
 
 export const registerSchema = z
   .object({
-    firstName: z.string().trim().min(1, "First name is required.").max(100),
-    lastName: z.string().trim().min(1, "Last name is required.").max(100),
+    userName: z
+      .string()
+      .trim()
+      .min(1, "Username is required.")
+      .max(100)
+      .refine((value) => !value.includes("@"), {
+        message: "Username cannot be an email address.",
+      }),
     email: z
       .string()
       .trim()
@@ -27,7 +33,14 @@ export const registerSchema = z
   .refine((values) => values.password === values.confirmPassword, {
     path: ["confirmPassword"],
     message: "Passwords do not match.",
-  });
+  })
+  .refine(
+    (values) => values.userName.toLowerCase() !== values.email.toLowerCase(),
+    {
+      path: ["userName"],
+      message: "Username must be different from email.",
+    },
+  );
 
 export const forgotPasswordSchema = z.object({
   email: z

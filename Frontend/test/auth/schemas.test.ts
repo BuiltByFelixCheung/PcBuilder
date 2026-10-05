@@ -23,8 +23,7 @@ describe("auth schemas", () => {
 
   it("requires matching register passwords of at least 10 characters", () => {
     const valid = {
-      firstName: "Ann",
-      lastName: "Builder",
+      userName: "annbuilder",
       email: "ann@example.com",
       password: "Password1!",
       confirmPassword: "Password1!",

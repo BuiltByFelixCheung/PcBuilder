@@ -39,7 +39,7 @@ describe("AccountPage", () => {
         <AccountPage />
       </MemoryRouter>,
     );
-    expect(screen.getByText("Ann Builder")).toBeInTheDocument();
+    expect(screen.getByText("annbuilder")).toBeInTheDocument();
     expect(screen.getByText("Admin")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Sign out" }));
     expect(auth.logout).toHaveBeenCalled();

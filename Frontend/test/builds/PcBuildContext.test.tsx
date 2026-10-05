@@ -11,6 +11,7 @@ const savedBuild: PcBuildDetail = {
   name: "Office box",
   description: "Quiet",
   userId: "user-1",
+  userName: "annbuilder",
   isPublic: false,
   chassisId: "case-1",
   motherboardId: "mb-1",
