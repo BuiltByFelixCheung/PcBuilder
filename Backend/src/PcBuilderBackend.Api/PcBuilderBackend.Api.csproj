@@ -29,6 +29,23 @@
     <ItemGroup>
       <ProjectReference Include="..\PcBuilderBackend.Application\PcBuilderBackend.Application.csproj" />
       <ProjectReference Include="..\PcBuilderBackend.Infrastructure\PcBuilderBackend.Infrastructure.csproj" />
+      <Content Update="wwwroot\**" CopyToPublishDirectory="Never" />
     </ItemGroup>
+
+    <Target Name="PublishFrontend"
+            AfterTargets="ComputeFilesToPublish"
+            Condition="'$(SkipSpaBuild)' != 'true' And '$(DesignTimeBuild)' != 'true'">
+        <Message Importance="high" Text="Building frontend into wwwroot..." />
+        <Exec WorkingDirectory="$(SpaRoot)" Command="npm ci" />
+        <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
+        <ItemGroup>
+            <DistFiles Include="$(SpaRoot)dist\**" />
+            <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
+                <RelativePath>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+                <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+                <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+            </ResolvedFileToPublish>
+        </ItemGroup>
+    </Target>
 
 </Project>
