@@ -6,7 +6,7 @@ export function Authenticated({
   isMember,
   handleLogout,
 }: Readonly<{
-  user: { email: string } | null;
+  user: { email: string; userName: string } | null;
   isAdmin: boolean;
   isMember: boolean;
   handleLogout: () => Promise<void>;
@@ -14,7 +14,7 @@ export function Authenticated({
   return (
     <>
       <span className="nav-user">
-        {user?.email}
+        {user?.userName}
         {isAdmin ? <span className="role-pill">Admin</span> : null}
         {isMember ? <span className="role-pill">Member</span> : null}
       </span>

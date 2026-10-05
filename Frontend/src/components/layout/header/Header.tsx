@@ -9,7 +9,7 @@ export function Header({
   handleLogout,
 }: Readonly<{
   isAuthenticated: boolean;
-  user: { email: string } | null;
+  user: { email: string, userName: string } | null;
   isAdmin: boolean;
   isMember: boolean;
   handleLogout: () => Promise<void>;
