@@ -57,6 +57,29 @@ const columnHelper = createColumnHelper<
   CpuCoolerListItem
 >();
 
+function formatOptionalMm(value: number | null | undefined) {
+  return value != null ? `${value} mm` : "—";
+}
+
+const COOLER_MM_COLUMNS = [
+  ["coolerLengthMm", "Length"],
+  ["coolerWidthMm", "Width"],
+  ["coolerHeightMm", "Height"],
+  ["maxRamHeightMm", "Max RAM height"],
+] as const;
+
+const RADIATOR_AND_FAN_MM_COLUMNS = [
+  ["radiatorLengthMm", "Radiator length"],
+  ["radiatorWidthMm", "Radiator width"],
+  ["radiatorHeightMm", "Radiator height"],
+  ["waterBlockLengthMm", "Water block length"],
+  ["waterBlockWidthMm", "Water block width"],
+  ["waterBlockHeightMm", "Water block height"],
+  ["fanThicknessMm", "Fan thickness"],
+  ["fanWidthMm", "Fan width"],
+  ["fanHeightMm", "Fan height"],
+] as const;
+
 export function CpuCoolerListPage() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -82,34 +105,12 @@ export function CpuCoolerListPage() {
           (id) => `/catalog/cpu-coolers/${id}`,
         ),
         columnHelper.accessor("type", { header: "Type" }),
-        columnHelper.accessor("coolerLengthMm", {
-          header: "Length",
-          cell: (info) => {
-            const value = info.getValue();
-            return value != null ? `${value} mm` : "—";
-          },
-        }),
-        columnHelper.accessor("coolerWidthMm", {
-          header: "Width",
-          cell: (info) => {
-            const value = info.getValue();
-            return value != null ? `${value} mm` : "—";
-          },
-        }),
-        columnHelper.accessor("coolerHeightMm", {
-          header: "Height",
-          cell: (info) => {
-            const value = info.getValue();
-            return value != null ? `${value} mm` : "—";
-          },
-        }),
-        columnHelper.accessor("maxRamHeightMm", {
-          header: "Max RAM height",
-          cell: (info) => {
-            const value = info.getValue();
-            return value != null ? `${value} mm` : "—";
-          },
-        }),
+        ...COOLER_MM_COLUMNS.map(([key, header]) =>
+          columnHelper.accessor(key, {
+            header,
+            cell: (info) => formatOptionalMm(info.getValue()),
+          }),
+        ),
         columnHelper.accessor("radiatorClass", {
           header: "Radiator class",
           cell: (info) => {
@@ -117,69 +118,12 @@ export function CpuCoolerListPage() {
             return value ? formatRadiatorClass(value) : "—";
           },
         }),
-        columnHelper.accessor("radiatorLengthMm", {
-          header: "Radiator length",
-          cell: (info) => {
-            const value = info.getValue();
-            return value != null ? `${value} mm` : "—";
-          },
-        }),
-        columnHelper.accessor("radiatorWidthMm", {
-          header: "Radiator width",
-          cell: (info) => {
-            const value = info.getValue();
-            return value != null ? `${value} mm` : "—";
-          },
-        }),
-        columnHelper.accessor("radiatorHeightMm", {
-          header: "Radiator height",
-          cell: (info) => {
-            const value = info.getValue();
-            return value != null ? `${value} mm` : "—";
-          },
-        }),
-        columnHelper.accessor("waterBlockLengthMm", {
-          header: "Water block length",
-          cell: (info) => {
-            const value = info.getValue();
-            return value != null ? `${value} mm` : "—";
-          },
-        }),
-        columnHelper.accessor("waterBlockWidthMm", {
-          header: "Water block width",
-          cell: (info) => {
-            const value = info.getValue();
-            return value != null ? `${value} mm` : "—";
-          },
-        }),
-        columnHelper.accessor("waterBlockHeightMm", {
-          header: "Water block height",
-          cell: (info) => {
-            const value = info.getValue();
-            return value != null ? `${value} mm` : "—";
-          },
-        }),
-        columnHelper.accessor("fanThicknessMm", {
-          header: "Fan thickness",
-          cell: (info) => {
-            const value = info.getValue();
-            return value != null ? `${value} mm` : "—";
-          },
-        }),
-        columnHelper.accessor("fanWidthMm", {
-          header: "Fan width",
-          cell: (info) => {
-            const value = info.getValue();
-            return value != null ? `${value} mm` : "—";
-          },
-        }),
-        columnHelper.accessor("fanHeightMm", {
-          header: "Fan height",
-          cell: (info) => {
-            const value = info.getValue();
-            return value != null ? `${value} mm` : "—";
-          },
-        }),
+        ...RADIATOR_AND_FAN_MM_COLUMNS.map(([key, header]) =>
+          columnHelper.accessor(key, {
+            header,
+            cell: (info) => formatOptionalMm(info.getValue()),
+          }),
+        ),
         columnHelper.accessor("fanCount", {
           header: "Fan count",
           cell: (info) => info.getValue() ?? "—",
