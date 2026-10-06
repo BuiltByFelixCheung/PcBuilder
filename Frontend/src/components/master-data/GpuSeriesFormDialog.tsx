@@ -12,16 +12,13 @@ import {
   type GpuSeriesOption,
 } from "@/api/master-data";
 import { MasterDataEditorFrame } from "@/components/master-data/MasterDataEditorFrame";
-import { PageStatus } from "@/components/PageStatus";
-import { FormTextField } from "@/components/FormTextField";
-import { Button } from "@/components/ui/button";
 import {
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+  MasterDataFormShell,
+  MasterDataMissing,
+  MasterDataOptions,
+} from "@/components/master-data/MasterDataDialogShell";
+import { FormTextField } from "@/components/FormTextField";
+import { Field, FieldLabel } from "@/components/ui/field";
 import {
   applyApiFieldErrors,
   applyApiFormError,
@@ -61,19 +58,16 @@ export function GpuSeriesFormDialog({
       onClose={onClose}
       editTitle="Edit GPU series"
       loadingMessage="Loading GPU series…"
-      missing={<MissingGpuSeries onClose={onClose} />}
+      missing={
+        <MasterDataMissing
+          title="GPU series not found"
+          description="This GPU series is not in the current list."
+          onClose={onClose}
+        />
+      }
     >
       {(editing) => <GpuSeriesForm gpuSeries={editing} onClose={onClose} />}
     </MasterDataEditorFrame>
-  );
-}
-
-function MissingGpuSeries({ onClose }: Readonly<{ onClose: () => void }>) {
-  return (
-    <div className="flex flex-col gap-2">
-      <PageStatus>GPU series not found.</PageStatus>
-      <Button onClick={onClose}>Close</Button>
-    </div>
   );
 }
 
@@ -85,47 +79,21 @@ function GpuSeriesForm({
     queryKey: masterDataKeys.manufacturersByProductType("gpu"),
     queryFn: () => listManufacturersByProductType("gpu"),
   });
-  const optionsError = manufacturers.error;
-
-  if (manufacturers.isPending) {
-    return (
-      <>
-        <DialogHeader>
-          <DialogTitle>
-            {gpuSeries ? "Edit GPU series" : "New GPU series"}
-          </DialogTitle>
-        </DialogHeader>
-        <PageStatus>Loading GPU series…</PageStatus>
-      </>
-    );
-  }
-
-  if (optionsError || !manufacturers.data) {
-    return (
-      <>
-        <DialogHeader>
-          <DialogTitle>
-            {gpuSeries ? "Edit GPU series" : "New GPU series"}
-          </DialogTitle>
-        </DialogHeader>
-        <p className="form-error" role="alert">
-          {parseApiError(optionsError).message}
-        </p>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Close
-          </Button>
-        </DialogFooter>
-      </>
-    );
-  }
-
   return (
-    <GpuSeriesFields
-      gpuSeries={gpuSeries}
-      manufacturers={manufacturers.data}
+    <MasterDataOptions
+      title={gpuSeries ? "Edit GPU series" : "New GPU series"}
+      loadingMessage="Loading GPU series…"
       onClose={onClose}
-    />
+      queries={[manufacturers]}
+    >
+      {([manufacturerOptions]) => (
+        <GpuSeriesFields
+          gpuSeries={gpuSeries}
+          manufacturers={manufacturerOptions}
+          onClose={onClose}
+        />
+      )}
+    </MasterDataOptions>
   );
 }
 
@@ -193,71 +161,52 @@ function GpuSeriesFields({
   }
 
   return (
-    <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-      <DialogHeader>
-        <DialogTitle>
-          {gpuSeries ? "Edit GPU series" : "New GPU series"}
-        </DialogTitle>
-        <DialogDescription>
-          {gpuSeries
-            ? "Update the name and manufacturer."
-            : "Add a GPU series to master data."}
-        </DialogDescription>
-      </DialogHeader>
-      <FieldGroup>
-        <FormTextField
-          id="gpu-series-edit-name"
-          label="Name"
-          required
-          error={errors.name}
-          registration={register("name")}
-        />
-        <Field data-invalid={errors.manufacturerId ? true : undefined}>
-          <FieldLabel htmlFor="gpu-series-edit-manufacturer">
-            Manufacturer
-          </FieldLabel>
-          <select
-            id="gpu-series-edit-manufacturer"
-            className={formSelectClassName}
-            aria-invalid={errors.manufacturerId ? true : undefined}
-            {...manufacturerRegistration}
-            onChange={(event) => {
-              void manufacturerRegistration.onChange(event);
-            }}
-          >
-            <option value="">Select a manufacturer</option>
-            {manufacturers.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </FieldGroup>
-      <DialogFooter>
-        {gpuSeries ? (
-          <Button
-            type="button"
-            variant="destructive"
-            className="sm:mr-auto"
-            onClick={() => void onDelete()}
-            disabled={isDeleting}
-          >
-            {isDeleting ? "Deleting…" : "Delete"}
-          </Button>
-        ) : null}
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onClose}
-          disabled={isSubmitting}
+    <MasterDataFormShell
+      title={gpuSeries ? "Edit GPU series" : "New GPU series"}
+      description={
+        gpuSeries
+          ? "Update the name and manufacturer."
+          : "Add a GPU series to master data."
+      }
+      error={errors.root?.message}
+      onSubmit={handleSubmit(onSubmit)}
+      onClose={onClose}
+      onDelete={gpuSeries ? () => void onDelete() : undefined}
+      deleteDisabled={isDeleting}
+      deleting={isDeleting}
+      cancelLabel="Close"
+      cancelDisabled={isSubmitting}
+      submitLabel={gpuSeries ? "Update" : "Create"}
+      submitDisabled={isSubmitting}
+    >
+      <FormTextField
+        id="gpu-series-edit-name"
+        label="Name"
+        required
+        error={errors.name}
+        registration={register("name")}
+      />
+      <Field data-invalid={errors.manufacturerId ? true : undefined}>
+        <FieldLabel htmlFor="gpu-series-edit-manufacturer">
+          Manufacturer
+        </FieldLabel>
+        <select
+          id="gpu-series-edit-manufacturer"
+          className={formSelectClassName}
+          aria-invalid={errors.manufacturerId ? true : undefined}
+          {...manufacturerRegistration}
+          onChange={(event) => {
+            void manufacturerRegistration.onChange(event);
+          }}
         >
-          Close
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {gpuSeries ? "Update" : "Create"}
-        </Button>
-      </DialogFooter>
-    </form>
+          <option value="">Select a manufacturer</option>
+          {manufacturers.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+      </Field>
+    </MasterDataFormShell>
   );
 }

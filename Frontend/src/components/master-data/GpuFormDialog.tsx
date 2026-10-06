@@ -14,21 +14,13 @@ import {
   type GpuSeriesOption,
 } from "@/api/master-data";
 import { MasterDataEditorFrame } from "@/components/master-data/MasterDataEditorFrame";
-import { PageStatus } from "@/components/PageStatus";
+import {
+  MasterDataFormShell,
+  MasterDataMissing,
+  MasterDataOptions,
+} from "@/components/master-data/MasterDataDialogShell";
 import { FormTextField } from "@/components/FormTextField";
-import { Button } from "@/components/ui/button";
-import {
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import {
   applyApiFieldErrors,
   applyApiFormError,
@@ -69,28 +61,16 @@ export function GpuFormDialog({
       onClose={onClose}
       editTitle="Edit GPU"
       loadingMessage="Loading GPU…"
-      missing={<MissingGpu onClose={onClose} />}
+      missing={
+        <MasterDataMissing
+          title="GPU not found"
+          description="This GPU is not in the current list."
+          onClose={onClose}
+        />
+      }
     >
       {(gpu) => <GpuForm gpu={gpu} onClose={onClose} />}
     </MasterDataEditorFrame>
-  );
-}
-
-function MissingGpu({ onClose }: Readonly<{ onClose: () => void }>) {
-  return (
-    <>
-      <DialogHeader>
-        <DialogTitle>GPU not found</DialogTitle>
-        <DialogDescription>
-          This GPU is not in the current list.
-        </DialogDescription>
-      </DialogHeader>
-      <DialogFooter>
-        <Button type="button" variant="outline" onClick={onClose}>
-          Close
-        </Button>
-      </DialogFooter>
-    </>
   );
 }
 
@@ -106,44 +86,22 @@ function GpuForm({
     queryKey: masterDataKeys.gpuSeries,
     queryFn: () => listGpuSeries(),
   });
-  const optionsError = manufacturers.error ?? series.error;
-
-  if (manufacturers.isPending || series.isPending) {
-    return (
-      <>
-        <DialogHeader>
-          <DialogTitle>{gpu ? "Edit GPU" : "New GPU"}</DialogTitle>
-        </DialogHeader>
-        <PageStatus>Loading GPU…</PageStatus>
-      </>
-    );
-  }
-
-  if (optionsError || !manufacturers.data || !series.data) {
-    return (
-      <>
-        <DialogHeader>
-          <DialogTitle>{gpu ? "Edit GPU" : "New GPU"}</DialogTitle>
-        </DialogHeader>
-        <p className="form-error" role="alert">
-          {parseApiError(optionsError).message}
-        </p>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Close
-          </Button>
-        </DialogFooter>
-      </>
-    );
-  }
-
   return (
-    <GpuFields
-      gpu={gpu}
-      manufacturers={manufacturers.data}
-      series={series.data}
+    <MasterDataOptions
+      title={gpu ? "Edit GPU" : "New GPU"}
+      loadingMessage="Loading GPU…"
       onClose={onClose}
-    />
+      queries={[manufacturers, series]}
+    >
+      {([manufacturerOptions, seriesOptions]) => (
+        <GpuFields
+          gpu={gpu}
+          manufacturers={manufacturerOptions}
+          series={seriesOptions}
+          onClose={onClose}
+        />
+      )}
+    </MasterDataOptions>
   );
 }
 
@@ -215,84 +173,65 @@ function GpuFields({
   }
 
   return (
-    <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-      <DialogHeader>
-        <DialogTitle>{gpu ? "Edit GPU" : "New GPU"}</DialogTitle>
-        <DialogDescription>
-          {gpu
-            ? "Update the name, manufacturer, and series."
-            : "Add a GPU to master data."}
-        </DialogDescription>
-      </DialogHeader>
-      {errors.root?.message ? (
-        <p className="form-error" role="alert">
-          {errors.root.message}
-        </p>
-      ) : null}
-      <FieldGroup>
-        <FormTextField
-          id="gpu-edit-name"
-          label="Name"
-          required
-          error={errors.name}
-          registration={register("name")}
-        />
-        <Field data-invalid={errors.manufacturerId ? true : undefined}>
-          <FieldLabel>Manufacturer</FieldLabel>
-          <select
-            id="gpu-edit-manufacturer"
-            className={formSelectClassName}
-            aria-invalid={errors.manufacturerId ? true : undefined}
-            {...manufacturerRegistration}
-            onChange={(event) => {
-              void manufacturerRegistration.onChange(event);
-            }}
-          >
-            <option value="">Select a manufacturer</option>
-            {manufacturers.map((manufacturer) => (
-              <option key={manufacturer.id} value={manufacturer.id}>
-                {manufacturer.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field data-invalid={errors.gpuSeriesId ? true : undefined}>
-          <FieldLabel>Series</FieldLabel>
-          <select
-            id="gpu-edit-series"
-            className={formSelectClassName}
-            aria-invalid={errors.gpuSeriesId ? true : undefined}
-            {...register("gpuSeriesId")}
-          >
-            <option value="">Select a series</option>
-            {seriesOptions.map((series) => (
-              <option key={series.id} value={series.id}>
-                {series.name}
-              </option>
-            ))}
-          </select>
-          <FieldError errors={[errors.gpuSeriesId]} />
-        </Field>
-      </FieldGroup>
-      <DialogFooter>
-        {gpu ? (
-          <Button
-            type="button"
-            variant="destructive"
-            className="sm:mr-auto"
-            onClick={() => void onDelete()}
-            disabled={isDeleting}
-          >
-            {isDeleting ? "Deleting…" : "Delete"}
-          </Button>
-        ) : null}
-        <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving…" : "Save"}
-        </Button>
-      </DialogFooter>
-    </form>
+    <MasterDataFormShell
+      title={gpu ? "Edit GPU" : "New GPU"}
+      description={
+        gpu
+          ? "Update the name, manufacturer, and series."
+          : "Add a GPU to master data."
+      }
+      error={errors.root?.message}
+      onSubmit={handleSubmit(onSubmit)}
+      onClose={onClose}
+      onDelete={gpu ? () => void onDelete() : undefined}
+      deleteDisabled={isDeleting}
+      deleting={isDeleting}
+      submitLabel={isSubmitting ? "Saving…" : "Save"}
+      submitDisabled={isSubmitting}
+    >
+      <FormTextField
+        id="gpu-edit-name"
+        label="Name"
+        required
+        error={errors.name}
+        registration={register("name")}
+      />
+      <Field data-invalid={errors.manufacturerId ? true : undefined}>
+        <FieldLabel>Manufacturer</FieldLabel>
+        <select
+          id="gpu-edit-manufacturer"
+          className={formSelectClassName}
+          aria-invalid={errors.manufacturerId ? true : undefined}
+          {...manufacturerRegistration}
+          onChange={(event) => {
+            void manufacturerRegistration.onChange(event);
+          }}
+        >
+          <option value="">Select a manufacturer</option>
+          {manufacturers.map((manufacturer) => (
+            <option key={manufacturer.id} value={manufacturer.id}>
+              {manufacturer.name}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field data-invalid={errors.gpuSeriesId ? true : undefined}>
+        <FieldLabel>Series</FieldLabel>
+        <select
+          id="gpu-edit-series"
+          className={formSelectClassName}
+          aria-invalid={errors.gpuSeriesId ? true : undefined}
+          {...register("gpuSeriesId")}
+        >
+          <option value="">Select a series</option>
+          {seriesOptions.map((series) => (
+            <option key={series.id} value={series.id}>
+              {series.name}
+            </option>
+          ))}
+        </select>
+        <FieldError errors={[errors.gpuSeriesId]} />
+      </Field>
+    </MasterDataFormShell>
   );
 }
