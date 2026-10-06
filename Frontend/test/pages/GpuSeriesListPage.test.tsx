@@ -192,7 +192,9 @@ describe("GpuSeriesListPage", () => {
     renderWithQuery(<GpuSeriesListPage />, {
       route: "/master-data/gpu-series?edit=missing",
     });
-    expect(await screen.findByText("GPU series not found.")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("dialog", { name: "GPU series not found" }),
+    ).toBeInTheDocument();
 
     listManufacturersByProductType.mockRejectedValue(new Error("no options"));
     renderWithQuery(<GpuSeriesListPage />, {

@@ -14,21 +14,13 @@ import {
   type SocketOption,
 } from "@/api/master-data";
 import { MasterDataEditorFrame } from "@/components/master-data/MasterDataEditorFrame";
-import { PageStatus } from "@/components/PageStatus";
+import {
+  MasterDataFormShell,
+  MasterDataMissing,
+  MasterDataOptions,
+} from "@/components/master-data/MasterDataDialogShell";
 import { FormTextField } from "@/components/FormTextField";
-import { Button } from "@/components/ui/button";
-import {
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import {
   applyApiFieldErrors,
   applyApiFormError,
@@ -70,28 +62,16 @@ export function ChipsetFormDialog({
       onClose={onClose}
       editTitle="Edit chipset"
       loadingMessage="Loading chipset…"
-      missing={<MissingChipset onClose={onClose} />}
+      missing={
+        <MasterDataMissing
+          title="Chipset not found"
+          description="This chipset is not in the current list."
+          onClose={onClose}
+        />
+      }
     >
       {(chipset) => <ChipsetForm chipset={chipset} onClose={onClose} />}
     </MasterDataEditorFrame>
-  );
-}
-
-function MissingChipset({ onClose }: Readonly<{ onClose: () => void }>) {
-  return (
-    <>
-      <DialogHeader>
-        <DialogTitle>Chipset not found</DialogTitle>
-        <DialogDescription>
-          This chipset is not in the current list.
-        </DialogDescription>
-      </DialogHeader>
-      <DialogFooter>
-        <Button type="button" variant="outline" onClick={onClose}>
-          Close
-        </Button>
-      </DialogFooter>
-    </>
   );
 }
 
@@ -107,44 +87,22 @@ function ChipsetForm({
     queryKey: masterDataKeys.sockets,
     queryFn: listSockets,
   });
-  const optionsError = manufacturers.error ?? sockets.error;
-
-  if (manufacturers.isPending || sockets.isPending) {
-    return (
-      <>
-        <DialogHeader>
-          <DialogTitle>{chipset ? "Edit chipset" : "New chipset"}</DialogTitle>
-        </DialogHeader>
-        <PageStatus>Loading chipset…</PageStatus>
-      </>
-    );
-  }
-
-  if (optionsError || !manufacturers.data || !sockets.data) {
-    return (
-      <>
-        <DialogHeader>
-          <DialogTitle>{chipset ? "Edit chipset" : "New chipset"}</DialogTitle>
-        </DialogHeader>
-        <p className="form-error" role="alert">
-          {parseApiError(optionsError).message}
-        </p>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Close
-          </Button>
-        </DialogFooter>
-      </>
-    );
-  }
-
   return (
-    <ChipsetFields
-      chipset={chipset}
-      manufacturers={manufacturers.data}
-      sockets={sockets.data}
+    <MasterDataOptions
+      title={chipset ? "Edit chipset" : "New chipset"}
+      loadingMessage="Loading chipset…"
       onClose={onClose}
-    />
+      queries={[manufacturers, sockets]}
+    >
+      {([manufacturerOptions, socketOptions]) => (
+        <ChipsetFields
+          chipset={chipset}
+          manufacturers={manufacturerOptions}
+          sockets={socketOptions}
+          onClose={onClose}
+        />
+      )}
+    </MasterDataOptions>
   );
 }
 
@@ -222,98 +180,75 @@ function ChipsetFields({
   }
 
   return (
-    <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-      <DialogHeader>
-        <DialogTitle>{chipset ? "Edit chipset" : "New chipset"}</DialogTitle>
-        <DialogDescription>
-          {chipset
-            ? "Update the name, manufacturer, and socket."
-            : "Add a chipset to master data."}
-        </DialogDescription>
-      </DialogHeader>
-      {errors.root?.message ? (
-        <p className="form-error" role="alert">
-          {errors.root.message}
-        </p>
-      ) : null}
-      <FieldGroup>
-        <FormTextField
-          id="chipset-edit-name"
-          label="Name"
-          required
-          error={errors.name}
-          registration={register("name")}
-        />
-        <Field data-invalid={errors.manufacturerId ? true : undefined}>
-          <FieldLabel htmlFor="chipset-edit-manufacturer">
-            Manufacturer
-          </FieldLabel>
-          <select
-            id="chipset-edit-manufacturer"
-            className={formSelectClassName}
-            aria-invalid={errors.manufacturerId ? true : undefined}
-            {...manufacturerRegistration}
-            onChange={(event) => {
-              void manufacturerRegistration.onChange(event);
-              clearSocketFromAnotherManufacturer(
-                event.target.value,
-                sockets,
-                getValues("socketId"),
-                setValue,
-              );
-            }}
-          >
-            <option value="">Select a manufacturer</option>
-            {manufacturers.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-          <FieldError errors={[errors.manufacturerId]} />
-        </Field>
-        <Field data-invalid={errors.socketId ? true : undefined}>
-          <FieldLabel htmlFor="chipset-edit-socket">Socket</FieldLabel>
-          <select
-            id="chipset-edit-socket"
-            className={formSelectClassName}
-            aria-invalid={errors.socketId ? true : undefined}
-            {...register("socketId")}
-          >
-            <option value="">Select a socket</option>
-            {socketOptions.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-          <FieldError errors={[errors.socketId]} />
-        </Field>
-      </FieldGroup>
-      <DialogFooter>
-        {chipset ? (
-          <Button
-            type="button"
-            variant="destructive"
-            className="sm:mr-auto"
-            onClick={() => void onDelete()}
-            disabled={isDeleting}
-          >
-            {isDeleting ? "Deleting…" : "Delete"}
-          </Button>
-        ) : null}
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onClose}
-          disabled={isSubmitting}
+    <MasterDataFormShell
+      title={chipset ? "Edit chipset" : "New chipset"}
+      description={
+        chipset
+          ? "Update the name, manufacturer, and socket."
+          : "Add a chipset to master data."
+      }
+      error={errors.root?.message}
+      onSubmit={handleSubmit(onSubmit)}
+      onClose={onClose}
+      onDelete={chipset ? () => void onDelete() : undefined}
+      deleteDisabled={isDeleting}
+      deleting={isDeleting}
+      cancelDisabled={isSubmitting}
+      submitLabel={isSubmitting ? "Saving…" : "Save"}
+      submitDisabled={isSubmitting}
+    >
+      <FormTextField
+        id="chipset-edit-name"
+        label="Name"
+        required
+        error={errors.name}
+        registration={register("name")}
+      />
+      <Field data-invalid={errors.manufacturerId ? true : undefined}>
+        <FieldLabel htmlFor="chipset-edit-manufacturer">
+          Manufacturer
+        </FieldLabel>
+        <select
+          id="chipset-edit-manufacturer"
+          className={formSelectClassName}
+          aria-invalid={errors.manufacturerId ? true : undefined}
+          {...manufacturerRegistration}
+          onChange={(event) => {
+            void manufacturerRegistration.onChange(event);
+            clearSocketFromAnotherManufacturer(
+              event.target.value,
+              sockets,
+              getValues("socketId"),
+              setValue,
+            );
+          }}
         >
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving…" : "Save"}
-        </Button>
-      </DialogFooter>
-    </form>
+          <option value="">Select a manufacturer</option>
+          {manufacturers.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+        <FieldError errors={[errors.manufacturerId]} />
+      </Field>
+      <Field data-invalid={errors.socketId ? true : undefined}>
+        <FieldLabel htmlFor="chipset-edit-socket">Socket</FieldLabel>
+        <select
+          id="chipset-edit-socket"
+          className={formSelectClassName}
+          aria-invalid={errors.socketId ? true : undefined}
+          {...register("socketId")}
+        >
+          <option value="">Select a socket</option>
+          {socketOptions.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+        <FieldError errors={[errors.socketId]} />
+      </Field>
+    </MasterDataFormShell>
   );
 }

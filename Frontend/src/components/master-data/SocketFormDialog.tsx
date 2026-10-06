@@ -13,16 +13,13 @@ import {
   type SocketOption,
 } from "@/api/master-data";
 import { MasterDataEditorFrame } from "@/components/master-data/MasterDataEditorFrame";
-import { PageStatus } from "@/components/PageStatus";
-import { FormTextField } from "@/components/FormTextField";
-import { Button } from "@/components/ui/button";
 import {
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+  MasterDataFormShell,
+  MasterDataMissing,
+  MasterDataOptions,
+} from "@/components/master-data/MasterDataDialogShell";
+import { FormTextField } from "@/components/FormTextField";
+import { Field, FieldLabel } from "@/components/ui/field";
 import {
   applyApiFieldErrors,
   applyApiFormError,
@@ -61,31 +58,16 @@ export function SocketFormDialog({
       onClose={onClose}
       editTitle="Edit Socket"
       loadingMessage="Loading Socket…"
-      missing={<MissingSocket onClose={onClose} />}
+      missing={
+        <MasterDataMissing
+          title="Socket not found"
+          description="This socket is not in the current list."
+          onClose={onClose}
+        />
+      }
     >
       {(socket) => <SocketForm socket={socket} onClose={onClose} />}
     </MasterDataEditorFrame>
-  );
-}
-
-function MissingSocket({ onClose }: Readonly<{ onClose: () => void }>) {
-  return (
-    <>
-      <DialogHeader>
-        <DialogTitle>Socket not found</DialogTitle>
-        <DialogDescription>
-          This socket is not in the current list.
-        </DialogDescription>
-      </DialogHeader>
-      <DialogDescription>
-        The socket you are trying to edit does not exist.
-      </DialogDescription>
-      <DialogFooter>
-        <Button type="button" variant="outline" onClick={onClose}>
-          Close
-        </Button>
-      </DialogFooter>
-    </>
   );
 }
 
@@ -101,41 +83,21 @@ function SocketForm({
     queryFn: () => listManufacturersByProductType("socket"),
   });
 
-  if (manufacturers.isPending) {
-    return (
-      <>
-        <DialogHeader>
-          <DialogTitle>Edit Socket</DialogTitle>
-        </DialogHeader>
-        <PageStatus>Loading Socket…</PageStatus>
-      </>
-    );
-  }
-
-  if (manufacturers.error || !manufacturers.data) {
-    return (
-      <>
-        <DialogHeader>
-          <DialogTitle>Edit Socket</DialogTitle>
-        </DialogHeader>
-        <p className="form-error" role="alert">
-          {parseApiError(manufacturers.error).message}
-        </p>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Close
-          </Button>
-        </DialogFooter>
-      </>
-    );
-  }
-
   return (
-    <SocketFields
-      socket={socket}
-      manufacturers={manufacturers.data}
+    <MasterDataOptions
+      title="Edit Socket"
+      loadingMessage="Loading Socket…"
       onClose={onClose}
-    />
+      queries={[manufacturers]}
+    >
+      {([manufacturerOptions]) => (
+        <SocketFields
+          socket={socket}
+          manufacturers={manufacturerOptions}
+          onClose={onClose}
+        />
+      )}
+    </MasterDataOptions>
   );
 }
 
@@ -199,66 +161,41 @@ function SocketFields({
   }
 
   return (
-    <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-      <DialogHeader>
-        <DialogTitle>Edit Socket</DialogTitle>
-      </DialogHeader>
-      {errors.root?.message ? (
-        <p className="form-error" role="alert">
-          {errors.root.message}
-        </p>
-      ) : null}
-      <FieldGroup>
-        <FormTextField
-          id="socket-edit-name"
-          label="Name"
-          required
-          error={errors.name}
-          registration={register("name")}
-        />
-        <Field data-invalid={errors.manufacturerId ? true : undefined}>
-          <FieldLabel htmlFor="socket-edit-manufacturer">
-            Manufacturer
-          </FieldLabel>
-          <select
-            id="socket-edit-manufacturer"
-            className={formSelectClassName}
-            aria-invalid={errors.manufacturerId ? true : undefined}
-            {...register("manufacturerId")}
-          >
-            <option value="">Select a manufacturer</option>
-            {manufacturers.map((manufacturer) => (
-              <option key={manufacturer.id} value={manufacturer.id}>
-                {manufacturer.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </FieldGroup>
-      <DialogFooter>
-        {socket ? (
-          <Button
-            type="button"
-            variant="destructive"
-            className="sm:mr-auto"
-            onClick={() => void onDelete()}
-            disabled={busy}
-          >
-            {isDeleting ? "Deleting…" : "Delete"}
-          </Button>
-        ) : null}
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onClose}
-          disabled={busy}
+    <MasterDataFormShell
+      title="Edit Socket"
+      error={errors.root?.message}
+      onSubmit={handleSubmit(onSubmit)}
+      onClose={onClose}
+      onDelete={socket ? () => void onDelete() : undefined}
+      deleteDisabled={busy}
+      deleting={isDeleting}
+      cancelDisabled={busy}
+      submitLabel={isSubmitting ? "Saving…" : "Save"}
+      submitDisabled={busy}
+    >
+      <FormTextField
+        id="socket-edit-name"
+        label="Name"
+        required
+        error={errors.name}
+        registration={register("name")}
+      />
+      <Field data-invalid={errors.manufacturerId ? true : undefined}>
+        <FieldLabel htmlFor="socket-edit-manufacturer">Manufacturer</FieldLabel>
+        <select
+          id="socket-edit-manufacturer"
+          className={formSelectClassName}
+          aria-invalid={errors.manufacturerId ? true : undefined}
+          {...register("manufacturerId")}
         >
-          Cancel
-        </Button>
-        <Button type="submit" disabled={busy}>
-          {isSubmitting ? "Saving…" : "Save"}
-        </Button>
-      </DialogFooter>
-    </form>
+          <option value="">Select a manufacturer</option>
+          {manufacturers.map((manufacturer) => (
+            <option key={manufacturer.id} value={manufacturer.id}>
+              {manufacturer.name}
+            </option>
+          ))}
+        </select>
+      </Field>
+    </MasterDataFormShell>
   );
 }
