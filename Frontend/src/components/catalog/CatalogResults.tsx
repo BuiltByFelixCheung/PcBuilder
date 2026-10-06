@@ -6,18 +6,10 @@ import type {
   SortingState,
 } from "@tanstack/react-table";
 import { parseApiError } from "@/api/errors.ts";
+import { ListPagination } from "@/components/ListPagination";
 import { PageStatus } from "@/components/PageStatus";
 import { ManagementActions } from "@/components/ManagementActions";
 import { DataTable, type DataTableColumns } from "@/components/ui/data-table";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 
 type CatalogResultsBase<TData extends RowData> = {
   isInitialLoading: boolean;
@@ -35,22 +27,6 @@ type CatalogResultsBase<TData extends RowData> = {
 
 function selectionActive(rowSelection: RowSelectionState) {
   return Object.values(rowSelection).some(Boolean);
-}
-
-function pageItems(pageIndex: number, pageCount: number) {
-  const current = pageIndex + 1;
-  if (pageCount <= 7) {
-    return Array.from({ length: pageCount }, (_, index) => index + 1);
-  }
-
-  const pages: Array<number | "ellipsis"> = [1];
-  const start = Math.max(2, current - 1);
-  const end = Math.min(pageCount - 1, current + 1);
-  if (start > 2) pages.push("ellipsis");
-  for (let page = start; page <= end; page += 1) pages.push(page);
-  if (end < pageCount - 1) pages.push("ellipsis");
-  pages.push(pageCount);
-  return pages;
 }
 
 export function CatalogPagedResults<TData extends RowData>({
@@ -164,36 +140,11 @@ export function CatalogPagedResults<TData extends RowData>({
         sorting={sorting}
         onSortingChange={onSortingChange}
       />
-      <Pagination className="mt-4">
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              disabled={pageIndex === 0}
-              onClick={() => onPageChange(pageIndex - 1)}
-            />
-          </PaginationItem>
-          {pageItems(pageIndex, pageCount).map((item, index) => (
-            <PaginationItem key={item === "ellipsis" ? `ellipsis-${index}` : item}>
-              {item === "ellipsis" ? (
-                <PaginationEllipsis />
-              ) : (
-                <PaginationLink
-                  isActive={item === pageIndex + 1}
-                  onClick={() => onPageChange(item - 1)}
-                >
-                  {item}
-                </PaginationLink>
-              )}
-            </PaginationItem>
-          ))}
-          <PaginationItem>
-            <PaginationNext
-              disabled={pageIndex + 1 >= pageCount}
-              onClick={() => onPageChange(pageIndex + 1)}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+      <ListPagination
+        pageIndex={pageIndex}
+        pageCount={pageCount}
+        onPageChange={onPageChange}
+      />
     </>
   );
 }

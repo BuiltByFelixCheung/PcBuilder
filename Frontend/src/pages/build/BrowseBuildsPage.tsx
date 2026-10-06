@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { parseApiError } from "@/api/errors";
 import { catalogPagingFromSearch, setPageSearch } from "@/api/catalog/params/list-search";
 import { builderViewHref } from "@/builds/types";
+import { ListPagination } from "@/components/ListPagination";
 import { PageStatus } from "@/components/PageStatus";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,34 +13,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import { usePublicBuilds } from "@/hooks/use-public-builds";
 
 const EMPTY_ITEMS: never[] = [];
-
-function pageItems(pageIndex: number, pageCount: number) {
-  const current = pageIndex + 1;
-  if (pageCount <= 7) {
-    return Array.from({ length: pageCount }, (_, index) => index + 1);
-  }
-
-  const pages: Array<number | "ellipsis"> = [1];
-  const start = Math.max(2, current - 1);
-  const end = Math.min(pageCount - 1, current + 1);
-  if (start > 2) pages.push("ellipsis");
-  for (let page = start; page <= end; page += 1) pages.push(page);
-  if (end < pageCount - 1) pages.push("ellipsis");
-  pages.push(pageCount);
-  return pages;
-}
 
 export function BrowseBuildPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -106,40 +82,11 @@ export function BrowseBuildPage() {
             ))}
           </div>
 
-          {pageCount > 1 ? (
-            <Pagination className="mt-4">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    disabled={request.pageIndex === 0}
-                    onClick={() => onPageChange(request.pageIndex - 1)}
-                  />
-                </PaginationItem>
-                {pageItems(request.pageIndex, pageCount).map((item, index) => (
-                  <PaginationItem
-                    key={item === "ellipsis" ? `ellipsis-${index}` : item}
-                  >
-                    {item === "ellipsis" ? (
-                      <PaginationEllipsis />
-                    ) : (
-                      <PaginationLink
-                        isActive={item === request.pageIndex + 1}
-                        onClick={() => onPageChange(item - 1)}
-                      >
-                        {item}
-                      </PaginationLink>
-                    )}
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    disabled={request.pageIndex + 1 >= pageCount}
-                    onClick={() => onPageChange(request.pageIndex + 1)}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          ) : null}
+          <ListPagination
+            pageIndex={request.pageIndex}
+            pageCount={pageCount}
+            onPageChange={onPageChange}
+          />
         </>
       ) : null}
     </section>
