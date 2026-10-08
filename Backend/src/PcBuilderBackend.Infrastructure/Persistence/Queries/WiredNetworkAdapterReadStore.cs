@@ -5,8 +5,8 @@ using PcBuilderBackend.Application.Catalog.WiredNetworkAdapters;
 using PcBuilderBackend.Application.Catalog.WiredNetworkAdapters.Dto;
 using PcBuilderBackend.Application.Common.Dto;
 using PcBuilderBackend.Application.Common.Extensions;
+using PcBuilderBackend.Domain.Compatibility;
 using PcBuilderBackend.Domain.Entities;
-using PcBuilderBackend.Domain.Enums;
 
 namespace PcBuilderBackend.Infrastructure.Persistence.Queries;
 
@@ -71,19 +71,13 @@ public sealed class WiredNetworkAdapterReadStore(PcBuilderDbContext db, IMapper 
         if (motherboard is null)
             return PagedResult<WiredNetworkAdapterDto>.Empty(request);
 
-        var adapters = (await queryable.ToListAsync(cancellationToken))
-            .Where(x => motherboard.CheckWiredNetworkAdapterCompatibility(x).Status != PartsCompatibility.Incompatible)
+        return await queryable
+            .Where(NetworkAdapterCompatibility.WiredFilter(motherboard.PcieSlots, motherboard.UsbPorts))
             .ApplySorting(request.SortFields, request.SortDirection)
-            .ToList();
-
-        return new PagedResult<WiredNetworkAdapterDto>
-        {
-            PageIndex = request.PageIndex,
-            PageSize = request.PageSize,
-            TotalCount = adapters.Count,
-            Items = mapper.Map<List<WiredNetworkAdapterDto>>(adapters
-                .Skip(request.PageIndex * request.PageSize)
-                .Take(request.PageSize))
-        };
+            .ToPagedResultAsync<WiredNetworkAdapter, WiredNetworkAdapterDto>(
+                request.PageIndex,
+                request.PageSize,
+                mapper.ConfigurationProvider,
+                cancellationToken);
     }
 }

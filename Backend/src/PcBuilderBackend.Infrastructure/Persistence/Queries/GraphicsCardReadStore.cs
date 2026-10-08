@@ -5,8 +5,8 @@ using PcBuilderBackend.Application.Catalog.GraphicsCards;
 using PcBuilderBackend.Application.Catalog.GraphicsCards.Dto;
 using PcBuilderBackend.Application.Common.Dto;
 using PcBuilderBackend.Application.Common.Extensions;
+using PcBuilderBackend.Domain.Compatibility;
 using PcBuilderBackend.Domain.Entities;
-using PcBuilderBackend.Domain.Enums;
 
 namespace PcBuilderBackend.Infrastructure.Persistence.Queries;
 
@@ -88,30 +88,18 @@ public class GraphicsCardReadStore(PcBuilderDbContext db, IMapper mapper) : IGra
                 return PagedResult<GraphicsCardListItemDto>.Empty(request);
         }
 
-        // Domain Check*GraphicsCardCompatibility is not EF-translatable; filter in memory then page.
-        IEnumerable<GraphicsCard> cards = await queryable.ToListAsync(cancellationToken);
-
         if (chassis is not null)
-            cards = cards.Where(chassis.CheckGraphicsCardCompatibility);
+            queryable = queryable.Where(ChassisGraphicsCardCompatibility.Filter(chassis));
 
-        if (motherboard is not null)
-        {
-            cards = cards.Where(x =>
-                motherboard.CheckGraphicsCardCompatibility(x).Status != PartsCompatibility.Incompatible);
-        }
+        if (motherboard is not null && !MotherboardGraphicsCompatibility.HasX16(motherboard.PcieSlots))
+            queryable = queryable.Where(card => false);
 
-        var list = cards
+        return await queryable
             .ApplySorting(request.SortFields, request.SortDirection)
-            .ToList();
-
-        return new PagedResult<GraphicsCardListItemDto>
-        {
-            PageIndex = request.PageIndex,
-            PageSize = request.PageSize,
-            TotalCount = list.Count,
-            Items = mapper.Map<List<GraphicsCardListItemDto>>(list
-                .Skip(request.PageIndex * request.PageSize)
-                .Take(request.PageSize))
-        };
+            .ToPagedResultAsync<GraphicsCard, GraphicsCardListItemDto>(
+                request.PageIndex,
+                request.PageSize,
+                mapper.ConfigurationProvider,
+                cancellationToken);
     }
 }

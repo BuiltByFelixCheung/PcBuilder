@@ -5,6 +5,7 @@ using PcBuilderBackend.Application.Catalog.Motherboards;
 using PcBuilderBackend.Application.Catalog.Motherboards.Dto;
 using PcBuilderBackend.Application.Common.Dto;
 using PcBuilderBackend.Application.Common.Extensions;
+using PcBuilderBackend.Domain.Compatibility;
 using PcBuilderBackend.Domain.Entities;
 
 namespace PcBuilderBackend.Infrastructure.Persistence.Queries;
@@ -102,25 +103,14 @@ public class MotherboardReadStore(PcBuilderDbContext context, IMapper mapper) : 
         if (chassis is null)
             return PagedResult<MotherboardListItemDto>.Empty(request);
 
-        // Domain CheckMotherboardCompatibility is not EF-translatable; filter in memory then page.
-        var list = (await queryable
-                .Include(x => x.Manufacturer)
-                .Include(x => x.Socket)
-                .Include(x => x.Chipset)
-                .ToListAsync(cancellationToken))
-            .Where(chassis.CheckMotherboardCompatibility)
-                .ApplySorting(request.SortFields, request.SortDirection)
-                .ToList();
-
-        return new PagedResult<MotherboardListItemDto>
-        {
-            PageIndex = request.PageIndex,
-            PageSize = request.PageSize,
-            TotalCount = list.Count,
-            Items = mapper.Map<List<MotherboardListItemDto>>(list
-                .Skip(request.PageIndex * request.PageSize)
-                .Take(request.PageSize))
-        };
+        return await queryable
+            .Where(ChassisMotherboardCompatibility.Filter(chassis))
+            .ApplySorting(request.SortFields, request.SortDirection)
+            .ToPagedResultAsync<Motherboard, MotherboardListItemDto>(
+                request.PageIndex,
+                request.PageSize,
+                mapper.ConfigurationProvider,
+                cancellationToken);
     }
 
     public async Task<List<MotherboardM2Dto>> ListM2SlotsAsync(Guid motherboardId, CancellationToken cancellationToken)

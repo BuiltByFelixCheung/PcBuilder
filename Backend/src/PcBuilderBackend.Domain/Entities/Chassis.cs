@@ -1,3 +1,4 @@
+using PcBuilderBackend.Domain.Compatibility;
 using PcBuilderBackend.Domain.Enums;
 using PcBuilderBackend.Domain.ValueObjects;
 
@@ -145,43 +146,24 @@ public class Chassis : ProductEntity
         _radiators.Remove(radiator);
     }
 
-    public bool CheckGraphicsCardCompatibility(GraphicsCard graphicsCard)
-    {
-        var horizontalPcieSlots = _pcieSlots
-            .Where(x => x.Orientation == PcieOrientation.Horizontal)
-            .Where(x => x.LowProfileSlots == graphicsCard.IsLowProfile)
-            .Sum(x => x.SlotCount);
+    public bool CheckGraphicsCardCompatibility(GraphicsCard graphicsCard) =>
+        ChassisGraphicsCardCompatibility.Matches(this, graphicsCard);
 
-        var verticalPcieSlots = _pcieSlots
-            .Where(x => x.Orientation == PcieOrientation.Vertical)
-            .Where(x => x.LowProfileSlots == graphicsCard.IsLowProfile)
-            .Sum(x => x.SlotCount);
+    public bool CheckMotherboardCompatibility(Motherboard motherboard) =>
+        ChassisMotherboardCompatibility.Matches(this, motherboard);
 
-        return graphicsCard.LengthMm <= MaxGraphicsCardLengthMm &&
-               graphicsCard.PcieSlotsUsed <= horizontalPcieSlots + verticalPcieSlots;
-    }
-
-    public bool CheckMotherboardCompatibility(Motherboard motherboard)
-    {
-        return MbFormFactors.Any(x => x.MbFormFactor == motherboard.FormFactor) &&
-               motherboard.HeightMm <= MotherboardMaxHeightMm &&
-               motherboard.WidthMm <= MotherboardMaxWidthMm;
-    }
-
-    public bool CheckPsuCompatibility(Psu psu)
-    {
-        return _psuFormFactors.Any(x => x.PsuFormFactor == psu.FormFactor) &&
-               psu.LengthMm <= MaxPsuLengthMm;
-    }
+    public bool CheckPsuCompatibility(Psu psu) =>
+        ChassisPsuCompatibility.Matches(this, psu);
 
     public bool CheckCpuCoolerCompatibility(CpuCooler cpuCooler)
     {
-        return cpuCooler.Type switch
-        {
-            CpuCoolerType.Air => cpuCooler.CoolerHeightMm <= MaxCpuCoolerHeightMm,
-            CpuCoolerType.Water => _radiators.Any(x => x.Length == cpuCooler.RadiatorClass),
-            _ => throw new ArgumentOutOfRangeException(nameof(cpuCooler), cpuCooler.Type, $"Unsupported cooler type '{cpuCooler.Type}'.")
-        };
+        if (cpuCooler.Type is not (CpuCoolerType.Air or CpuCoolerType.Water))
+            throw new ArgumentOutOfRangeException(
+                nameof(cpuCooler),
+                cpuCooler.Type,
+                $"Unsupported cooler type '{cpuCooler.Type}'.");
+
+        return ChassisCpuCoolerCompatibility.Matches(this, cpuCooler);
     }
 
     /// <param name="fans">
@@ -216,25 +198,7 @@ public class Chassis : ProductEntity
     public bool CheckStorageDriveCompatibility(IEnumerable<StorageDrive> drives)
     {
         ArgumentNullException.ThrowIfNull(drives);
-
-        var required = drives
-            .Select(drive => TryMapToDriveBay(drive.FormFactor))
-            .Where(bay => bay.HasValue)
-            .Select(bay => bay!.Value)
-            .ToList();
-
-        if (required.Count == 0)
-            return true;
-
-        var need25 = required.Count(size => size == DriveBayFormFactor.Inch25);
-        var need35 = required.Count(size => size == DriveBayFormFactor.Inch35);
-        var only25 = DriveBaySlots(accepts25: true, accepts35: false);
-        var only35 = DriveBaySlots(accepts25: false, accepts35: true);
-        var shared = DriveBaySlots(accepts25: true, accepts35: true);
-
-        return need25 <= only25 + shared
-            && need35 <= only35 + shared
-            && need25 + need35 <= only25 + only35 + shared;
+        return ChassisStorageCompatibility.Matches(this, drives);
     }
 
     public bool CheckStorageDriveCompatibility(StorageDrive drive)
@@ -242,21 +206,6 @@ public class Chassis : ProductEntity
         ArgumentNullException.ThrowIfNull(drive);
         return CheckStorageDriveCompatibility([drive]);
     }
-
-    private int DriveBaySlots(bool accepts25, bool accepts35)
-    {
-        return DriveBays
-            .Where(bay => bay.DriveBayFormFactors.Contains(DriveBayFormFactor.Inch25) == accepts25
-                && bay.DriveBayFormFactors.Contains(DriveBayFormFactor.Inch35) == accepts35)
-            .Sum(bay => bay.BayCount);
-    }
-
-    private static DriveBayFormFactor? TryMapToDriveBay(StorageFormFactor formFactor) => formFactor switch
-    {
-        StorageFormFactor.Sata25 => DriveBayFormFactor.Inch25,
-        StorageFormFactor.Sata35 => DriveBayFormFactor.Inch35,
-        _ => null
-    };
 
     private static bool CanAssignFanMounts(
         IReadOnlyList<ChassisFanMount> mounts,
