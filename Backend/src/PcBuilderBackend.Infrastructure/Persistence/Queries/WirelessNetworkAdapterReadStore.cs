@@ -5,8 +5,8 @@ using PcBuilderBackend.Application.Catalog.WirelessNetworkAdapters;
 using PcBuilderBackend.Application.Catalog.WirelessNetworkAdapters.Dto;
 using PcBuilderBackend.Application.Common.Dto;
 using PcBuilderBackend.Application.Common.Extensions;
+using PcBuilderBackend.Domain.Compatibility;
 using PcBuilderBackend.Domain.Entities;
-using PcBuilderBackend.Domain.Enums;
 
 namespace PcBuilderBackend.Infrastructure.Persistence.Queries;
 
@@ -81,20 +81,16 @@ public sealed class WirelessNetworkAdapterReadStore(PcBuilderDbContext db, IMapp
         if (motherboard is null)
             return PagedResult<WirelessNetworkAdapterDto>.Empty(request);
 
-        var adapters = (await queryable.ToListAsync(cancellationToken))
-            .Where(x =>
-                motherboard.CheckWirelessNetworkAdapterCompatibility(x).Status != PartsCompatibility.Incompatible)
+        return await queryable
+            .Where(NetworkAdapterCompatibility.WirelessFilter(
+                motherboard.PcieSlots,
+                motherboard.UsbPorts,
+                motherboard.M2Slots))
             .ApplySorting(request.SortFields, request.SortDirection)
-            .ToList();
-
-        return new PagedResult<WirelessNetworkAdapterDto>
-        {
-            PageIndex = request.PageIndex,
-            PageSize = request.PageSize,
-            TotalCount = adapters.Count,
-            Items = mapper.Map<List<WirelessNetworkAdapterDto>>(adapters
-                .Skip(request.PageIndex * request.PageSize)
-                .Take(request.PageSize))
-        };
+            .ToPagedResultAsync<WirelessNetworkAdapter, WirelessNetworkAdapterDto>(
+                request.PageIndex,
+                request.PageSize,
+                mapper.ConfigurationProvider,
+                cancellationToken);
     }
 }

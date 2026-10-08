@@ -1,3 +1,4 @@
+using PcBuilderBackend.Domain.Compatibility;
 using PcBuilderBackend.Domain.Enums;
 using PcBuilderBackend.Domain.ValueObjects;
 
@@ -12,28 +13,11 @@ public class StorageDrive : ProductEntity
     public PcieGeneration? PcieGeneration { get; private set; }
     public int? Rpm { get; private set; }
 
-    public bool IsM2 => IsM2Form(FormFactor);
+    public bool IsM2 => StorageDriveCompatibility.IsM2Form(FormFactor);
 
-    public M2Key? ModuleKey
-    {
-        get
-        {
-            if (!IsM2)
-                return null;
+    public M2Key? ModuleKey => StorageDriveCompatibility.ModuleKey(FormFactor, Interface);
 
-            return Interface == StorageInterface.Sata ? M2Key.BM : M2Key.M;
-        }
-    }
-
-    public M2FormFactor? M2FormFactor => FormFactor switch
-    {
-        StorageFormFactor.M22230 => PcBuilderBackend.Domain.Enums.M2FormFactor.M22230,
-        StorageFormFactor.M22242 => PcBuilderBackend.Domain.Enums.M2FormFactor.M22242,
-        StorageFormFactor.M22260 => PcBuilderBackend.Domain.Enums.M2FormFactor.M22260,
-        StorageFormFactor.M22280 => PcBuilderBackend.Domain.Enums.M2FormFactor.M22280,
-        StorageFormFactor.M222110 => PcBuilderBackend.Domain.Enums.M2FormFactor.M222110,
-        _ => null
-    };
+    public M2FormFactor? M2FormFactor => StorageDriveCompatibility.ToM2FormFactor(FormFactor);
     
     protected StorageDrive() {}
 
@@ -56,18 +40,11 @@ public class StorageDrive : ProductEntity
             SetSata35Specs(specs.Media, specs.Interface, specs.FormFactor, specs.CapacityGb, specs.Rpm);
         else if (specs.FormFactor == StorageFormFactor.Sata25)
             SetSata25Specs(specs.Media, specs.Interface, specs.FormFactor, specs.CapacityGb, specs.Rpm);
-        else if (IsM2Form(specs.FormFactor))
+        else if (StorageDriveCompatibility.IsM2Form(specs.FormFactor))
             SetM2Specs(specs.Media, specs.Interface, specs.FormFactor, specs.CapacityGb, specs.PcieGeneration);
         else
             throw new ArgumentException("Storage form factor is not recognized as HDD or SSD.", nameof(specs));
     }
-
-    private static bool IsM2Form(StorageFormFactor factor) => factor is
-        StorageFormFactor.M22230 or
-        StorageFormFactor.M22242 or
-        StorageFormFactor.M22260 or
-        StorageFormFactor.M22280 or
-        StorageFormFactor.M222110;
 
     private void SetSata35Specs(
         StorageMedia storageMedia,

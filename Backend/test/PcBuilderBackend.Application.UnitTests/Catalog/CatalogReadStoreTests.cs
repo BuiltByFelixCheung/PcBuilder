@@ -127,6 +127,78 @@ public class CatalogReadStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task Compatibility_filters_stay_on_the_query()
+    {
+        var board = SeedMotherboard("ROG Strix");
+        var chassis = SeedChassis("4000D");
+        var cpu = SeedCpu("7800X3D");
+        var ram = SeedRam("Fury");
+        SeedStorage("MX500");
+        var nvme = new StorageDrive(
+            "990 PRO",
+            _manufacturer.Id,
+            new StorageDriveSpecs
+            {
+                Media = StorageMedia.Ssd,
+                Interface = StorageInterface.Nvme,
+                FormFactor = StorageFormFactor.M22280,
+                CapacityGb = 2000,
+                PcieGeneration = PcieGeneration.Gen4
+            });
+        _db.StorageDrives.Add(nvme);
+        _db.SaveChanges();
+        SeedWiredNic("I225-V");
+        SeedWirelessNic("AX210");
+        SeedCpuCooler("NH-D15");
+        SeedPsu("RM850x");
+
+        var drives = new StorageDriveReadStore(_db, _mapper);
+        (await drives.FilterAsync(
+                new PagedRequest<StorageDriveFilter>(new StorageDriveFilter { ChassisId = chassis.Id }),
+                CancellationToken.None)).Items
+            .Select(item => item.Name)
+            .Should()
+            .Equal("990 PRO");
+        (await drives.FilterAsync(
+                new PagedRequest<StorageDriveFilter>(new StorageDriveFilter { MotherboardId = board.Id }),
+                CancellationToken.None)).Items
+            .Select(item => item.Name)
+            .Should()
+            .BeEquivalentTo("MX500", "990 PRO");
+
+        (await new RamReadStore(_db, _mapper).FilterAsync(
+                new PagedRequest<RamFilter>(new RamFilter { CpuId = cpu.Id, MotherboardId = board.Id }),
+                CancellationToken.None)).Items
+            .Should()
+            .ContainSingle(item => item.Name == ram.Name);
+
+        (await new CpuCoolerReadStore(_db, _mapper).FilterAsync(
+                new PagedRequest<CpuCoolerFilter>(new CpuCoolerFilter { CpuId = cpu.Id, ChassisId = chassis.Id }),
+                CancellationToken.None)).Items
+            .Should()
+            .ContainSingle(item => item.Name == "NH-D15");
+
+        (await new PsuReadStore(_db, _mapper).FilterAsync(
+                new PagedRequest<PsuFilter>(new PsuFilter { ChassisId = chassis.Id }),
+                CancellationToken.None)).Items
+            .Should()
+            .ContainSingle(item => item.Name == "RM850x");
+
+        (await new WiredNetworkAdapterReadStore(_db, _mapper).FilterAsync(
+                new PagedRequest<WiredNetworkAdapterFilter>(
+                    new WiredNetworkAdapterFilter { MotherboardId = board.Id }),
+                CancellationToken.None)).Items
+            .Should()
+            .BeEmpty();
+        (await new WirelessNetworkAdapterReadStore(_db, _mapper).FilterAsync(
+                new PagedRequest<WirelessNetworkAdapterFilter>(
+                    new WirelessNetworkAdapterFilter { MotherboardId = board.Id }),
+                CancellationToken.None)).Items
+            .Should()
+            .BeEmpty();
+    }
+
+    [Fact]
     public async Task Chassis_store_lists_filters_and_loads_children()
     {
         var chassis = SeedChassis("4000D");

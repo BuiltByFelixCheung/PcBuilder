@@ -5,8 +5,8 @@ using PcBuilderBackend.Application.Catalog.StorageDrives;
 using PcBuilderBackend.Application.Catalog.StorageDrives.Dto;
 using PcBuilderBackend.Application.Common.Dto;
 using PcBuilderBackend.Application.Common.Extensions;
+using PcBuilderBackend.Domain.Compatibility;
 using PcBuilderBackend.Domain.Entities;
-using PcBuilderBackend.Domain.Enums;
 
 namespace PcBuilderBackend.Infrastructure.Persistence.Queries;
 
@@ -83,29 +83,18 @@ public sealed class StorageDriveReadStore(PcBuilderDbContext db, IMapper mapper)
                 return PagedResult<StorageDriveDto>.Empty(request);
         }
 
-        IEnumerable<StorageDrive> drives = await queryable.ToListAsync(cancellationToken);
-
         if (motherboard is not null)
-        {
-            drives = drives.Where(x =>
-                motherboard.CheckStorageCompatibility(x).Status != PartsCompatibility.Incompatible);
-        }
+            queryable = queryable.Where(MotherboardStorageCompatibility.Filter(motherboard.SataPorts, motherboard.M2Slots));
 
         if (chassis is not null)
-            drives = drives.Where(chassis.CheckStorageDriveCompatibility);
+            queryable = queryable.Where(ChassisStorageCompatibility.Filter(chassis));
 
-        var list = drives
+        return await queryable
             .ApplySorting(request.SortFields, request.SortDirection)
-            .ToList();
-
-        return new PagedResult<StorageDriveDto>
-        {
-            PageIndex = request.PageIndex,
-            PageSize = request.PageSize,
-            TotalCount = list.Count,
-            Items = mapper.Map<List<StorageDriveDto>>(list
-                .Skip(request.PageIndex * request.PageSize)
-                .Take(request.PageSize))
-        };
+            .ToPagedResultAsync<StorageDrive, StorageDriveDto>(
+                request.PageIndex,
+                request.PageSize,
+                mapper.ConfigurationProvider,
+                cancellationToken);
     }
 }

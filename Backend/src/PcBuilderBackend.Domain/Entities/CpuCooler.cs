@@ -1,3 +1,4 @@
+using PcBuilderBackend.Domain.Compatibility;
 using PcBuilderBackend.Domain.Enums;
 using PcBuilderBackend.Domain.ValueObjects;
 
@@ -58,22 +59,11 @@ public class CpuCooler : ProductEntity
         _cpuCoolerSockets.Remove(cpuCoolerSocket);
     }
 
-    public PartsCompatibilityResult CheckCompatibility(Cpu cpu)
-    {
-        return _cpuCoolerSockets.All(x => x.SocketId != cpu.SocketId)
-            ? PartsCompatibilityResult.Incompatible(CompatibilityReason.MissingCpuCoolerSocket)
-            : PartsCompatibilityResult.Compatible();
-    }
+    public PartsCompatibilityResult CheckCompatibility(Cpu cpu) =>
+        CpuCoolerCpuCompatibility.Evaluate(this, cpu);
 
-    public PartsCompatibilityResult CheckCompatibility(Ram ram)
-    {
-        if (Type != CpuCoolerType.Air || !CoolerHeightMm.HasValue || !MaxRamHeightMm.HasValue)
-            return PartsCompatibilityResult.Compatible();
-
-        return ram.HeightMm > MaxRamHeightMm.Value
-            ? PartsCompatibilityResult.Incompatible(CompatibilityReason.RamHeightExceedsCoolerLimit)
-            : PartsCompatibilityResult.Compatible();
-    }
+    public PartsCompatibilityResult CheckCompatibility(Ram ram) =>
+        CpuCoolerRamCompatibility.Evaluate(this, ram);
 
     private void ApplyTypeSpecs(CpuCoolerSpecs specs)
     {
