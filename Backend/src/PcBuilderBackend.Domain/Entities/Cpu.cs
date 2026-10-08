@@ -1,3 +1,4 @@
+using PcBuilderBackend.Domain.Compatibility;
 using PcBuilderBackend.Domain.Enums;
 using PcBuilderBackend.Domain.ValueObjects;
 
@@ -70,23 +71,8 @@ public class Cpu : ProductEntity
         _supportedChipsets.Remove(supportChipset);
     }
 
-    public PartsCompatibilityResult CheckMemoryCompatibility(Ram memory)
-    {
-        var compat = RamCompats.FirstOrDefault(x =>
-            x.DdrGeneration == memory.DdrGeneration &&
-            x.RamModuleCount == memory.ModulesCount &&
-            x.RamRank == memory.RamRank);
-
-        if (compat is null)
-            return PartsCompatibilityResult.Incompatible(CompatibilityReason.NoMatchingRamConfig);
-
-        return compat.MaxSpeedMts < memory.MaxMemorySpeedMts
-            ? PartsCompatibilityResult.CompatibleReduced(
-                CompatibilityReason.MemorySpeedExceedsCpuSupport,
-                rated: memory.MaxMemorySpeedMts,
-                executing: compat.MaxSpeedMts)
-            : PartsCompatibilityResult.Compatible();
-    }
+    public PartsCompatibilityResult CheckMemoryCompatibility(Ram memory) =>
+        CpuMemoryCompatibility.Evaluate(this, memory);
 
 
     public void UpdateSpecs(CpuSpecs specs)

@@ -14,16 +14,13 @@ import {
   type SocketOption,
 } from "@/api/master-data";
 import { MasterDataEditorFrame } from "@/components/master-data/MasterDataEditorFrame";
-import { PageStatus } from "@/components/PageStatus";
-import { FormTextField } from "@/components/FormTextField";
-import { Button } from "@/components/ui/button";
 import {
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+  MasterDataFormShell,
+  MasterDataMissing,
+  MasterDataOptions,
+} from "@/components/master-data/MasterDataDialogShell";
+import { FormTextField } from "@/components/FormTextField";
+import { Field, FieldLabel } from "@/components/ui/field";
 import {
   applyApiFieldErrors,
   applyApiFormError,
@@ -65,19 +62,16 @@ export function CpuSeriesFormDialog({
       onClose={onClose}
       editTitle="Edit CPU Series"
       loadingMessage="Loading CPU Series…"
-      missing={<MissingCpuSeries onClose={onClose} />}
+      missing={
+        <MasterDataMissing
+          title="CPU Series not found"
+          description="This CPU series is not in the current list."
+          onClose={onClose}
+        />
+      }
     >
       {(editing) => <CpuSeriesForm cpuSeries={editing} onClose={onClose} />}
     </MasterDataEditorFrame>
-  );
-}
-
-function MissingCpuSeries({ onClose }: Readonly<{ onClose: () => void }>) {
-  return (
-    <div className="flex flex-col gap-2">
-      <PageStatus>CPU Series not found.</PageStatus>
-      <Button onClick={onClose}>Close</Button>
-    </div>
   );
 }
 
@@ -93,48 +87,22 @@ function CpuSeriesForm({
     queryKey: masterDataKeys.sockets,
     queryFn: listSockets,
   });
-  const optionsError = manufacturers.error ?? sockets.error;
-
-  if (manufacturers.isPending || sockets.isPending) {
-    return (
-      <>
-        <DialogHeader>
-          <DialogTitle>
-            {cpuSeries ? "Edit CPU Series" : "New CPU Series"}
-          </DialogTitle>
-        </DialogHeader>
-        <PageStatus>Loading CPU Series…</PageStatus>
-      </>
-    );
-  }
-
-  if (optionsError || !manufacturers.data || !sockets.data) {
-    return (
-      <>
-        <DialogHeader>
-          <DialogTitle>
-            {cpuSeries ? "Edit CPU Series" : "New CPU Series"}
-          </DialogTitle>
-        </DialogHeader>
-        <p className="form-error" role="alert">
-          {parseApiError(optionsError).message}
-        </p>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Close
-          </Button>
-        </DialogFooter>
-      </>
-    );
-  }
-
   return (
-    <CpuSeriesFields
-      cpuSeries={cpuSeries}
-      manufacturers={manufacturers.data}
-      sockets={sockets.data}
+    <MasterDataOptions
+      title={cpuSeries ? "Edit CPU Series" : "New CPU Series"}
+      loadingMessage="Loading CPU Series…"
       onClose={onClose}
-    />
+      queries={[manufacturers, sockets]}
+    >
+      {([manufacturerOptions, socketOptions]) => (
+        <CpuSeriesFields
+          cpuSeries={cpuSeries}
+          manufacturers={manufacturerOptions}
+          sockets={socketOptions}
+          onClose={onClose}
+        />
+      )}
+    </MasterDataOptions>
   );
 }
 
@@ -212,98 +180,74 @@ function CpuSeriesFields({
   }
 
   return (
-    <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-      <DialogHeader>
-        <DialogTitle>
-          {cpuSeries ? "Edit CPU Series" : "New CPU Series"}
-        </DialogTitle>
-        <DialogDescription>
-          {cpuSeries
-            ? "Update the name, manufacturer, and socket."
-            : "Add a CPU Series to master data."}
-        </DialogDescription>
-      </DialogHeader>
-      {errors.root?.message ? (
-        <p className="form-error" role="alert">
-          {errors.root.message}
-        </p>
-      ) : null}
-      <FieldGroup>
-        <FormTextField
-          id="cpu-series-edit-name"
-          label="Name"
-          required
-          error={errors.name}
-          registration={register("name")}
-        />
-        <Field data-invalid={errors.manufacturerId ? true : undefined}>
-          <FieldLabel htmlFor="cpu-series-edit-manufacturer">
-            Manufacturer
-          </FieldLabel>
-          <select
-            id="cpu-series-edit-manufacturer"
-            className={formSelectClassName}
-            aria-invalid={errors.manufacturerId ? true : undefined}
-            {...manufacturerRegistration}
-            onChange={(event) => {
-              void manufacturerRegistration.onChange(event);
-              clearSocketFromAnotherManufacturer(
-                event.target.value,
-                sockets,
-                getValues("socketId"),
-                setValue,
-              );
-            }}
-          >
-            <option value="">Select a manufacturer</option>
-            {manufacturers.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field data-invalid={errors.socketId ? true : undefined}>
-          <FieldLabel htmlFor="cpu-series-edit-socket">Socket</FieldLabel>
-          <select
-            id="cpu-series-edit-socket"
-            className={formSelectClassName}
-            aria-invalid={errors.socketId ? true : undefined}
-            {...register("socketId")}
-          >
-            <option value="">Select a socket</option>
-            {socketOptions.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </FieldGroup>
-      <DialogFooter>
-        {cpuSeries ? (
-          <Button
-            type="button"
-            variant="destructive"
-            className="sm:mr-auto"
-            onClick={() => void onDelete()}
-            disabled={isDeleting}
-          >
-            {isDeleting ? "Deleting…" : "Delete"}
-          </Button>
-        ) : null}
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onClose}
-          disabled={isSubmitting}
+    <MasterDataFormShell
+      title={cpuSeries ? "Edit CPU Series" : "New CPU Series"}
+      description={
+        cpuSeries
+          ? "Update the name, manufacturer, and socket."
+          : "Add a CPU Series to master data."
+      }
+      error={errors.root?.message}
+      onSubmit={handleSubmit(onSubmit)}
+      onClose={onClose}
+      onDelete={cpuSeries ? () => void onDelete() : undefined}
+      deleteDisabled={isDeleting}
+      deleting={isDeleting}
+      cancelLabel="Close"
+      cancelDisabled={isSubmitting}
+      submitLabel={cpuSeries ? "Update" : "Create"}
+      submitDisabled={isSubmitting}
+    >
+      <FormTextField
+        id="cpu-series-edit-name"
+        label="Name"
+        required
+        error={errors.name}
+        registration={register("name")}
+      />
+      <Field data-invalid={errors.manufacturerId ? true : undefined}>
+        <FieldLabel htmlFor="cpu-series-edit-manufacturer">
+          Manufacturer
+        </FieldLabel>
+        <select
+          id="cpu-series-edit-manufacturer"
+          className={formSelectClassName}
+          aria-invalid={errors.manufacturerId ? true : undefined}
+          {...manufacturerRegistration}
+          onChange={(event) => {
+            void manufacturerRegistration.onChange(event);
+            clearSocketFromAnotherManufacturer(
+              event.target.value,
+              sockets,
+              getValues("socketId"),
+              setValue,
+            );
+          }}
         >
-          Close
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {cpuSeries ? "Update" : "Create"}
-        </Button>
-      </DialogFooter>
-    </form>
+          <option value="">Select a manufacturer</option>
+          {manufacturers.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field data-invalid={errors.socketId ? true : undefined}>
+        <FieldLabel htmlFor="cpu-series-edit-socket">Socket</FieldLabel>
+        <select
+          id="cpu-series-edit-socket"
+          className={formSelectClassName}
+          aria-invalid={errors.socketId ? true : undefined}
+          {...register("socketId")}
+        >
+          <option value="">Select a socket</option>
+          {socketOptions.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+      </Field>
+    </MasterDataFormShell>
   );
 }

@@ -4,8 +4,8 @@ using PcBuilderBackend.Application.Catalog.Psus;
 using PcBuilderBackend.Application.Catalog.Psus.Dto;
 using PcBuilderBackend.Application.Common.Dto;
 using PcBuilderBackend.Application.Common.Extensions;
+using PcBuilderBackend.Domain.Compatibility;
 using PcBuilderBackend.Domain.Entities;
-using PcBuilderBackend.Domain.Enums;
 
 namespace PcBuilderBackend.Infrastructure.Persistence.Queries;
 
@@ -54,11 +54,25 @@ public sealed class PsuReadStore(PcBuilderDbContext db, IMapper mapper) : IPsuRe
         if (parts is null)
             return PagedResult<PsuListItemDto>.Empty(request);
 
-        IEnumerable<Psu> psus = await queryable
-            .Include(x => x.Cables)
-            .ToListAsync(cancellationToken);
+        if (parts.Chassis is { } chassis)
+            queryable = queryable.Where(ChassisPsuCompatibility.Filter(chassis));
 
-        return PageInMemory(ApplyCompatibility(psus, parts), request);
+        if (parts.Motherboard is { } motherboard)
+            queryable = queryable.Where(PsuMotherboardCompatibility.Filter(motherboard));
+
+        if (parts.GraphicsCard is { } graphicsCard)
+            queryable = queryable.Where(PsuGraphicsCardCompatibility.Filter(graphicsCard));
+
+        if (parts.Cpu is { } cpu)
+            queryable = queryable.Where(PsuPowerBudgetCompatibility.Filter(cpu, parts.GraphicsCard));
+
+        return await queryable
+            .ApplySorting(request.SortFields, request.SortDirection)
+            .ToPagedResultAsync<Psu, PsuListItemDto>(
+                request.PageIndex,
+                request.PageSize,
+                mapper.ConfigurationProvider,
+                cancellationToken);
     }
 
     public async Task<List<PsuCableDto>> ListCablesAsync(Guid psuId, CancellationToken cancellationToken)
@@ -157,49 +171,6 @@ public sealed class PsuReadStore(PcBuilderDbContext db, IMapper mapper) : IPsuRe
         return await db.Cpus
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
-    }
-
-    private static IEnumerable<Psu> ApplyCompatibility(IEnumerable<Psu> psus, PsuCompatibilityParts parts)
-    {
-        if (parts.Chassis is { } chassis)
-            psus = psus.Where(chassis.CheckPsuCompatibility);
-
-        if (parts.Motherboard is { } motherboard)
-        {
-            psus = psus.Where(x =>
-                x.CheckMotherboardCompatibility(motherboard).Status != PartsCompatibility.Incompatible);
-        }
-
-        if (parts.GraphicsCard is { } graphicsCard)
-        {
-            psus = psus.Where(x =>
-                x.CheckGraphicsCardCompatibility(graphicsCard).Status != PartsCompatibility.Incompatible);
-        }
-
-        if (parts.Cpu is { } cpu)
-        {
-            psus = psus.Where(x =>
-                x.CheckPowerBudget(cpu, parts.GraphicsCard).Status != PartsCompatibility.Incompatible);
-        }
-
-        return psus;
-    }
-
-    private PagedResult<PsuListItemDto> PageInMemory(IEnumerable<Psu> psus, PagedRequest<PsuFilter> request)
-    {
-        var list = psus
-            .ApplySorting(request.SortFields, request.SortDirection)
-            .ToList();
-
-        return new PagedResult<PsuListItemDto>
-        {
-            PageIndex = request.PageIndex,
-            PageSize = request.PageSize,
-            TotalCount = list.Count,
-            Items = mapper.Map<List<PsuListItemDto>>(list
-                .Skip(request.PageIndex * request.PageSize)
-                .Take(request.PageSize))
-        };
     }
 
     private sealed record PsuCompatibilityParts(

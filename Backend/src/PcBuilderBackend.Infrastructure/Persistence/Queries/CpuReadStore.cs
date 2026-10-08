@@ -5,8 +5,8 @@ using PcBuilderBackend.Application.Catalog.Cpus;
 using PcBuilderBackend.Application.Catalog.Cpus.Dto;
 using PcBuilderBackend.Application.Common.Dto;
 using PcBuilderBackend.Application.Common.Extensions;
+using PcBuilderBackend.Domain.Compatibility;
 using PcBuilderBackend.Domain.Entities;
-using PcBuilderBackend.Domain.Enums;
 
 namespace PcBuilderBackend.Infrastructure.Persistence.Queries;
 
@@ -74,37 +74,17 @@ public sealed class CpuReadStore(PcBuilderDbContext db, IMapper mapper) : ICpuRe
             .FirstOrDefaultAsync(m => m.Id == motherboardId, cancellationToken);
 
         if (motherboard is null)
-        {
-            return new PagedResult<CpuListItemDto>
-            {
-                PageIndex = request.PageIndex,
-                PageSize = request.PageSize,
-                TotalCount = 0,
-                Items = []
-            };
-        }
+            return PagedResult<CpuListItemDto>.Empty(request);
 
-        var cpus = await cpuQuery
-            .Include(x => x.Manufacturer)
-            .Include(x => x.Socket)
-            .Include(x => x.Series)
-            .Include(x => x.SupportedChipsets)
-            .ToListAsync(cancellationToken);
-
-        var compatible = cpus
-            .Where(x => motherboard.CheckCpuCompatibility(x).Status != PartsCompatibility.Incompatible)
-            .ToList();
-
-        return new PagedResult<CpuListItemDto>
-        {
-            PageIndex = request.PageIndex,
-            PageSize = request.PageSize,
-            TotalCount = compatible.Count,
-            Items = mapper.Map<List<CpuListItemDto>>(compatible
-                .ApplySorting(request.SortFields, request.SortDirection)
-                .Skip(request.PageIndex * request.PageSize)
-                .Take(request.PageSize))
-        };
+        return await cpuQuery
+            .Where(MotherboardCpuCompatibility.SocketFilter(motherboard.SocketId))
+            .Where(MotherboardCpuCompatibility.ChipsetFilter(motherboard.ChipsetId))
+            .ApplySorting(request.SortFields, request.SortDirection)
+            .ToPagedResultAsync<Cpu, CpuListItemDto>(
+                request.PageIndex,
+                request.PageSize,
+                mapper.ConfigurationProvider,
+                cancellationToken);
     }
 
     public Task<List<CpuRamCompatDto>> ListRamCompatsAsync(Guid cpuId, CancellationToken cancellationToken)

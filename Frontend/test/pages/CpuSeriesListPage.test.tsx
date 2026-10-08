@@ -223,11 +223,15 @@ describe("CpuSeriesListPage", () => {
     renderWithQuery(<CpuSeriesListPage />, {
       route: "/master-data/cpu-series?edit=missing",
     });
-    expect(await screen.findByText("CPU Series not found.")).toBeInTheDocument();
-    const missing = screen.getByRole("dialog");
+    const missing = await screen.findByRole("dialog", { name: "CPU Series not found" });
+    expect(
+      within(missing).getByText("This CPU series is not in the current list."),
+    ).toBeInTheDocument();
     await user.click(within(missing).getAllByRole("button", { name: "Close" })[0]);
     await waitFor(() => {
-      expect(screen.queryByText("CPU Series not found.")).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("dialog", { name: "CPU Series not found" }),
+      ).not.toBeInTheDocument();
     });
 
     listSockets.mockRejectedValue(new Error("no sockets"));

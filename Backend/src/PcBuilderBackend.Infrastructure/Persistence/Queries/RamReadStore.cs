@@ -4,8 +4,8 @@ using PcBuilderBackend.Application.Catalog.Memories;
 using PcBuilderBackend.Application.Catalog.Memories.Dto;
 using PcBuilderBackend.Application.Common.Dto;
 using PcBuilderBackend.Application.Common.Extensions;
+using PcBuilderBackend.Domain.Compatibility;
 using PcBuilderBackend.Domain.Entities;
-using PcBuilderBackend.Domain.Enums;
 
 namespace PcBuilderBackend.Infrastructure.Persistence.Queries;
 
@@ -87,30 +87,18 @@ public class RamReadStore(PcBuilderDbContext db, IMapper mapper) : IRamReadStore
                 return PagedResult<RamDto>.Empty(request);
         }
 
-        // Domain Check*MemoryCompatibility is not EF-translatable; filter in memory then page.
-        IEnumerable<Ram> memories = await queryable.ToListAsync(cancellationToken);
-
         if (cpu is not null)
-        {
-            memories = memories.Where(x =>
-                cpu.CheckMemoryCompatibility(x).Status != PartsCompatibility.Incompatible);
-        }
+            queryable = queryable.Where(CpuMemoryCompatibility.Filter(cpu));
 
         if (motherboard is not null)
-            memories = memories.Where(motherboard.CheckMemoryCompatibility);
+            queryable = queryable.Where(MotherboardMemoryCompatibility.Filter(motherboard));
 
-        var list = memories
+        return await queryable
             .ApplySorting(request.SortFields, request.SortDirection)
-            .ToList();
-
-        return new PagedResult<RamDto>
-        {
-            PageIndex = request.PageIndex,
-            PageSize = request.PageSize,
-            TotalCount = list.Count,
-            Items = mapper.Map<List<RamDto>>(list
-                .Skip(request.PageIndex * request.PageSize)
-                .Take(request.PageSize))
-        };
+            .ToPagedResultAsync<Ram, RamDto>(
+                request.PageIndex,
+                request.PageSize,
+                mapper.ConfigurationProvider,
+                cancellationToken);
     }
 }
