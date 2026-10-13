@@ -26,8 +26,12 @@ import {
   emptyChassisFanFilter,
 } from "@/api/catalog/params/chassis-fan-list-params";
 import { toInteger } from "@/api/helper";
-import { FAN_DIAMETERS_MM, formatFanDiameterMm } from "@/api/enums";
-import { CatalogCompatibleCheckbox } from "@/components/catalog/CatalogFilterFields.tsx";
+import {
+  FAN_DIAMETERS_MM,
+  FAN_HEADER_TYPES,
+  formatFanDiameterMm,
+  formatFanHeaderType,
+} from "@/api/enums";
 import { usePcBuild } from "@/builds/use-pc-build";
 import { useAuth } from "@/auth/use-auth";
 import { unsetCatalogItem } from "@/components/catalog/catalog-create";
@@ -37,11 +41,13 @@ import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importChassisFans } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import {
+  CatalogCompatibleCheckbox,
   CatalogFilterActions,
   CatalogFilterGroup,
   CatalogNameField,
   CatalogEnumField,
   CatalogIdSelectField,
+  CatalogOptionalBooleanField,
 } from "@/components/catalog/CatalogFilterFields";
 import { useQueryClient } from "@tanstack/react-query";
 import { BulkEditDialog } from "@/components/BulkEditDialog";
@@ -59,6 +65,10 @@ const emptyFan = unsetCatalogItem<ChassisFan>({
   manufacturerName: "",
   diameterMm: "",
   fansCountPerPack: 0,
+  thicknessMm: 0,
+  headerType: "",
+  supportsDaisyChain: false,
+  maxFansPerDaisyChain: null,
 });
 
 export function ChassisFanListPage() {
@@ -112,6 +122,15 @@ export function ChassisFanListPage() {
           cell: (info) => formatFanDiameterMm(info.getValue()),
         }),
         columnHelper.accessor("fansCountPerPack", { header: "Pack size" }),
+        columnHelper.accessor("thicknessMm", { header: "Thickness (mm)" }),
+        columnHelper.accessor("headerType", {
+          header: "Header",
+          cell: (info) => formatFanHeaderType(info.getValue()),
+        }),
+        columnHelper.accessor("supportsDaisyChain", {
+          header: "Daisy chain",
+          cell: (info) => (info.getValue() ? "Yes" : "No"),
+        }),
       ]),
     [isAdmin],
   );
@@ -221,6 +240,24 @@ export function ChassisFanListPage() {
                 }
               />
             </Field>
+            <CatalogEnumField
+              id="fan-header"
+              label="Header"
+              value={draft.headerType}
+              options={FAN_HEADER_TYPES}
+              formatOption={formatFanHeaderType}
+              onChange={(headerType) =>
+                setDraft((current) => ({ ...current, headerType }))
+              }
+            />
+            <CatalogOptionalBooleanField
+              id="fan-daisy-chain"
+              label="Daisy chain"
+              value={draft.supportsDaisyChain}
+              onChange={(supportsDaisyChain) =>
+                setDraft((current) => ({ ...current, supportsDaisyChain }))
+              }
+            />
           </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>

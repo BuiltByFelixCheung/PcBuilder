@@ -195,6 +195,10 @@ const fan: ChassisFan = {
   manufacturerName: "Corsair",
   diameterMm: "Mm120",
   fansCountPerPack: 3,
+  thicknessMm: 25,
+  headerType: "FourPinPwm",
+  supportsDaisyChain: false,
+  maxFansPerDaisyChain: null,
 };
 
 const wired: WiredNetworkAdapter = {

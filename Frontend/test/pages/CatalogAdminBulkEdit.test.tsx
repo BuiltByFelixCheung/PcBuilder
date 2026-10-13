@@ -666,6 +666,10 @@ describe("catalog admin bulk actions", () => {
         manufacturerName: "Maker",
         diameterMm: "Mm120",
         fansCountPerPack: 3,
+        thicknessMm: 25,
+        headerType: "FourPinPwm",
+        supportsDaisyChain: false,
+        maxFansPerDaisyChain: null,
       }),
     );
     await exerciseAdminList({
