@@ -645,7 +645,8 @@ public class CatalogReadStoreTests : IDisposable
 
     private ChassisFan SeedChassisFan(string name)
     {
-        var fan = new ChassisFan(name, _manufacturer.Id, FanDiameterMm.Mm120, 3);
+        var fan = new ChassisFan(
+            name, _manufacturer.Id, FanDiameterMm.Mm120, 3, 25m, FanHeaderType.FourPinPwm, false, null);
         _db.ChassisFans.Add(fan);
         _db.SaveChanges();
         return fan;
