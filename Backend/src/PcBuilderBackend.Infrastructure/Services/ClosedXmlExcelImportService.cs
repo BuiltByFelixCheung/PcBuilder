@@ -763,7 +763,11 @@ public class ClosedXmlExcelImportService : IExcelImportService
                         ? manufacturerId
                         : Guid.Empty,
                     DiameterMm = Enum.Parse<FanDiameterMm>(row.Cell(3).GetString()),
-                    FansCountPerPack = (int)row.Cell(4).GetDouble()
+                    FansCountPerPack = (int)row.Cell(4).GetDouble(),
+                    ThicknessMm = (decimal)row.Cell(5).GetDouble(),
+                    HeaderType = Enum.Parse<FanHeaderType>(row.Cell(6).GetString()),
+                    SupportsDaisyChain = GetFlag(row.Cell(7)),
+                    MaxFansPerDaisyChain = ParseOptionalInt(row.Cell(8))
                 })
         ];
     }
