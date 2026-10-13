@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using PcBuilderBackend.Domain.Enums;
@@ -25,6 +25,7 @@ internal static class NpgsqlEnumConfiguration
         options.MapEnum<CpuCoolerType>("cpu_cooler_type");
         options.MapEnum<DriveBayFormFactor>("drive_bay_form_factor");
         options.MapEnum<FanDiameterMm>("fan_diameter_mm");
+        options.MapEnum<FanHeaderType>("fan_header_type");
         options.MapEnum<FanMountLocation>("fan_mount_location");
         options.MapEnum<RadiatorClass>("radiator_class");
         options.MapEnum<RadiatorMountLocation>("radiator_mount_location");
@@ -59,6 +60,7 @@ internal static class NpgsqlEnumConfiguration
         modelBuilder.HasPostgresEnum<CpuCoolerType>(name: "cpu_cooler_type");
         modelBuilder.HasPostgresEnum<DriveBayFormFactor>(name: "drive_bay_form_factor");
         modelBuilder.HasPostgresEnum<FanDiameterMm>(name: "fan_diameter_mm");
+        modelBuilder.HasPostgresEnum<FanHeaderType>(name: "fan_header_type");
         modelBuilder.HasPostgresEnum<FanMountLocation>(name: "fan_mount_location");
         modelBuilder.HasPostgresEnum<RadiatorClass>(name: "radiator_class");
         modelBuilder.HasPostgresEnum<RadiatorMountLocation>(name: "radiator_mount_location");
