@@ -35,7 +35,11 @@ public class ImportChassisFansHandler(
                 row.Name,
                 row.ManufacturerId,
                 row.DiameterMm,
-                row.FansCountPerPack);
+                row.FansCountPerPack,
+                row.ThicknessMm,
+                row.HeaderType,
+                row.SupportsDaisyChain,
+                row.MaxFansPerDaisyChain);
 
             chassisFans.Add(entity);
             result.Add(entity);

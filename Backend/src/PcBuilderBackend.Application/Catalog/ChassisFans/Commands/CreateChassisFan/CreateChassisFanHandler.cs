@@ -21,7 +21,11 @@ public class CreateChassisFanHandler(
             request.Name,
             request.ManufacturerId,
             request.DiameterMm,
-            request.FansCountPerPack);
+            request.FansCountPerPack,
+            request.ThicknessMm,
+            request.HeaderType,
+            request.SupportsDaisyChain,
+            request.MaxFansPerDaisyChain);
 
         chassisFans.Add(entity);
         await unitOfWork.SaveChangesAsync(cancellationToken);

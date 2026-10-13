@@ -32,7 +32,13 @@ public class BulkUpdateChassisFansHandler(
 
             entity.Rename(item.Name);
             entity.UpdateManufacturer(item.ManufacturerId);
-            entity.UpdateSpecs(item.DiameterMm, item.FansCountPerPack);
+            entity.UpdateSpecs(
+                item.DiameterMm,
+                item.FansCountPerPack,
+                item.ThicknessMm,
+                item.HeaderType,
+                item.SupportsDaisyChain,
+                item.MaxFansPerDaisyChain);
 
             result.Add(mapper.Map<ChassisFanDto>(entity));
         }

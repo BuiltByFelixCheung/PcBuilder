@@ -25,7 +25,11 @@ public class BulkCreateChassisFansHandler(
                      item.Name,
                      item.ManufacturerId,
                      item.DiameterMm,
-                     item.FansCountPerPack)))
+                     item.FansCountPerPack,
+                     item.ThicknessMm,
+                     item.HeaderType,
+                     item.SupportsDaisyChain,
+                     item.MaxFansPerDaisyChain)))
         {
             chassisFans.Add(entity);
             result.Add(mapper.Map<ChassisFanDto>(entity));

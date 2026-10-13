@@ -26,7 +26,13 @@ public class UpdateChassisFanHandler(
 
         entity.Rename(request.Name);
         entity.UpdateManufacturer(request.ManufacturerId);
-        entity.UpdateSpecs(request.DiameterMm, request.FansCountPerPack);
+        entity.UpdateSpecs(
+            request.DiameterMm,
+            request.FansCountPerPack,
+            request.ThicknessMm,
+            request.HeaderType,
+            request.SupportsDaisyChain,
+            request.MaxFansPerDaisyChain);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
