@@ -27,6 +27,7 @@ namespace PcBuilderBackend.Infrastructure.Persistence.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "ddr_generation", new[] { "ddr4", "ddr5" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "drive_bay_form_factor", new[] { "inch25", "inch35", "inch525" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fan_diameter_mm", new[] { "mm80", "mm92", "mm120", "mm140", "mm200" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fan_header_type", new[] { "three_pin_dc", "four_pin_pwm" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "fan_mount_location", new[] { "front", "top", "bottom", "rear", "sides" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "m2_form_factor", new[] { "m22230", "m22242", "m22260", "m22280", "m222110" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "m2_key", new[] { "m", "b", "e", "bm" });
@@ -172,16 +173,29 @@ namespace PcBuilderBackend.Infrastructure.Persistence.Migrations
                     b.Property<int>("FansCountPerPack")
                         .HasColumnType("integer");
 
+                    b.Property<FanHeaderType>("HeaderType")
+                        .HasColumnType("fan_header_type");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
                     b.Property<Guid>("ManufacturerId")
                         .HasColumnType("uuid");
 
+                    b.Property<int?>("MaxFansPerDaisyChain")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<bool>("SupportsDaisyChain")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("ThicknessMm")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)");
 
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
