@@ -17,6 +17,12 @@ internal sealed class ChassisFanConfiguration : IEntityTypeConfiguration<Chassis
         builder.Property(f => f.FansCountPerPack)
             .IsRequired();
 
+        builder.Property(f => f.ThicknessMm)
+            .HasPrecision(6, 2);
+
+        builder.Property(f => f.SupportsDaisyChain)
+            .IsRequired();
+
         builder.HasOne(f => f.Manufacturer)
             .WithMany(m => m.ChassisFans)
             .HasForeignKey(f => f.ManufacturerId)
