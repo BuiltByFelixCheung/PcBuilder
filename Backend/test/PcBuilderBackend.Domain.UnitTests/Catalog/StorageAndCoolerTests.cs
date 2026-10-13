@@ -211,10 +211,64 @@ public class StorageAndCoolerTests
     [Fact]
     public void Chassis_fan_rejects_invalid_diameter_and_count()
     {
-        var fan = new ChassisFan("LL120", ManufacturerId, FanDiameterMm.Mm120, 3);
+        var fan = new ChassisFan(
+            "LL120",
+            ManufacturerId,
+            FanDiameterMm.Mm120,
+            3,
+            25m,
+            FanHeaderType.FourPinPwm,
+            false,
+            null);
         fan.FansCountPerPack.Should().Be(3);
+        fan.ThicknessMm.Should().Be(25m);
+        fan.HeaderType.Should().Be(FanHeaderType.FourPinPwm);
+        fan.SupportsDaisyChain.Should().BeFalse();
+        fan.MaxFansPerDaisyChain.Should().BeNull();
 
-        var badCount = () => new ChassisFan("Fan", ManufacturerId, FanDiameterMm.Mm120, 0);
+        var badCount = () => new ChassisFan(
+            "Fan",
+            ManufacturerId,
+            FanDiameterMm.Mm120,
+            0,
+            25m,
+            FanHeaderType.FourPinPwm,
+            false,
+            null);
         badCount.Should().Throw<ArgumentOutOfRangeException>();
+
+        var badThickness = () => new ChassisFan(
+            "Fan",
+            ManufacturerId,
+            FanDiameterMm.Mm120,
+            1,
+            0m,
+            FanHeaderType.FourPinPwm,
+            false,
+            null);
+        badThickness.Should().Throw<ArgumentOutOfRangeException>();
+
+        var daisyWithoutMax = () => new ChassisFan(
+            "Fan",
+            ManufacturerId,
+            FanDiameterMm.Mm120,
+            1,
+            25m,
+            FanHeaderType.FourPinPwm,
+            true,
+            null);
+        daisyWithoutMax.Should().Throw<ArgumentException>().WithParameterName("maxFansPerDaisyChain");
+
+        var daisy = new ChassisFan(
+            "Fan",
+            ManufacturerId,
+            FanDiameterMm.Mm120,
+            1,
+            25m,
+            FanHeaderType.ThreePinDc,
+            true,
+            3);
+        daisy.SupportsDaisyChain.Should().BeTrue();
+        daisy.MaxFansPerDaisyChain.Should().Be(3);
     }
 }

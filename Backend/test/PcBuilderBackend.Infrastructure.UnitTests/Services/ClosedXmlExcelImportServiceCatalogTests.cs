@@ -68,11 +68,17 @@ public class ClosedXmlExcelImportServiceCatalogTests
         await using var fanStream = Workbook(wb =>
         {
             var sheet = wb.Worksheets.Add("ChassisFans");
-            Write(sheet, 1, ["Name", "Mfg", "Dia", "Count"]);
-            Write(sheet, 2, ["LL120", _id.ToString(), "Mm120", 3]);
+            Write(sheet, 1, ["Name", "Mfg", "Dia", "Count", "Thick", "Header", "Daisy", "MaxDaisy"]);
+            Write(sheet, 2, ["LL120", _id.ToString(), "Mm120", 3, 25, "FourPinPwm", false, ""]);
         });
         (await _sut.ParseChassisFanImportAsync(fanStream, CancellationToken.None))
-            .Should().ContainSingle(x => x.DiameterMm == FanDiameterMm.Mm120 && x.FansCountPerPack == 3);
+            .Should().ContainSingle(x =>
+                x.DiameterMm == FanDiameterMm.Mm120
+                && x.FansCountPerPack == 3
+                && x.ThicknessMm == 25m
+                && x.HeaderType == FanHeaderType.FourPinPwm
+                && !x.SupportsDaisyChain
+                && x.MaxFansPerDaisyChain == null);
     }
 
     [Fact]
