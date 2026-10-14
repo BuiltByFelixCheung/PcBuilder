@@ -145,6 +145,7 @@ export const COMPATIBILITY_CHECK_REASONS = [
   "NoMatchingM2Slot",
   "SlotDoesNotSupportSata",
   "InsufficientSataPorts",
+  "InsufficientFanHeaders",
   "NoMatchingUsbPort",
   "UsbVersionReduced",
   "PartSizeExceedsLimits",

@@ -90,4 +90,17 @@ public class ChassisFan : ProductEntity
         SupportsDaisyChain = supportsDaisyChain;
         MaxFansPerDaisyChain = maxFansPerDaisyChain;
     }
+
+    /// <summary>
+    /// Motherboard headers consumed by one pack of this product.
+    /// Daisy-chained packs share headers up to <see cref="MaxFansPerDaisyChain"/>.
+    /// </summary>
+    public int HeadersRequiredPerPack()
+    {
+        if (!SupportsDaisyChain)
+            return FansCountPerPack;
+
+        var max = MaxFansPerDaisyChain!.Value;
+        return (FansCountPerPack + max - 1) / max;
+    }
 }

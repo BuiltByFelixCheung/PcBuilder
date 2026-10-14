@@ -33,8 +33,15 @@ public sealed class MotherboardFieldsValidator<T> : AbstractValidator<T>
         RuleFor(x => x.SataPorts)
             .GreaterThan(0).WithMessage("SataPorts must be greater than 0");
 
-        RuleFor(x => x.FanConnectors)
-            .GreaterThan(0).WithMessage("FanConnectors must be greater than 0");
+        RuleFor(x => x.PwmFanHeaders)
+            .GreaterThanOrEqualTo(0).WithMessage("PwmFanHeaders must be greater than or equal to 0");
+
+        RuleFor(x => x.DcFanHeaders)
+            .GreaterThanOrEqualTo(0).WithMessage("DcFanHeaders must be greater than or equal to 0");
+
+        RuleFor(x => x)
+            .Must(x => x.PwmFanHeaders + x.DcFanHeaders > 0)
+            .WithMessage("At least one PWM or DC fan header is required");
 
         RuleFor(x => x.EpsConnectors)
             .GreaterThan(0).WithMessage("EpsConnectors must be greater than 0");

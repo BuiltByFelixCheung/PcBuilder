@@ -28,7 +28,8 @@ export type MotherboardFilter = {
   maxMemoryGb?: number;
   maxDimmSizeGb?: number;
   sataPorts?: number;
-  fanConnectors?: number;
+  pwmFanHeaders?: number;
+  dcFanHeaders?: number;
   epsConnectors?: number;
   widthMm?: RangeFilter;
   heightMm?: RangeFilter;
@@ -57,7 +58,8 @@ export type MotherboardListItem = {
   maxMemoryGb: number;
   maxDimmSizeGb: number;
   sataPorts: number;
-  fanConnectors: number;
+  pwmFanHeaders: number;
+  dcFanHeaders: number;
   epsConnectors: number;
   widthMm: number;
   heightMm: number;
@@ -114,7 +116,8 @@ export function isMotherboardFilterActive(filter: MotherboardFilter): boolean {
     filter.maxMemoryGb ||
     filter.maxDimmSizeGb ||
     filter.sataPorts ||
-    filter.fanConnectors ||
+    filter.pwmFanHeaders ||
+    filter.dcFanHeaders ||
     filter.epsConnectors ||
     hasCompleteRange(filter.widthMm) ||
     hasCompleteRange(filter.heightMm) ||
@@ -167,7 +170,8 @@ function toMotherboardFilterBody(filter: MotherboardFilter): MotherboardFilter {
     maxMemoryGb: filter.maxMemoryGb,
     maxDimmSizeGb: filter.maxDimmSizeGb,
     sataPorts: filter.sataPorts,
-    fanConnectors: filter.fanConnectors,
+    pwmFanHeaders: filter.pwmFanHeaders,
+    dcFanHeaders: filter.dcFanHeaders,
     epsConnectors: filter.epsConnectors,
     widthMm: hasCompleteRange(filter.widthMm) ? filter.widthMm : undefined,
     heightMm: hasCompleteRange(filter.heightMm) ? filter.heightMm : undefined,

@@ -207,6 +207,54 @@ public class CompatibilityCheckerTests
     }
 
     [Fact]
+    public async Task Fan_headers_are_checked_against_motherboard()
+    {
+        var catalog = new FakeCatalog();
+        var motherboard = CreateMotherboard(sataPorts: 4);
+        motherboard.UpdateSpecs(new MotherboardSpecs
+        {
+            SocketId = motherboard.SocketId,
+            ChipsetId = motherboard.ChipsetId,
+            RamSlots = motherboard.RamSlots,
+            MaxMemoryGb = motherboard.MaxMemoryGb,
+            MaxDimmSizeGb = motherboard.MaxDimmSizeGb,
+            SataPorts = motherboard.SataPorts,
+            PwmFanHeaders = 1,
+            DcFanHeaders = 0,
+            EpsConnectors = motherboard.EpsConnectors,
+            WidthMm = motherboard.WidthMm,
+            HeightMm = motherboard.HeightMm,
+            DdrGeneration = motherboard.DdrGeneration,
+            RamFormFactor = motherboard.RamFormFactor,
+            MbFormFactor = motherboard.FormFactor,
+            WifiEnabled = motherboard.WifiEnabled,
+            BluetoothEnabled = motherboard.BluetoothEnabled
+        });
+        catalog.Motherboards[motherboard.Id] = motherboard;
+
+        var fan = new ChassisFan(
+            "LL120", ManufacturerId, FanDiameterMm.Mm120, 3, 25m, FanHeaderType.FourPinPwm, false, null);
+        catalog.Fans[fan.Id] = fan;
+
+        var checker = new CompatibilityChecker(catalog);
+        var results = await checker.CheckCompatibilityAsync(
+            new CompatibilityCheckRequest
+            {
+                MotherboardId = motherboard.Id,
+                ChassisFans = [new PcBuildPartDto(PcBuildPartType.ChassisFan, fan.Id, 1)],
+                StorageDevices = [],
+                WiredNetworkAdapters = [],
+                WirelessNetworkAdapters = []
+            });
+
+        var issue = results.Should()
+            .ContainSingle(r => r.Result.Reason == CompatibilityReason.InsufficientFanHeaders)
+            .Subject;
+        issue.Parts.Should().Contain(p => p.Slot == CompatibilitySlot.Motherboard && p.PartId == motherboard.Id);
+        issue.Parts.Should().Contain(p => p.Slot == CompatibilitySlot.ChassisFans && p.PartId == fan.Id);
+    }
+
+    [Fact]
     public async Task Chassis_versus_graphics_card_names_graphics_card_slot()
     {
         var catalog = new FakeCatalog();
@@ -272,7 +320,8 @@ public class CompatibilityCheckerTests
             MaxMemoryGb = 128,
             MaxDimmSizeGb = 48,
             SataPorts = sataPorts,
-            FanConnectors = 4,
+            PwmFanHeaders = 4,
+            DcFanHeaders = 0,
             EpsConnectors = 2,
             WidthMm = 244,
             HeightMm = 305,

@@ -103,8 +103,8 @@ public class ClosedXmlExcelImportServiceCatalogTests
         await using var stream = Workbook(wb =>
         {
             var boards = wb.Worksheets.Add("Motherboards");
-            Write(boards, 1, ["Name", "Mfg", "Sock", "Chip", "Ram", "Max", "Dimm", "Sata", "Fan", "Eps", "W", "H", "Ddr", "RamFF", "FF", "Wifi", "Bt"]);
-            Write(boards, 2, ["B650", _id.ToString(), _id.ToString(), _id.ToString(), 4, 128, 48, 4, 4, 2, 244, 305, "Ddr5", "UDimm", "Atx", true, false]);
+            Write(boards, 1, ["Name", "Mfg", "Sock", "Chip", "Ram", "Max", "Dimm", "Sata", "PwmFan", "DcFan", "Eps", "W", "H", "Ddr", "RamFF", "FF", "Wifi", "Bt"]);
+            Write(boards, 2, ["B650", _id.ToString(), _id.ToString(), _id.ToString(), 4, 128, 48, 4, 4, 0, 2, 244, 305, "Ddr5", "UDimm", "Atx", true, false]);
 
             var pcie = wb.Worksheets.Add("MotherboardPcieSlots");
             Write(pcie, 1, ["Parent", "Type", "Lanes", "Gen", "Count"]);
@@ -132,8 +132,8 @@ public class ClosedXmlExcelImportServiceCatalogTests
         await using var stream = Workbook(wb =>
         {
             var boards = wb.Worksheets.Add("Motherboards");
-            Write(boards, 1, ["Name", "Mfg", "Sock", "Chip", "Ram", "Max", "Dimm", "Sata", "Fan", "Eps", "W", "H", "Ddr", "RamFF", "FF", "Wifi", "Bt"]);
-            Write(boards, 2, ["B650", _id.ToString(), _id.ToString(), _id.ToString(), 4, 128, 48, 4, 4, 2, 244, 305, "Ddr5", "UDimm", "Atx", true, false]);
+            Write(boards, 1, ["Name", "Mfg", "Sock", "Chip", "Ram", "Max", "Dimm", "Sata", "PwmFan", "DcFan", "Eps", "W", "H", "Ddr", "RamFF", "FF", "Wifi", "Bt"]);
+            Write(boards, 2, ["B650", _id.ToString(), _id.ToString(), _id.ToString(), 4, 128, 48, 4, 4, 0, 2, 244, 305, "Ddr5", "UDimm", "Atx", true, false]);
 
             var pcie = wb.Worksheets.Add("MotherboardPcieSlots");
             Write(pcie, 1, ["Parent", "Type", "Lanes", "Gen", "Count"]);

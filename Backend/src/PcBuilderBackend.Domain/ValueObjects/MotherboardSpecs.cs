@@ -10,7 +10,8 @@ public record MotherboardMeasureSpecs
     public int MaxMemoryGb { get; init; }
     public int MaxDimmSizeGb { get; init; }
     public int SataPorts { get; init; }
-    public int FanConnectors { get; init; }
+    public int PwmFanHeaders { get; init; }
+    public int DcFanHeaders { get; init; }
     public int EpsConnectors { get; init; }
     public decimal WidthMm { get; init; }
     public decimal HeightMm { get; init; }

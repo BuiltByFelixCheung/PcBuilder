@@ -433,15 +433,16 @@ public class ClosedXmlExcelImportService : IExcelImportService
                     MaxMemoryGb = (int)row.Cell(6).GetDouble(),
                     MaxDimmSizeGb = (int)row.Cell(7).GetDouble(),
                     SataPorts = (int)row.Cell(8).GetDouble(),
-                    FanConnectors = (int)row.Cell(9).GetDouble(),
-                    EpsConnectors = (int)row.Cell(10).GetDouble(),
-                    WidthMm = (decimal)row.Cell(11).GetDouble(),
-                    HeightMm = (decimal)row.Cell(12).GetDouble(),
-                    DdrGeneration = Enum.Parse<DdrGeneration>(row.Cell(13).GetString()),
-                    RamFormFactor = Enum.Parse<RamFormFactor>(row.Cell(14).GetString()),
-                    FormFactor = Enum.Parse<MbFormFactor>(row.Cell(15).GetString()),
-                    WifiEnabled = row.Cell(16).GetBoolean(),
-                    BluetoothEnabled = row.Cell(17).GetBoolean()
+                    PwmFanHeaders = (int)row.Cell(9).GetDouble(),
+                    DcFanHeaders = (int)row.Cell(10).GetDouble(),
+                    EpsConnectors = (int)row.Cell(11).GetDouble(),
+                    WidthMm = (decimal)row.Cell(12).GetDouble(),
+                    HeightMm = (decimal)row.Cell(13).GetDouble(),
+                    DdrGeneration = Enum.Parse<DdrGeneration>(row.Cell(14).GetString()),
+                    RamFormFactor = Enum.Parse<RamFormFactor>(row.Cell(15).GetString()),
+                    FormFactor = Enum.Parse<MbFormFactor>(row.Cell(16).GetString()),
+                    WifiEnabled = row.Cell(17).GetBoolean(),
+                    BluetoothEnabled = row.Cell(18).GetBoolean()
                 })
         ];
     }

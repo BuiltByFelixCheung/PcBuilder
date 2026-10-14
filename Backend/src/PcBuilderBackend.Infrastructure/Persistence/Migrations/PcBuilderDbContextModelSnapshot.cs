@@ -954,13 +954,13 @@ namespace PcBuilderBackend.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("DcFanHeaders")
+                        .HasColumnType("integer");
+
                     b.Property<DdrGeneration>("DdrGeneration")
                         .HasColumnType("ddr_generation");
 
                     b.Property<int>("EpsConnectors")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("FanConnectors")
                         .HasColumnType("integer");
 
                     b.Property<MbFormFactor>("FormFactor")
@@ -986,6 +986,9 @@ namespace PcBuilderBackend.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<int>("PwmFanHeaders")
+                        .HasColumnType("integer");
 
                     b.Property<RamFormFactor>("RamFormFactor")
                         .HasColumnType("ram_form_factor");
