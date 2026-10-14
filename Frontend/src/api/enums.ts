@@ -77,6 +77,14 @@ export function formatFanDiameterMm(diameter: FanDiameterMm): string {
   return `${stripMmPrefix(diameter)} mm`;
 }
 
+export const FAN_HEADER_TYPES = ["ThreePinDc", "FourPinPwm"] as const;
+export type FanHeaderType = (typeof FAN_HEADER_TYPES)[number];
+
+export function formatFanHeaderType(headerType: FanHeaderType): string {
+  if (headerType === "ThreePinDc") return "3-pin DC";
+  return "4-pin PWM";
+}
+
 export const DRIVE_BAY_FORM_FACTORS = ["Inch25", "Inch35", "Inch525"] as const;
 export type DriveBayFormFactor = (typeof DRIVE_BAY_FORM_FACTORS)[number];
 

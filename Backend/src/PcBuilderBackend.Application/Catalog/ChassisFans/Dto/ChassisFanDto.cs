@@ -8,5 +8,9 @@ public record ChassisFanDto(
     Guid ManufacturerId,
     string ManufacturerName,
     FanDiameterMm DiameterMm,
-    int FansCountPerPack
+    int FansCountPerPack,
+    decimal ThicknessMm,
+    FanHeaderType HeaderType,
+    bool SupportsDaisyChain,
+    int? MaxFansPerDaisyChain
 );

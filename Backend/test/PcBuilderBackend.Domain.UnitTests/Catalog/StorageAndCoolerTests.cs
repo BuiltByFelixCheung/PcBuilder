@@ -211,10 +211,65 @@ public class StorageAndCoolerTests
     [Fact]
     public void Chassis_fan_rejects_invalid_diameter_and_count()
     {
-        var fan = new ChassisFan("LL120", ManufacturerId, FanDiameterMm.Mm120, 3);
+        var fan = new ChassisFan("LL120", ManufacturerId, new ChassisFanSpecs
+        {
+            DiameterMm = FanDiameterMm.Mm120,
+            FansCountPerPack = 3,
+            ThicknessMm = 25m,
+            HeaderType = FanHeaderType.FourPinPwm,
+            SupportsDaisyChain = false,
+            MaxFansPerDaisyChain = null
+        });
         fan.FansCountPerPack.Should().Be(3);
+        fan.ThicknessMm.Should().Be(25m);
+        fan.HeaderType.Should().Be(FanHeaderType.FourPinPwm);
+        fan.SupportsDaisyChain.Should().BeFalse();
+        fan.MaxFansPerDaisyChain.Should().BeNull();
 
-        var badCount = () => new ChassisFan("Fan", ManufacturerId, FanDiameterMm.Mm120, 0);
+        var badCount = () => new ChassisFan("Fan", ManufacturerId, new ChassisFanSpecs
+        {
+            DiameterMm = FanDiameterMm.Mm120,
+            FansCountPerPack = 0,
+            ThicknessMm = 25m,
+            HeaderType = FanHeaderType.FourPinPwm,
+            SupportsDaisyChain = false,
+            MaxFansPerDaisyChain = null
+        });
         badCount.Should().Throw<ArgumentOutOfRangeException>();
+
+        var badThickness = () => new ChassisFan("Fan", ManufacturerId, new ChassisFanSpecs
+        {
+            DiameterMm = FanDiameterMm.Mm120,
+            FansCountPerPack = 1,
+            ThicknessMm = 0m,
+            HeaderType = FanHeaderType.FourPinPwm,
+            SupportsDaisyChain = false,
+            MaxFansPerDaisyChain = null
+        });
+        badThickness.Should().Throw<ArgumentOutOfRangeException>();
+
+        var daisyWithoutMax = () => new ChassisFan("Fan", ManufacturerId, new ChassisFanSpecs
+        {
+            DiameterMm = FanDiameterMm.Mm120,
+            FansCountPerPack = 1,
+            ThicknessMm = 25m,
+            HeaderType = FanHeaderType.FourPinPwm,
+            SupportsDaisyChain = true,
+            MaxFansPerDaisyChain = null
+        });
+        daisyWithoutMax.Should().Throw<ArgumentException>()
+            .WithParameterName(nameof(ChassisFanSpecs.MaxFansPerDaisyChain));
+
+        var daisy = new ChassisFan("Fan", ManufacturerId, new ChassisFanSpecs
+        {
+            DiameterMm = FanDiameterMm.Mm120,
+            FansCountPerPack = 1,
+            ThicknessMm = 25m,
+            HeaderType = FanHeaderType.ThreePinDc,
+            SupportsDaisyChain = true,
+            MaxFansPerDaisyChain = 3
+        });
+        daisy.SupportsDaisyChain.Should().BeTrue();
+        daisy.MaxFansPerDaisyChain.Should().Be(3);
     }
 }

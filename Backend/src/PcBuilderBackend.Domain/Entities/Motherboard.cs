@@ -12,7 +12,8 @@ public class Motherboard : ProductEntity
     public int MaxMemoryGb { get; private set; }
     public int MaxDimmSizeGb { get; private set; }
     public int SataPorts { get; private set; }
-    public int FanConnectors { get; private set; }
+    public int PwmFanHeaders { get; private set; }
+    public int DcFanHeaders { get; private set; }
     public int EpsConnectors { get; private set; }
     public decimal WidthMm { get; private set; }
     public decimal HeightMm { get; private set; }
@@ -115,6 +116,22 @@ public class Motherboard : ProductEntity
         return MotherboardStorageCompatibility.Evaluate(SataPorts, _m2Slots, drives);
     }
 
+    public PartsCompatibilityResult CheckFanHeaderCompatibility(ChassisFan fan)
+    {
+        ArgumentNullException.ThrowIfNull(fan);
+        return CheckFanHeaderCompatibility([fan]);
+    }
+
+    /// <param name="fans">
+    /// Selected packs (one entry per pack quantity; expand by repeating the product).
+    /// Each pack consumes headers via <see cref="ChassisFan.HeadersRequiredPerPack"/>.
+    /// </param>
+    public PartsCompatibilityResult CheckFanHeaderCompatibility(IEnumerable<ChassisFan> fans)
+    {
+        ArgumentNullException.ThrowIfNull(fans);
+        return MotherboardFanHeaderCompatibility.Evaluate(PwmFanHeaders, DcFanHeaders, fans);
+    }
+
     public PartsCompatibilityResult CheckWirelessNetworkAdapterCompatibility(WirelessNetworkAdapter adapter)
     {
         ArgumentNullException.ThrowIfNull(adapter);
@@ -182,7 +199,10 @@ public class Motherboard : ProductEntity
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(specs.MaxDimmSizeGb);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(specs.MaxMemoryGb);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(specs.SataPorts);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(specs.FanConnectors);
+        ArgumentOutOfRangeException.ThrowIfNegative(specs.PwmFanHeaders);
+        ArgumentOutOfRangeException.ThrowIfNegative(specs.DcFanHeaders);
+        if (specs.PwmFanHeaders + specs.DcFanHeaders <= 0)
+            throw new ArgumentException("At least one PWM or DC fan header is required.");
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(specs.EpsConnectors);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(specs.WidthMm);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(specs.HeightMm);
@@ -202,7 +222,8 @@ public class Motherboard : ProductEntity
         MaxMemoryGb = specs.MaxMemoryGb;
         MaxDimmSizeGb = specs.MaxDimmSizeGb;
         SataPorts = specs.SataPorts;
-        FanConnectors = specs.FanConnectors;
+        PwmFanHeaders = specs.PwmFanHeaders;
+        DcFanHeaders = specs.DcFanHeaders;
         EpsConnectors = specs.EpsConnectors;
         DdrGeneration = specs.DdrGeneration;
         RamFormFactor = specs.RamFormFactor;

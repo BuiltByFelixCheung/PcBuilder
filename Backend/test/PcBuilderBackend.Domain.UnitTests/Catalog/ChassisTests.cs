@@ -39,7 +39,8 @@ public class ChassisTests
             MaxMemoryGb = 128,
             MaxDimmSizeGb = 48,
             SataPorts = 4,
-            FanConnectors = 4,
+            PwmFanHeaders = 4,
+            DcFanHeaders = 0,
             EpsConnectors = 2,
             WidthMm = 244,
             HeightMm = 244,
@@ -57,7 +58,8 @@ public class ChassisTests
             MaxMemoryGb = 64,
             MaxDimmSizeGb = 32,
             SataPorts = 4,
-            FanConnectors = 3,
+            PwmFanHeaders = 3,
+            DcFanHeaders = 0,
             EpsConnectors = 1,
             WidthMm = 170,
             HeightMm = 170,
@@ -146,8 +148,24 @@ public class ChassisTests
         mount.AddOption(new ChassisFanMountOption(mount.Id, FanDiameterMm.Mm120, 3));
         chassis.AddFanMount(mount);
 
-        var fan = new ChassisFan("LL120", ManufacturerId, FanDiameterMm.Mm120, 3);
-        var tooMany = new ChassisFan("LL120", ManufacturerId, FanDiameterMm.Mm120, 4);
+        var fan = new ChassisFan("LL120", ManufacturerId, new ChassisFanSpecs
+        {
+            DiameterMm = FanDiameterMm.Mm120,
+            FansCountPerPack = 3,
+            ThicknessMm = 25m,
+            HeaderType = FanHeaderType.FourPinPwm,
+            SupportsDaisyChain = false,
+            MaxFansPerDaisyChain = null
+        });
+        var tooMany = new ChassisFan("LL120", ManufacturerId, new ChassisFanSpecs
+        {
+            DiameterMm = FanDiameterMm.Mm120,
+            FansCountPerPack = 4,
+            ThicknessMm = 25m,
+            HeaderType = FanHeaderType.FourPinPwm,
+            SupportsDaisyChain = false,
+            MaxFansPerDaisyChain = null
+        });
 
         chassis.CheckFanCompatibility(fan).Should().BeTrue();
         chassis.CheckFanCompatibility(tooMany).Should().BeFalse();

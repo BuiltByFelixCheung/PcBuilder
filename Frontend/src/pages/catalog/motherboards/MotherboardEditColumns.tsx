@@ -35,7 +35,8 @@ export function MotherboardEditColumns(
       | "maxMemoryGb"
       | "maxDimmSizeGb"
       | "sataPorts"
-      | "fanConnectors"
+      | "pwmFanHeaders"
+      | "dcFanHeaders"
       | "epsConnectors",
   ) =>
     integerColumn<MotherboardListItem>(header, field, {
@@ -52,7 +53,8 @@ export function MotherboardEditColumns(
     counted("Max memory (GB)", "maxMemoryGb"),
     counted("Max memory per slot (GB)", "maxDimmSizeGb"),
     counted("SATA ports", "sataPorts"),
-    counted("Fan connectors", "fanConnectors"),
+    counted("PWM fan headers", "pwmFanHeaders"),
+    counted("DC fan headers", "dcFanHeaders"),
     counted("EPS connectors", "epsConnectors"),
     optionalNumberColumn("Width (mm)", "widthMm"),
     optionalNumberColumn("Height (mm)", "heightMm"),
@@ -78,7 +80,8 @@ export function MotherboardFields(
       | "maxMemoryGb"
       | "maxDimmSizeGb"
       | "sataPorts"
-      | "fanConnectors"
+      | "pwmFanHeaders"
+      | "dcFanHeaders"
       | "epsConnectors",
   ) =>
     integerField<MotherboardListItem>(label, field, {
@@ -95,7 +98,8 @@ export function MotherboardFields(
     counted("Max memory (GB)", "maxMemoryGb"),
     counted("Max memory per slot (GB)", "maxDimmSizeGb"),
     counted("SATA ports", "sataPorts"),
-    counted("Fan connectors", "fanConnectors"),
+    counted("PWM fan headers", "pwmFanHeaders"),
+    counted("DC fan headers", "dcFanHeaders"),
     counted("EPS connectors", "epsConnectors"),
     optionalNumberField("Width (mm)", "widthMm"),
     optionalNumberField("Height (mm)", "heightMm"),

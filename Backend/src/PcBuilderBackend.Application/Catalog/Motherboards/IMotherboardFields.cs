@@ -12,7 +12,8 @@ public interface IMotherboardFields
     int MaxMemoryGb { get; }
     int MaxDimmSizeGb { get; }
     int SataPorts { get; }
-    int FanConnectors { get; }
+    int PwmFanHeaders { get; }
+    int DcFanHeaders { get; }
     int EpsConnectors { get; }
     decimal WidthMm { get; }
     decimal HeightMm { get; }

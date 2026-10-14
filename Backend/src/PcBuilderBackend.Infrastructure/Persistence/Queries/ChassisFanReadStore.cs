@@ -39,7 +39,9 @@ public sealed class ChassisFanReadStore(PcBuilderDbContext db, IMapper mapper) :
             .WhereIf(filter.ManufacturerId.HasValue, x => x.ManufacturerId == filter.ManufacturerId)
             .WhereIf(!string.IsNullOrEmpty(filter.Name), x => x.Name.Contains(filter.Name!))
             .WhereIf(filter.DiameterMm.HasValue, x => x.DiameterMm == filter.DiameterMm)
-            .WhereIf(filter.FansCountPerPack.HasValue, x => x.FansCountPerPack == filter.FansCountPerPack);
+            .WhereIf(filter.FansCountPerPack.HasValue, x => x.FansCountPerPack == filter.FansCountPerPack)
+            .WhereIf(filter.HeaderType.HasValue, x => x.HeaderType == filter.HeaderType)
+            .WhereIf(filter.SupportsDaisyChain.HasValue, x => x.SupportsDaisyChain == filter.SupportsDaisyChain);
 
         if (!filter.ChassisId.HasValue)
         {

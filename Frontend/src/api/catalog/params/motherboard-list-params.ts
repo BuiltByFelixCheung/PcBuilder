@@ -40,7 +40,8 @@ export function motherboardListSearchFromParams(
   setSearchValue(search, "maxMemoryGb", filter.maxMemoryGb);
   setSearchValue(search, "maxDimmSizeGb", filter.maxDimmSizeGb);
   setSearchValue(search, "sataPorts", filter.sataPorts);
-  setSearchValue(search, "fanConnectors", filter.fanConnectors);
+  setSearchValue(search, "pwmFanHeaders", filter.pwmFanHeaders);
+  setSearchValue(search, "dcFanHeaders", filter.dcFanHeaders);
   setSearchValue(search, "epsConnectors", filter.epsConnectors);
   setSearchRange(search, filter.widthMm, "widthMmMin", "widthMmMax");
   setSearchRange(search, filter.heightMm, "heightMmMin", "heightMmMax");
@@ -73,7 +74,8 @@ function filterFromSearch(search: URLSearchParams): MotherboardFilter {
     maxMemoryGb: toInteger(search.get("maxMemoryGb")),
     maxDimmSizeGb: toInteger(search.get("maxDimmSizeGb")),
     sataPorts: toInteger(search.get("sataPorts")),
-    fanConnectors: toInteger(search.get("fanConnectors")),
+    pwmFanHeaders: toInteger(search.get("pwmFanHeaders")),
+    dcFanHeaders: toInteger(search.get("dcFanHeaders")),
     epsConnectors: toInteger(search.get("epsConnectors")),
     widthMm: parseRange(search.get("widthMmMin"), search.get("widthMmMax")),
     heightMm: parseRange(search.get("heightMmMin"), search.get("heightMmMax")),

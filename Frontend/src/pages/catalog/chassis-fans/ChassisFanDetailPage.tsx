@@ -5,7 +5,7 @@ import { parseApiError } from "@/api/errors.ts";
 import { PageStatus } from "@/components/PageStatus.tsx";
 import { useChassisFan } from "@/hooks/use-chassis-fans.ts";
 import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
-import { formatFanDiameterMm } from "@/api/enums";
+import { formatFanDiameterMm, formatFanHeaderType } from "@/api/enums";
 import { AddToBuildButton } from "@/builds";
 import { useAuth } from "@/auth/use-auth";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
@@ -83,6 +83,22 @@ export function ChassisFanDetailPage() {
         <div>
           <dt>Fans per pack</dt>
           <dd>{fan.fansCountPerPack}</dd>
+        </div>
+        <div>
+          <dt>Thickness</dt>
+          <dd>{fan.thicknessMm} mm</dd>
+        </div>
+        <div>
+          <dt>Header</dt>
+          <dd>{formatFanHeaderType(fan.headerType)}</dd>
+        </div>
+        <div>
+          <dt>Daisy chain</dt>
+          <dd>
+            {fan.supportsDaisyChain
+              ? `Yes (max ${fan.maxFansPerDaisyChain})`
+              : "No"}
+          </dd>
         </div>
       </dl>
     </section>
