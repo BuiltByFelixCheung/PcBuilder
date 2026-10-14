@@ -185,8 +185,15 @@ public class CompatibilityCheckerTests
         chassis.AddFanMount(mount);
         catalog.Chassis[chassis.Id] = chassis;
 
-        var fan = new ChassisFan(
-            "LL120", ManufacturerId, FanDiameterMm.Mm120, 3, 25m, FanHeaderType.FourPinPwm, false, null);
+        var fan = new ChassisFan("LL120", ManufacturerId, new ChassisFanSpecs
+        {
+            DiameterMm = FanDiameterMm.Mm120,
+            FansCountPerPack = 3,
+            ThicknessMm = 25m,
+            HeaderType = FanHeaderType.FourPinPwm,
+            SupportsDaisyChain = false,
+            MaxFansPerDaisyChain = null
+        });
         catalog.Fans[fan.Id] = fan;
 
         var checker = new CompatibilityChecker(catalog);
@@ -232,8 +239,15 @@ public class CompatibilityCheckerTests
         });
         catalog.Motherboards[motherboard.Id] = motherboard;
 
-        var fan = new ChassisFan(
-            "LL120", ManufacturerId, FanDiameterMm.Mm120, 3, 25m, FanHeaderType.FourPinPwm, false, null);
+        var fan = new ChassisFan("LL120", ManufacturerId, new ChassisFanSpecs
+        {
+            DiameterMm = FanDiameterMm.Mm120,
+            FansCountPerPack = 3,
+            ThicknessMm = 25m,
+            HeaderType = FanHeaderType.FourPinPwm,
+            SupportsDaisyChain = false,
+            MaxFansPerDaisyChain = null
+        });
         catalog.Fans[fan.Id] = fan;
 
         var checker = new CompatibilityChecker(catalog);

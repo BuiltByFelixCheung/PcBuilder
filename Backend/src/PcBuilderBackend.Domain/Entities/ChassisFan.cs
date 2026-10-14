@@ -1,4 +1,5 @@
 using PcBuilderBackend.Domain.Enums;
+using PcBuilderBackend.Domain.ValueObjects;
 
 namespace PcBuilderBackend.Domain.Entities;
 
@@ -13,68 +14,39 @@ public class ChassisFan : ProductEntity
 
     protected ChassisFan() {}
 
-    public ChassisFan(
-        string name,
-        Guid manufacturerId,
-        FanDiameterMm diameterMm,
-        int fansCountPerPack,
-        decimal thicknessMm,
-        FanHeaderType headerType,
-        bool supportsDaisyChain,
-        int? maxFansPerDaisyChain)
+    public ChassisFan(string name, Guid manufacturerId, ChassisFanSpecs specs)
     {
         SetName(name);
         SetManufacturer(manufacturerId);
-        SetSpecs(
-            diameterMm,
-            fansCountPerPack,
-            thicknessMm,
-            headerType,
-            supportsDaisyChain,
-            maxFansPerDaisyChain);
+        SetSpecs(specs);
     }
 
-    public void UpdateSpecs(
-        FanDiameterMm diameterMm,
-        int fansCountPerPack,
-        decimal thicknessMm,
-        FanHeaderType headerType,
-        bool supportsDaisyChain,
-        int? maxFansPerDaisyChain)
+    public void UpdateSpecs(ChassisFanSpecs specs)
     {
-        SetSpecs(
-            diameterMm,
-            fansCountPerPack,
-            thicknessMm,
-            headerType,
-            supportsDaisyChain,
-            maxFansPerDaisyChain);
+        SetSpecs(specs);
         UpdatedAtUtc = DateTime.UtcNow;
     }
 
-    private void SetSpecs(
-        FanDiameterMm diameterMm,
-        int fansCountPerPack,
-        decimal thicknessMm,
-        FanHeaderType headerType,
-        bool supportsDaisyChain,
-        int? maxFansPerDaisyChain)
+    private void SetSpecs(ChassisFanSpecs specs)
     {
-        if (!Enum.IsDefined(diameterMm))
-            throw new ArgumentException("Fan Diameter mm is invalid");
+        ArgumentNullException.ThrowIfNull(specs);
 
-        if (!Enum.IsDefined(headerType))
-            throw new ArgumentException("Fan header type is invalid.", nameof(headerType));
+        if (!Enum.IsDefined(specs.DiameterMm))
+            throw new ArgumentException("Fan Diameter mm is invalid.", nameof(specs));
 
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(fansCountPerPack);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(thicknessMm);
+        if (!Enum.IsDefined(specs.HeaderType))
+            throw new ArgumentException("Fan header type is invalid.", nameof(specs));
 
-        if (supportsDaisyChain)
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(specs.FansCountPerPack);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(specs.ThicknessMm);
+
+        var maxFansPerDaisyChain = specs.MaxFansPerDaisyChain;
+        if (specs.SupportsDaisyChain)
         {
             if (maxFansPerDaisyChain is null)
                 throw new ArgumentException(
                     "Max fans per daisy chain is required when daisy chaining is supported.",
-                    nameof(maxFansPerDaisyChain));
+                    nameof(ChassisFanSpecs.MaxFansPerDaisyChain));
 
             ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(maxFansPerDaisyChain.Value, 1);
         }
@@ -83,11 +55,11 @@ public class ChassisFan : ProductEntity
             maxFansPerDaisyChain = null;
         }
 
-        DiameterMm = diameterMm;
-        FansCountPerPack = fansCountPerPack;
-        ThicknessMm = thicknessMm;
-        HeaderType = headerType;
-        SupportsDaisyChain = supportsDaisyChain;
+        DiameterMm = specs.DiameterMm;
+        FansCountPerPack = specs.FansCountPerPack;
+        ThicknessMm = specs.ThicknessMm;
+        HeaderType = specs.HeaderType;
+        SupportsDaisyChain = specs.SupportsDaisyChain;
         MaxFansPerDaisyChain = maxFansPerDaisyChain;
     }
 

@@ -83,10 +83,13 @@ public class MotherboardFanHeaderTests
         new(
             "Fan",
             ManufacturerId,
-            FanDiameterMm.Mm120,
-            pack,
-            25m,
-            header,
-            daisy,
-            maxDaisy);
+            new ChassisFanSpecs
+            {
+                DiameterMm = FanDiameterMm.Mm120,
+                FansCountPerPack = pack,
+                ThicknessMm = 25m,
+                HeaderType = header,
+                SupportsDaisyChain = daisy,
+                MaxFansPerDaisyChain = maxDaisy
+            });
 }

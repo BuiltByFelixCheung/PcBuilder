@@ -6,6 +6,7 @@ using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.Common.Logging;
 using PcBuilderBackend.Application.Common.Validation;
 using PcBuilderBackend.Domain.Entities;
+using PcBuilderBackend.Domain.ValueObjects;
 
 namespace PcBuilderBackend.Application.Catalog.ChassisFans.Commands.ImportChassisFans;
 
@@ -34,12 +35,15 @@ public class ImportChassisFansHandler(
             var entity = new ChassisFan(
                 row.Name,
                 row.ManufacturerId,
-                row.DiameterMm,
-                row.FansCountPerPack,
-                row.ThicknessMm,
-                row.HeaderType,
-                row.SupportsDaisyChain,
-                row.MaxFansPerDaisyChain);
+                new ChassisFanSpecs
+                {
+                    DiameterMm = row.DiameterMm,
+                    FansCountPerPack = row.FansCountPerPack,
+                    ThicknessMm = row.ThicknessMm,
+                    HeaderType = row.HeaderType,
+                    SupportsDaisyChain = row.SupportsDaisyChain,
+                    MaxFansPerDaisyChain = row.MaxFansPerDaisyChain
+                });
 
             chassisFans.Add(entity);
             result.Add(entity);

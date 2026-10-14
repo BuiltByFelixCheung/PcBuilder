@@ -11,6 +11,7 @@ using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.UnitTests.Support;
 using PcBuilderBackend.Domain.Entities;
 using PcBuilderBackend.Domain.Enums;
+using PcBuilderBackend.Domain.ValueObjects;
 
 namespace PcBuilderBackend.Application.UnitTests.Catalog;
 
@@ -215,5 +216,13 @@ public class MotherboardDcFanHeaderWriteTests : IDisposable
     };
 
     private ChassisFan Fan(FanHeaderType header) =>
-        new("Fan", _fx.Manufacturer.Id, FanDiameterMm.Mm120, 1, 25m, header, false, null);
+        new("Fan", _fx.Manufacturer.Id, new ChassisFanSpecs
+        {
+            DiameterMm = FanDiameterMm.Mm120,
+            FansCountPerPack = 1,
+            ThicknessMm = 25m,
+            HeaderType = header,
+            SupportsDaisyChain = false,
+            MaxFansPerDaisyChain = null
+        });
 }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using PcBuilderBackend.Application.Catalog.ChassisFans.Dto;
 using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.Common.Logging;
+using PcBuilderBackend.Domain.ValueObjects;
 
 namespace PcBuilderBackend.Application.Catalog.ChassisFans.Commands.UpdateChassisFan;
 
@@ -26,13 +27,15 @@ public class UpdateChassisFanHandler(
 
         entity.Rename(request.Name);
         entity.UpdateManufacturer(request.ManufacturerId);
-        entity.UpdateSpecs(
-            request.DiameterMm,
-            request.FansCountPerPack,
-            request.ThicknessMm,
-            request.HeaderType,
-            request.SupportsDaisyChain,
-            request.MaxFansPerDaisyChain);
+        entity.UpdateSpecs(new ChassisFanSpecs
+        {
+            DiameterMm = request.DiameterMm,
+            FansCountPerPack = request.FansCountPerPack,
+            ThicknessMm = request.ThicknessMm,
+            HeaderType = request.HeaderType,
+            SupportsDaisyChain = request.SupportsDaisyChain,
+            MaxFansPerDaisyChain = request.MaxFansPerDaisyChain
+        });
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

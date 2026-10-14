@@ -5,6 +5,7 @@ using PcBuilderBackend.Application.Catalog.ChassisFans.Dto;
 using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.Common.Logging;
 using PcBuilderBackend.Domain.Entities;
+using PcBuilderBackend.Domain.ValueObjects;
 
 namespace PcBuilderBackend.Application.Catalog.ChassisFans.Commands.BulkCreateChassisFans;
 
@@ -24,12 +25,15 @@ public class BulkCreateChassisFansHandler(
         foreach (var entity in request.Fans.Select(item => new ChassisFan(
                      item.Name,
                      item.ManufacturerId,
-                     item.DiameterMm,
-                     item.FansCountPerPack,
-                     item.ThicknessMm,
-                     item.HeaderType,
-                     item.SupportsDaisyChain,
-                     item.MaxFansPerDaisyChain)))
+                     new ChassisFanSpecs
+                     {
+                         DiameterMm = item.DiameterMm,
+                         FansCountPerPack = item.FansCountPerPack,
+                         ThicknessMm = item.ThicknessMm,
+                         HeaderType = item.HeaderType,
+                         SupportsDaisyChain = item.SupportsDaisyChain,
+                         MaxFansPerDaisyChain = item.MaxFansPerDaisyChain
+                     })))
         {
             chassisFans.Add(entity);
             result.Add(mapper.Map<ChassisFanDto>(entity));

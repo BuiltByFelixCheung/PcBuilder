@@ -148,10 +148,24 @@ public class ChassisTests
         mount.AddOption(new ChassisFanMountOption(mount.Id, FanDiameterMm.Mm120, 3));
         chassis.AddFanMount(mount);
 
-        var fan = new ChassisFan(
-            "LL120", ManufacturerId, FanDiameterMm.Mm120, 3, 25m, FanHeaderType.FourPinPwm, false, null);
-        var tooMany = new ChassisFan(
-            "LL120", ManufacturerId, FanDiameterMm.Mm120, 4, 25m, FanHeaderType.FourPinPwm, false, null);
+        var fan = new ChassisFan("LL120", ManufacturerId, new ChassisFanSpecs
+        {
+            DiameterMm = FanDiameterMm.Mm120,
+            FansCountPerPack = 3,
+            ThicknessMm = 25m,
+            HeaderType = FanHeaderType.FourPinPwm,
+            SupportsDaisyChain = false,
+            MaxFansPerDaisyChain = null
+        });
+        var tooMany = new ChassisFan("LL120", ManufacturerId, new ChassisFanSpecs
+        {
+            DiameterMm = FanDiameterMm.Mm120,
+            FansCountPerPack = 4,
+            ThicknessMm = 25m,
+            HeaderType = FanHeaderType.FourPinPwm,
+            SupportsDaisyChain = false,
+            MaxFansPerDaisyChain = null
+        });
 
         chassis.CheckFanCompatibility(fan).Should().BeTrue();
         chassis.CheckFanCompatibility(tooMany).Should().BeFalse();
