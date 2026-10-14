@@ -45,7 +45,7 @@ public class ImportMotherboardsHandler(
                     MaxDimmSizeGb = row.MaxDimmSizeGb,
                     SataPorts = row.SataPorts,
                     PwmFanHeaders = row.PwmFanHeaders,
-                    DcFanHeaders = 0,
+                    DcFanHeaders = row.DcFanHeaders,
                     EpsConnectors = row.EpsConnectors,
                     WidthMm = row.WidthMm,
                     HeightMm = row.HeightMm,

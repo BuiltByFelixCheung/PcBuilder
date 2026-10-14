@@ -40,7 +40,7 @@ public class BulkUpdateMotherboardsHandler(
                 MaxDimmSizeGb = command.MaxDimmSizeGb,
                 SataPorts = command.SataPorts,
                 PwmFanHeaders = command.PwmFanHeaders,
-                DcFanHeaders = 0,
+                DcFanHeaders = command.DcFanHeaders,
                 EpsConnectors = command.EpsConnectors,
                 WidthMm = command.WidthMm,
                 HeightMm = command.HeightMm,

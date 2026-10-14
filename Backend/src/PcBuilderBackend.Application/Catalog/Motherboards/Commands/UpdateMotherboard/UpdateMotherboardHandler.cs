@@ -25,7 +25,7 @@ public class UpdateMotherboardHandler(IMotherboardRepository motherboards, IUnit
             MaxDimmSizeGb = request.MaxDimmSizeGb,
             SataPorts = request.SataPorts,
             PwmFanHeaders = request.PwmFanHeaders,
-            DcFanHeaders = 0,
+            DcFanHeaders = request.DcFanHeaders,
             EpsConnectors = request.EpsConnectors,
             WidthMm = request.WidthMm,
             HeightMm = request.HeightMm,

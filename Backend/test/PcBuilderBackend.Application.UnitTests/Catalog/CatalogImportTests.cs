@@ -73,6 +73,8 @@ public class CatalogImportTests : IDisposable
 
         var imported = await handler.Handle(new ImportMotherboardsCommand(Stream.Null), CancellationToken.None);
         imported.Should().ContainSingle(x => x.Name == "B650-E");
+        imported[0].PwmFanHeaders.Should().Be(1);
+        imported[0].DcFanHeaders.Should().Be(3);
         imported[0].PcieSlots.Should().ContainSingle();
         imported[0].M2Slots.Should().ContainSingle();
         imported[0].UsbPorts.Should().ContainSingle();
@@ -163,8 +165,8 @@ public class CatalogImportTests : IDisposable
         MaxMemoryGb = 128,
         MaxDimmSizeGb = 48,
         SataPorts = 4,
-        PwmFanHeaders = 4,
-        DcFanHeaders = 0,
+        PwmFanHeaders = 1,
+        DcFanHeaders = 3,
         EpsConnectors = 2,
         WidthMm = 244,
         HeightMm = 305,
