@@ -7,5 +7,7 @@ public record ChassisFanFilter(
     Guid? ManufacturerId = null,
     FanDiameterMm? DiameterMm = null,
     int? FansCountPerPack = null,
+    FanHeaderType? HeaderType = null,
+    bool? SupportsDaisyChain = null,
     Guid? ChassisId = null
 );

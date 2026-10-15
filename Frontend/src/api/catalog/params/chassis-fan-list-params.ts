@@ -1,6 +1,12 @@
 import type { ChassisFanFilter, ChassisFanListParams } from "../chassis-fans";
-import { emptyToUndefined, setSearchValue, toInteger } from "../../helper";
-import type { FanDiameterMm } from "../../enums";
+import {
+  emptyToUndefined,
+  parseOptionalBoolean,
+  setSearchFlag,
+  setSearchValue,
+  toInteger,
+} from "../../helper";
+import type { FanDiameterMm, FanHeaderType } from "../../enums";
 import {
   catalogPagingFromSearch,
   setCatalogSortSearch,
@@ -20,8 +26,13 @@ export function chassisFanListParamsFromSearch(
       name: search.get("name") ?? "",
       manufacturerId: emptyToUndefined(search.get("manufacturerId")),
       diameterMm: emptyToUndefined(search.get("diameterMm")) as
-        FanDiameterMm | undefined,
+        | FanDiameterMm
+        | undefined,
       fansCountPerPack: toInteger(search.get("fansCountPerPack")),
+      headerType: emptyToUndefined(search.get("headerType")) as
+        | FanHeaderType
+        | undefined,
+      supportsDaisyChain: parseOptionalBoolean(search.get("supportsDaisyChain")),
       chassisId: emptyToUndefined(search.get("chassisId")),
     },
   };
@@ -38,6 +49,8 @@ export function chassisFanListSearchFromParams(
   setSearchValue(search, "manufacturerId", filter.manufacturerId);
   setSearchValue(search, "diameterMm", filter.diameterMm);
   setSearchValue(search, "fansCountPerPack", filter.fansCountPerPack);
+  setSearchValue(search, "headerType", filter.headerType);
+  setSearchFlag(search, "supportsDaisyChain", filter.supportsDaisyChain);
   setSearchValue(search, "chassisId", filter.chassisId);
   return search;
 }

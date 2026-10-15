@@ -22,6 +22,7 @@ public enum CompatibilityReason
     NoMatchingM2Slot,
     SlotDoesNotSupportSata,
     InsufficientSataPorts,
+    InsufficientFanHeaders,
     NoMatchingUsbPort,
     UsbVersionReduced,
     PartSizeExceedsLimits,

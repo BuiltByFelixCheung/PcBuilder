@@ -61,8 +61,10 @@ public class MotherboardReadStore(PcBuilderDbContext context, IMapper mapper) : 
                 x => x.MaxDimmSizeGb == filter.MaxDimmSizeGb)
             .WhereIf(filter.SataPorts.HasValue,
                 x => x.SataPorts == filter.SataPorts)
-            .WhereIf(filter.FanConnectors.HasValue,
-                x => x.FanConnectors == filter.FanConnectors)
+            .WhereIf(filter.PwmFanHeaders.HasValue,
+                x => x.PwmFanHeaders == filter.PwmFanHeaders)
+            .WhereIf(filter.DcFanHeaders.HasValue,
+                x => x.DcFanHeaders == filter.DcFanHeaders)
             .WhereIf(filter.EpsConnectors.HasValue,
                 x => x.EpsConnectors == filter.EpsConnectors)
             .WhereIf(filter.WidthMm?.Min is not null,

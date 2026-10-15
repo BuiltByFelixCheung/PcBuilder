@@ -108,12 +108,28 @@ public class CatalogFieldValidatorTests : IDisposable
             Name = "LL120",
             ManufacturerId = _fx.Manufacturer.Id,
             DiameterMm = FanDiameterMm.Mm120,
-            FansCountPerPack = 3
+            FansCountPerPack = 3,
+            ThicknessMm = 25m,
+            HeaderType = FanHeaderType.FourPinPwm,
+            SupportsDaisyChain = false,
+            MaxFansPerDaisyChain = null
         };
 
         (await validator.ValidateAsync(command)).IsValid.Should().BeTrue();
         (await validator.ValidateAsync(command with { Name = "", FansCountPerPack = 0 }))
             .IsValid.Should().BeFalse();
+        (await validator.ValidateAsync(command with { ThicknessMm = 0 }))
+            .IsValid.Should().BeFalse();
+        (await validator.ValidateAsync(command with
+        {
+            SupportsDaisyChain = true,
+            MaxFansPerDaisyChain = null
+        })).IsValid.Should().BeFalse();
+        (await validator.ValidateAsync(command with
+        {
+            SupportsDaisyChain = true,
+            MaxFansPerDaisyChain = 3
+        })).IsValid.Should().BeTrue();
     }
 
     [Fact]

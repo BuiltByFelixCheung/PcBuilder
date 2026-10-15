@@ -4,13 +4,15 @@ import {
   type PagedRequest,
   type PagedResult,
 } from "../paging";
-import type { FanDiameterMm } from "../enums";
+import type { FanDiameterMm, FanHeaderType } from "../enums";
 
 export type ChassisFanFilter = {
   manufacturerId?: string;
   name?: string;
   diameterMm?: FanDiameterMm;
   fansCountPerPack?: number;
+  headerType?: FanHeaderType;
+  supportsDaisyChain?: boolean;
   chassisId?: string;
 };
 
@@ -25,6 +27,10 @@ export type ChassisFan = {
   manufacturerName: string;
   diameterMm: FanDiameterMm;
   fansCountPerPack: number;
+  thicknessMm: number;
+  headerType: FanHeaderType;
+  supportsDaisyChain: boolean;
+  maxFansPerDaisyChain: number | null;
 };
 
 export const chassisFanKeys = {
@@ -42,6 +48,8 @@ export function isChassisFanFilterActive(filter: ChassisFanFilter): boolean {
     filter.manufacturerId ||
     filter.diameterMm ||
     filter.fansCountPerPack ||
+    filter.headerType ||
+    filter.supportsDaisyChain != null ||
     filter.chassisId,
   );
 }
@@ -68,6 +76,8 @@ export function listChassisFans(params: ChassisFanListParams) {
         manufacturerId: params.filter.manufacturerId,
         diameterMm: params.filter.diameterMm,
         fansCountPerPack: params.filter.fansCountPerPack,
+        headerType: params.filter.headerType,
+        supportsDaisyChain: params.filter.supportsDaisyChain,
         chassisId: params.filter.chassisId,
       },
     })

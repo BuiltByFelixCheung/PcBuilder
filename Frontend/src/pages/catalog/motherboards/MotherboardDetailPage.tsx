@@ -382,9 +382,9 @@ export function MotherboardDetailPage() {
               </TableRow>
               <TableRow>
                 <TableHead className="table-stub" scope="row">
-                  Fan connectors
+                  PWM / DC fan headers
                 </TableHead>
-                <TableCell>{motherboard.fanConnectors}</TableCell>
+                <TableCell>{motherboard.pwmFanHeaders} / {motherboard.dcFanHeaders}</TableCell>
               </TableRow>
               <TableRow>
                 <TableHead className="table-stub" scope="row">

@@ -557,7 +557,8 @@ describe("catalog admin bulk actions", () => {
         maxMemoryGb: 192,
         maxDimmSizeGb: 48,
         sataPorts: 4,
-        fanConnectors: 7,
+        pwmFanHeaders: 7,
+  dcFanHeaders: 0,
         epsConnectors: 2,
         widthMm: 305,
         heightMm: 244,
@@ -666,6 +667,10 @@ describe("catalog admin bulk actions", () => {
         manufacturerName: "Maker",
         diameterMm: "Mm120",
         fansCountPerPack: 3,
+        thicknessMm: 25,
+        headerType: "FourPinPwm",
+        supportsDaisyChain: false,
+        maxFansPerDaisyChain: null,
       }),
     );
     await exerciseAdminList({

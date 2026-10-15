@@ -59,6 +59,8 @@ public class MotherboardBulkCreateTests : IDisposable
         result.Select(x => x.Name).Should().BeEquivalentTo("X870-E", "B650");
         result.Should().AllSatisfy(board =>
         {
+            board.PwmFanHeaders.Should().Be(2);
+            board.DcFanHeaders.Should().Be(3);
             board.PcieSlots.Should().ContainSingle();
             board.M2Slots.Should().ContainSingle();
             board.UsbPorts.Should().ContainSingle();
@@ -76,7 +78,8 @@ public class MotherboardBulkCreateTests : IDisposable
         MaxMemoryGb = 128,
         MaxDimmSizeGb = 48,
         SataPorts = 4,
-        FanConnectors = 4,
+        PwmFanHeaders = 2,
+        DcFanHeaders = 3,
         EpsConnectors = 2,
         WidthMm = 244,
         HeightMm = 305,

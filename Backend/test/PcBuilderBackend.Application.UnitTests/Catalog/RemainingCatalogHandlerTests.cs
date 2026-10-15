@@ -126,9 +126,15 @@ public class RemainingCatalogHandlerTests : IDisposable
                 Name = "LL120",
                 ManufacturerId = _fx.Manufacturer.Id,
                 DiameterMm = FanDiameterMm.Mm120,
-                FansCountPerPack = 3
+                FansCountPerPack = 3,
+                ThicknessMm = 25m,
+                HeaderType = FanHeaderType.FourPinPwm,
+                SupportsDaisyChain = false,
+                MaxFansPerDaisyChain = null
             }, CancellationToken.None);
         fan.FansCountPerPack.Should().Be(3);
+        fan.ThicknessMm.Should().Be(25m);
+        fan.HeaderType.Should().Be(FanHeaderType.FourPinPwm);
 
         var nicValidator = new CreateWiredNetworkAdapterCommandValidator(_fx.Lookup);
         var nic = new CreateWiredNetworkAdapterCommand

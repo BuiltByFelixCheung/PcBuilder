@@ -186,6 +186,14 @@ public class CompatibilityChecker(ICatalogRepository catalog) : ICompatibilityCh
                     CompatibilitySlot.ChassisFans,
                     parts.Fans.Select(fan => fan.Id))));
 
+        if (parts.Motherboard is not null && parts.Fans.Count > 0)
+            results.Add(Wrap(
+                parts.Motherboard.CheckFanHeaderCompatibility(parts.Fans),
+                Collection(
+                    Ref(CompatibilitySlot.Motherboard, parts.Motherboard.Id),
+                    CompatibilitySlot.ChassisFans,
+                    parts.Fans.Select(fan => fan.Id))));
+
         if (parts.Chassis is not null && parts.Drives.Count > 0)
             results.Add(FromBool(
                 parts.Chassis.CheckStorageDriveCompatibility(parts.Drives),

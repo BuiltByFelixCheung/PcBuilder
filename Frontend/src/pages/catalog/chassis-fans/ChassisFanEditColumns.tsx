@@ -2,18 +2,27 @@ import {
   enumSelectBulkColumn,
   idSelectBulkColumn,
   nameBulkColumn,
+  optionalNumberColumn,
 } from "@/components/BulkEditColumns";
 import type { BulkEditColumn } from "@/components/BulkEditDialog";
 import {
   enumSelectField,
   idSelectField,
   nameField,
+  optionalNumberField,
   type CatalogField,
 } from "@/components/catalog/CatalogFields";
 import type { ChassisFan } from "@/api/catalog/chassis-fans";
 import { toInteger } from "@/api/helper";
-import { FAN_DIAMETERS_MM, formatFanDiameterMm } from "@/api/enums";
+import {
+  FAN_DIAMETERS_MM,
+  FAN_HEADER_TYPES,
+  formatFanDiameterMm,
+  formatFanHeaderType,
+} from "@/api/enums";
 import { formSelectClassName } from "@/components/filters/ListFilters";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 
 export function ChassisFanEditColumns(
   manufacturers: { id: string; name: string }[],
@@ -44,6 +53,47 @@ export function ChassisFanEditColumns(
             </option>
           ))}
         </select>
+      ),
+    },
+    optionalNumberColumn("Thickness (mm)", "thicknessMm"),
+    enumSelectBulkColumn("Header", "headerType", FAN_HEADER_TYPES, {
+      label: formatFanHeaderType,
+    }),
+    {
+      header: "Daisy chain",
+      cell: (row, update) => (
+        <Checkbox
+          aria-label={`Daisy chain for ${row.name}`}
+          checked={row.supportsDaisyChain}
+          onCheckedChange={(checked) => {
+            const supportsDaisyChain = checked === true;
+            update({
+              ...row,
+              supportsDaisyChain,
+              maxFansPerDaisyChain: supportsDaisyChain
+                ? row.maxFansPerDaisyChain
+                : null,
+            });
+          }}
+        />
+      ),
+    },
+    {
+      header: "Max daisy chain",
+      cell: (row, update) => (
+        <Input
+          aria-label={`Max daisy chain for ${row.name}`}
+          type="number"
+          min={2}
+          disabled={!row.supportsDaisyChain}
+          value={row.maxFansPerDaisyChain ?? ""}
+          onChange={(event) =>
+            update({
+              ...row,
+              maxFansPerDaisyChain: toInteger(event.target.value) ?? null,
+            })
+          }
+        />
       ),
     },
   ];
@@ -84,6 +134,49 @@ export function ChassisFanFields(
           </select>
         );
       },
+    },
+    optionalNumberField("Thickness (mm)", "thicknessMm"),
+    enumSelectField("Header", "headerType", FAN_HEADER_TYPES, {
+      label: formatFanHeaderType,
+    }),
+    {
+      label: "Daisy chain",
+      orientation: "horizontal",
+      control: (item, update) => (
+        <Checkbox
+          aria-label="Daisy chain"
+          checked={item.supportsDaisyChain}
+          onCheckedChange={(checked) => {
+            const supportsDaisyChain = checked === true;
+            update({
+              ...item,
+              supportsDaisyChain,
+              maxFansPerDaisyChain: supportsDaisyChain
+                ? item.maxFansPerDaisyChain
+                : null,
+            });
+          }}
+        />
+      ),
+    },
+    {
+      label: "Max fans per daisy chain",
+      half: true,
+      control: (item, update) => (
+        <Input
+          aria-label={`Max fans per daisy chain for ${item.name}`}
+          type="number"
+          min={2}
+          disabled={!item.supportsDaisyChain}
+          value={item.maxFansPerDaisyChain ?? ""}
+          onChange={(event) =>
+            update({
+              ...item,
+              maxFansPerDaisyChain: toInteger(event.target.value) ?? null,
+            })
+          }
+        />
+      ),
     },
   ];
 }

@@ -386,18 +386,35 @@ export function MotherboardListPage() {
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="motherboard-fan-connectors">
-                Fan connectors
+              <FieldLabel htmlFor="motherboard-pwm-fan-headers">
+                PWM fan headers
               </FieldLabel>
               <Input
-                id="motherboard-fan-connectors"
+                id="motherboard-pwm-fan-headers"
                 type="number"
                 min={0}
-                value={draft.fanConnectors ?? ""}
+                value={draft.pwmFanHeaders ?? ""}
                 onChange={(event) =>
                   setDraft((current) => ({
                     ...current,
-                    fanConnectors: toInteger(event.target.value),
+                    pwmFanHeaders: toInteger(event.target.value),
+                  }))
+                }
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="motherboard-dc-fan-headers">
+                DC fan headers
+              </FieldLabel>
+              <Input
+                id="motherboard-dc-fan-headers"
+                type="number"
+                min={0}
+                value={draft.dcFanHeaders ?? ""}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    dcFanHeaders: toInteger(event.target.value),
                   }))
                 }
               />

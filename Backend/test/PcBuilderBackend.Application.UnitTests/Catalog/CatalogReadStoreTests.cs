@@ -490,7 +490,8 @@ public class CatalogReadStoreTests : IDisposable
                 MaxMemoryGb = 128,
                 MaxDimmSizeGb = 48,
                 SataPorts = 4,
-                FanConnectors = 4,
+                PwmFanHeaders = 4,
+                DcFanHeaders = 0,
                 EpsConnectors = 2,
                 WidthMm = 244,
                 HeightMm = 244,
@@ -645,7 +646,15 @@ public class CatalogReadStoreTests : IDisposable
 
     private ChassisFan SeedChassisFan(string name)
     {
-        var fan = new ChassisFan(name, _manufacturer.Id, FanDiameterMm.Mm120, 3);
+        var fan = new ChassisFan(name, _manufacturer.Id, new ChassisFanSpecs
+        {
+            DiameterMm = FanDiameterMm.Mm120,
+            FansCountPerPack = 3,
+            ThicknessMm = 25m,
+            HeaderType = FanHeaderType.FourPinPwm,
+            SupportsDaisyChain = false,
+            MaxFansPerDaisyChain = null
+        });
         _db.ChassisFans.Add(fan);
         _db.SaveChanges();
         return fan;

@@ -8,4 +8,8 @@ public interface IChassisFanFields
     Guid ManufacturerId { get; }
     FanDiameterMm DiameterMm { get; }
     int FansCountPerPack { get; }
+    decimal ThicknessMm { get; }
+    FanHeaderType HeaderType { get; }
+    bool SupportsDaisyChain { get; }
+    int? MaxFansPerDaisyChain { get; }
 }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using PcBuilderBackend.Application.Catalog.ChassisFans.Dto;
 using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.Common.Logging;
+using PcBuilderBackend.Domain.ValueObjects;
 
 namespace PcBuilderBackend.Application.Catalog.ChassisFans.Commands.BulkUpdateChassisFans;
 
@@ -32,7 +33,15 @@ public class BulkUpdateChassisFansHandler(
 
             entity.Rename(item.Name);
             entity.UpdateManufacturer(item.ManufacturerId);
-            entity.UpdateSpecs(item.DiameterMm, item.FansCountPerPack);
+            entity.UpdateSpecs(new ChassisFanSpecs
+            {
+                DiameterMm = item.DiameterMm,
+                FansCountPerPack = item.FansCountPerPack,
+                ThicknessMm = item.ThicknessMm,
+                HeaderType = item.HeaderType,
+                SupportsDaisyChain = item.SupportsDaisyChain,
+                MaxFansPerDaisyChain = item.MaxFansPerDaisyChain
+            });
 
             result.Add(mapper.Map<ChassisFanDto>(entity));
         }
