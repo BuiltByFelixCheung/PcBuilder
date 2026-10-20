@@ -25,7 +25,7 @@ The app expects:
 - **PostgreSQL** reachable via two connection strings (catalog and Identity). They may point at the same server with different databases or schemas.
 - **Redis** for caching (defaults to `localhost:6379` if unset).
 
-The container does not start these services.
+The container does not start these services. For creating the database, app roles, migrations, and an admin user, see [DATABASE_SETUP.md](DATABASE_SETUP.md).
 
 ## 4. Configure environment variables
 
