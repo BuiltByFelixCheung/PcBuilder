@@ -21,18 +21,29 @@ var envSlug = builder.Environment.EnvironmentName switch
     _ => throw new InvalidOperationException()
 };
 
-builder.Configuration.AddInfisical(
-    new InfisicalConfigBuilder()
-        .SetInfisicalUrl(builder.Configuration["Infisical:Url"] ?? "")
-        .SetProjectId(builder.Configuration["Infisical:ProjectId"] ?? "")
-        .SetEnvironment(envSlug)
-        .SetAuth(new InfisicalAuthBuilder()
-            .SetUniversalAuth(
-                builder.Configuration["Infisical:ClientId"] ?? "",
-                builder.Configuration["Infisical:ClientSecret"] ?? "")
-            .Build()
-        ).Build()
-).Build();
+var infisicalUrl = builder.Configuration["Infisical:Url"];
+var infisicalProjectId = builder.Configuration["Infisical:ProjectId"];
+var infisicalClientId = builder.Configuration["Infisical:ClientId"];
+var infisicalClientSecret = builder.Configuration["Infisical:ClientSecret"];
+var infisicalConfigured =
+    !string.IsNullOrWhiteSpace(infisicalUrl)
+    && !string.IsNullOrWhiteSpace(infisicalProjectId)
+    && !string.IsNullOrWhiteSpace(infisicalClientId)
+    && !string.IsNullOrWhiteSpace(infisicalClientSecret);
+
+if (infisicalConfigured)
+{
+    builder.Configuration.AddInfisical(
+        new InfisicalConfigBuilder()
+            .SetInfisicalUrl(infisicalUrl!)
+            .SetProjectId(infisicalProjectId!)
+            .SetEnvironment(envSlug)
+            .SetAuth(new InfisicalAuthBuilder()
+                .SetUniversalAuth(infisicalClientId!, infisicalClientSecret!)
+                .Build()
+            ).Build()
+    ).Build();
+}
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
