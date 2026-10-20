@@ -110,22 +110,13 @@ The image listens on port **8080** (`ASPNETCORE_URLS=http://+:8080`). Open `http
 
 Ensure the container can reach your Postgres and Redis hosts (use hostnames on a shared Docker network, or `host.docker.internal` / the host IP as appropriate).
 
-## 7. Dokploy
+## 7. Dokploy (Dockerfile application)
 
-If you deploy with [Dokploy](https://dokploy.com/) using Docker Compose:
+If you deploy with [Dokploy](https://dokploy.com/) as a **Dockerfile** application (not Docker Compose):
 
-1. Put the same settings in the Dokploy **Environment** tab. Dokploy writes them to a `.env` file next to your compose file.
-2. Those values are **not** injected into containers automatically. In your compose service, either load the file:
+1. Point the build at the repo [`Dockerfile`](../Dockerfile).
+2. Put the settings from section 4 in the Dokploy **Environment** tab (one `KEY=value` per line). Dokploy injects them into the **running** container as process environment variables. ASP.NET Core reads them the same way as `docker run --env-file`.
+3. Optionally enable **Create .env file** if you want a `.env` written inside the container as well; it is not required for this app.
+4. Redeploy (or restart) after changing environment values so the container picks them up.
 
-   ```yaml
-   services:
-     app:
-       env_file:
-         - .env
-   ```
-
-   or map specific variables with `${VAR}` / `environment:`.
-
-3. Redeploy after changing environment values.
-
-See [Dokploy Docker Compose environment docs](https://docs.dokploy.com/docs/core/docker-compose).
+Build-time variables / `ARG` are only needed if a value must be available during `docker build`. Connection strings, JWT, SMTP, and similar settings are runtime-only for PcBuilder.
