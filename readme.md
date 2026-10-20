@@ -30,13 +30,13 @@ The process requires these settings from any of those sources:
 - `Jwt:Issuer`, `Jwt:Audience`, and `Jwt:Key` (at least 32 characters)
 - `Smtp:Host`, `Smtp:Port`, and `Smtp:From`
 - `AutoMapper:LicenseKey` and `MediatR:LicenseKey`
+- `App:PublicBaseUrl` (default `http://localhost:5173`) — Used for password reset links 
 
 Optional:
 
 - `ConnectionStrings:Redis` or `Redis:Configuration` (default `localhost:6379`)
 - `Admin:Email` and `Admin:Password` — when both are set, startup seeds an `Admin` user
 - `S3:BucketName`, `S3:AccessKey`, `S3:SecretKey`, `S3:ServiceUrl`
-- `App:PublicBaseUrl` (default `http://localhost:5173`)
 
 Apply EF Core migrations before the first run. From `Backend/`:
 
