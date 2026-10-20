@@ -5,6 +5,7 @@ Document/
 !AGENTS.md
 !readme.md
 !docs/SELF_HOSTING.md
+!docs/USER_MANUAL.md
 appsettings.*.json
 appsettings.json
 .sonarqube/
