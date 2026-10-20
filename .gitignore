@@ -3,12 +3,13 @@ Document/
 .infisical.json
 *.md
 !AGENTS.md
+!readme.md
+!docs/SELF_HOSTING.md
 appsettings.*.json
 appsettings.json
 .sonarqube/
 .sonarlint/
 .vscode/settings.json
-!readme.md
 sonar-*.*
 _inspect_xlsx/
 _xlsx_tmp/
