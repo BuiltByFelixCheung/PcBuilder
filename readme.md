@@ -10,6 +10,8 @@ Coding agents should follow [AGENTS.md](AGENTS.md).
 
 For Docker-based self-hosting (clone, `.env`, build/run), see [docs/SELF_HOSTING.md](docs/SELF_HOSTING.md).
 
+For guests, members, and admins, see [docs/USER_MANUAL.md](docs/USER_MANUAL.md).
+
 ## Prerequisites
 
 - .NET 10 SDK
