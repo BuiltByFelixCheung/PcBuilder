@@ -6,6 +6,7 @@ Document/
 !readme.md
 !docs/SELF_HOSTING.md
 !docs/USER_MANUAL.md
+!docs/DATABASE_SETUP.md
 appsettings.*.json
 appsettings.json
 .sonarqube/

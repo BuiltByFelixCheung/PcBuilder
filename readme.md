@@ -12,6 +12,8 @@ For Docker-based self-hosting (clone, `.env`, build/run), see [docs/SELF_HOSTING
 
 For guests, members, and admins, see [docs/USER_MANUAL.md](docs/USER_MANUAL.md).
 
+For PostgreSQL roles, migrations, and seeding an admin, see [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md).
+
 ## Prerequisites
 
 - .NET 10 SDK
