@@ -8,6 +8,8 @@ The API is ASP.NET Core on .NET 10. The UI is a React 19 app built with Vite. Po
 
 Coding agents should follow [AGENTS.md](AGENTS.md).
 
+For Docker-based self-hosting (clone, `.env`, build/run), see [docs/SELF_HOSTING.md](docs/SELF_HOSTING.md).
+
 ## Prerequisites
 
 - .NET 10 SDK
