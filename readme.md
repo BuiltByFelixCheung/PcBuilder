@@ -4,7 +4,7 @@
 
 Catalog of PC parts, with compatibility checks and saved builds.
 
-The API is ASP.NET Core on .NET 10. The UI is a React 19 app built with Vite. PostgreSQL stores the catalog and ASP.NET Identity in separate databases. Redis caches data. Configuration and secrets are loaded from a local `appsettings.json` and from [Infisical](https://infisical.com/).
+The API is ASP.NET Core on .NET 10. The UI is a React 19 app built with Vite. PostgreSQL stores the catalog and ASP.NET Identity in separate databases. Redis caches data. Configuration and secrets are loaded from a local `appsettings.json`, environment variables, and optionally [Infisical](https://infisical.com/).
 
 Coding agents should follow [AGENTS.md](AGENTS.md).
 
@@ -19,14 +19,9 @@ Coding agents should follow [AGENTS.md](AGENTS.md).
 
 `appsettings.json` and `appsettings.*.json` are gitignored. Place `appsettings.json` in `Backend/src/PcBuilderBackend.Api/`. `ASPNETCORE_ENVIRONMENT` must be `Development`, `Staging`, or `Production`.
 
-Infisical is loaded at startup. The local file needs:
+Infisical is optional. When all of `Infisical:Url`, `Infisical:ProjectId`, `Infisical:ClientId`, and `Infisical:ClientSecret` are set (via `appsettings` or environment variables), secrets are loaded from Infisical at startup. Otherwise those values are skipped and configuration comes only from `appsettings` and environment variables.
 
-- `Infisical:Url`
-- `Infisical:ProjectId`
-- `Infisical:ClientId`
-- `Infisical:ClientSecret`
-
-The process also requires these settings, whether they come from the local file or from Infisical:
+The process requires these settings from any of those sources:
 
 - `ConnectionStrings:DefaultConnection` — catalog database
 - `ConnectionStrings:IdentityConnection` — Identity database

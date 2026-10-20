@@ -8,7 +8,7 @@ PcBuilder is a PC parts catalog and compatibility builder.
 
 - Backend: ASP.NET Core on .NET 10, minimal APIs, MediatR, FluentValidation, AutoMapper, EF Core, PostgreSQL (Npgsql).
 - Frontend: React 19, TypeScript, Vite, Tailwind CSS 4, shadcn/ui, TanStack Query, React Router, react-hook-form, Zod, Vitest.
-- Secrets and connection strings come from gitignored `appsettings*.json` plus Infisical. Do not commit them.
+- Secrets and connection strings come from gitignored `appsettings*.json`, environment variables, and optionally Infisical. Do not commit them.
 
 ## Layout
 
@@ -61,7 +61,7 @@ API, from `Backend/src/PcBuilderBackend.Api`:
 dotnet run --launch-profile http   # http://localhost:5155
 ```
 
-Development also maps OpenAPI and Scalar. The API hosts the built SPA and falls back to it for non-API routes. Startup requires `ASPNETCORE_ENVIRONMENT` of `Development`, `Staging`, or `Production` (mapped to Infisical slugs `dev`, `staging`, `prod`) and both connection strings: `DefaultConnection` (catalog) and `IdentityConnection` (Identity schema).
+Development also maps OpenAPI and Scalar. The API hosts the built SPA and falls back to it for non-API routes. Startup requires `ASPNETCORE_ENVIRONMENT` of `Development`, `Staging`, or `Production` and both connection strings: `DefaultConnection` (catalog) and `IdentityConnection` (Identity schema). When Infisical is configured, those environment names map to Infisical slugs `dev`, `staging`, and `prod`.
 
 EF tools are declared in `Backend/dotnet-tools.json`. Restore them with `dotnet tool restore` from `Backend/`, then:
 
