@@ -26,11 +26,8 @@ public static class NetworkAdapterCompatibility
             .GroupBy(slotType => slotType)
             .ToList();
 
-        foreach (var group in pcieNeeded)
-        {
-            if (!HasCapacity(CountPcie(pcieSlots, group.Key), group.Count()))
-                return PartsCompatibilityResult.Incompatible(CompatibilityReason.NotEnoughPcieSlots);
-        }
+        if (pcieNeeded.Any(group => !HasCapacity(CountPcie(pcieSlots, group.Key), group.Count())))
+            return PartsCompatibilityResult.Incompatible(CompatibilityReason.NotEnoughPcieSlots);
 
         PartsCompatibilityResult? reduced = null;
 
@@ -137,7 +134,7 @@ public static class NetworkAdapterCompatibility
         M2Key slotKey,
         M2FormFactor slotFormFactor,
         int slotCount) =>
-        CompatibilityExpression.Bind(WirelessSlotAccepts, slotKey, slotFormFactor, slotCount);
+        CompatibilityExpression.Bind<WirelessNetworkAdapter>(WirelessSlotAccepts, slotKey, slotFormFactor, slotCount);
 
     private static readonly Expression<Func<WirelessNetworkAdapter, M2Key, M2FormFactor, int, bool>> WirelessSlotAccepts =
         BuildWirelessSlotAccepts();

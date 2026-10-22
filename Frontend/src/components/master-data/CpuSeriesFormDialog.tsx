@@ -20,26 +20,28 @@ import {
   MasterDataOptions,
 } from "@/components/master-data/MasterDataDialogShell";
 import { FormTextField } from "@/components/FormTextField";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { NamedSelect } from "@/components/master-data/NamedSelect";
 import {
   applyApiFieldErrors,
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
-import { formSelectClassName } from "@/components/filters/ListFilters";
 import { clearSocketFromAnotherManufacturer } from "@/lib/master-data-edit";
 import { useState } from "react";
+import { ui } from "@/i18n/translate-enum";
 
-const cpuSeriesFormSchema = z.object({
+function cpuSeriesFormSchema() {
+  return z.object({
   name: z
     .string()
     .trim()
-    .min(1, "Name is required.")
-    .max(100, "Name must not exceed 100 characters."),
-  manufacturerId: z.string().min(1, "Manufacturer is required."),
-  socketId: z.string().min(1, "Socket is required."),
+    .min(1, ui.message("nameRequired"))
+    .max(100, ui.message("nameTooLong")),
+  manufacturerId: z.string().min(1, ui.message("manufacturerRequired")),
+  socketId: z.string().min(1, ui.message("socketRequired")),
 });
+}
 
-type CpuSeriesFormValues = z.infer<typeof cpuSeriesFormSchema>;
+type CpuSeriesFormValues = z.infer<ReturnType<typeof cpuSeriesFormSchema>>;
 
 type CpuSeriesFormDialogProps = {
   editingId: string;
@@ -60,12 +62,12 @@ export function CpuSeriesFormDialog({
       items={cpuSeries}
       settled={cpuSeriesSettled}
       onClose={onClose}
-      editTitle="Edit CPU Series"
-      loadingMessage="Loading CPU Series…"
+      editTitle={ui.dialog("editCpuSeries")}
+      loadingMessage={ui.empty("loading", { entity: ui.entity("cpuSeries") })}
       missing={
         <MasterDataMissing
-          title="CPU Series not found"
-          description="This CPU series is not in the current list."
+          title={ui.empty("cpuSeriesNotFound")}
+          description={ui.message("notInListCpuSeries")}
           onClose={onClose}
         />
       }
@@ -89,8 +91,8 @@ function CpuSeriesForm({
   });
   return (
     <MasterDataOptions
-      title={cpuSeries ? "Edit CPU Series" : "New CPU Series"}
-      loadingMessage="Loading CPU Series…"
+      title={cpuSeries ? ui.dialog("editCpuSeries") : ui.dialog("newCpuSeries")}
+      loadingMessage={ui.empty("loading", { entity: ui.entity("cpuSeries") })}
       onClose={onClose}
       queries={[manufacturers, sockets]}
     >
@@ -119,7 +121,7 @@ function CpuSeriesFields({
 }>) {
   const queryClient = useQueryClient();
   const form = useForm<CpuSeriesFormValues>({
-    resolver: zodResolver(cpuSeriesFormSchema),
+    resolver: zodResolver(cpuSeriesFormSchema()),
     defaultValues: {
       name: cpuSeries?.name ?? "",
       manufacturerId: cpuSeries?.manufacturerId ?? "",
@@ -143,7 +145,7 @@ function CpuSeriesFields({
   const manufacturerRegistration = register("manufacturerId");
 
   async function onDelete() {
-    if (!cpuSeries || !window.confirm(`Delete ${cpuSeries.name}?`)) return;
+    if (!cpuSeries || !window.confirm(ui.message("deleteNamed", { name: cpuSeries.name }))) return;
     setIsDeleting(true);
     try {
       await deleteCpuSeries(cpuSeries.id);
@@ -181,11 +183,11 @@ function CpuSeriesFields({
 
   return (
     <MasterDataFormShell
-      title={cpuSeries ? "Edit CPU Series" : "New CPU Series"}
+      title={cpuSeries ? ui.dialog("editCpuSeries") : ui.dialog("newCpuSeries")}
       description={
         cpuSeries
-          ? "Update the name, manufacturer, and socket."
-          : "Add a CPU Series to master data."
+          ? ui.message("updateNameManufacturerSocket")
+          : ui.message("addCpuSeries")
       }
       error={errors.root?.message}
       onSubmit={handleSubmit(onSubmit)}
@@ -193,61 +195,42 @@ function CpuSeriesFields({
       onDelete={cpuSeries ? () => void onDelete() : undefined}
       deleteDisabled={isDeleting}
       deleting={isDeleting}
-      cancelLabel="Close"
+      cancelLabel={ui.action("close")}
       cancelDisabled={isSubmitting}
-      submitLabel={cpuSeries ? "Update" : "Create"}
+      submitLabel={cpuSeries ? ui.action("update") : ui.action("create")}
       submitDisabled={isSubmitting}
     >
       <FormTextField
         id="cpu-series-edit-name"
-        label="Name"
+        label={ui.label("name")}
         required
         error={errors.name}
         registration={register("name")}
       />
-      <Field data-invalid={errors.manufacturerId ? true : undefined}>
-        <FieldLabel htmlFor="cpu-series-edit-manufacturer">
-          Manufacturer
-        </FieldLabel>
-        <select
-          id="cpu-series-edit-manufacturer"
-          className={formSelectClassName}
-          aria-invalid={errors.manufacturerId ? true : undefined}
-          {...manufacturerRegistration}
-          onChange={(event) => {
-            void manufacturerRegistration.onChange(event);
-            clearSocketFromAnotherManufacturer(
-              event.target.value,
-              sockets,
-              getValues("socketId"),
-              setValue,
-            );
-          }}
-        >
-          <option value="">Select a manufacturer</option>
-          {manufacturers.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
-      </Field>
-      <Field data-invalid={errors.socketId ? true : undefined}>
-        <FieldLabel htmlFor="cpu-series-edit-socket">Socket</FieldLabel>
-        <select
-          id="cpu-series-edit-socket"
-          className={formSelectClassName}
-          aria-invalid={errors.socketId ? true : undefined}
-          {...register("socketId")}
-        >
-          <option value="">Select a socket</option>
-          {socketOptions.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
-      </Field>
+      <NamedSelect
+        id="cpu-series-edit-manufacturer"
+        label={ui.label("manufacturer")}
+        error={errors.manufacturerId}
+        registration={manufacturerRegistration}
+        placeholder={ui.label("selectManufacturer")}
+        options={manufacturers}
+        onChange={(event) =>
+          clearSocketFromAnotherManufacturer(
+            event.target.value,
+            sockets,
+            getValues("socketId"),
+            setValue,
+          )
+        }
+      />
+      <NamedSelect
+        id="cpu-series-edit-socket"
+        label={ui.label("socket")}
+        error={errors.socketId}
+        registration={register("socketId")}
+        placeholder={ui.label("selectSocket")}
+        options={socketOptions}
+      />
     </MasterDataFormShell>
   );
 }

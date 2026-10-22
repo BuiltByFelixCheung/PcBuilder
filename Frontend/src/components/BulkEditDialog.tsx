@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ui } from "@/i18n/translate-enum";
 
 type Identified = { id: string };
 
@@ -127,11 +128,9 @@ export function BulkEditDialog<T extends Identified>({
             variant="outline"
             disabled={saving}
             onClick={onClose}
-          >
-            Cancel
-          </Button>
+          >{ui.action("cancel")}</Button>
           <Button type="button" disabled={saving} onClick={() => void save()}>
-            {saving ? "Saving…" : "Save"}
+            {saving ? ui.action("saving") : ui.action("save")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useChassisById } from "@/hooks/use-chassis.ts";
+import { enumText, ui } from "@/i18n/translate-enum";
 import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import {
   chassisKeys,
@@ -43,6 +44,7 @@ import {
   FAN_MOUNT_LOCATIONS,
   RADIATOR_CLASSES,
   RADIATOR_MOUNT_LOCATIONS,
+  formatDriveBayFormFactor,
   formatFanDiameterMm,
   formatRadiatorClass,
   type MbFormFactor,
@@ -99,7 +101,7 @@ function radiatorRows(radiators: ChassisRadiator[]) {
               RADIATOR_CLASSES.indexOf(right.length),
           )
           .map(formatRadiator)
-          .join(" or "),
+          .join(` ${ui.label("or")} `),
       },
     ];
   });
@@ -123,7 +125,7 @@ function AddToBuildButton({ chassisId }: Readonly<{ chassisId: string }>) {
     navigate(builderHref(currentBuild.sourceId));
   }
 
-  return <Button onClick={handleClick}>Add to Build</Button>;
+  return <Button onClick={handleClick}>{ui.action("addToBuild")}</Button>;
 }
 
 function EditChassisDialog({
@@ -141,7 +143,7 @@ function EditChassisDialog({
   if (!open) return null;
   return (
     <CatalogEditDialog
-      title="Edit Chassis"
+      title={ui.dialog("editChassis")}
       item={chassisListItem(chassis)}
       fields={ChassisFields(manufacturers)}
       onClose={onClose}
@@ -213,9 +215,7 @@ function DetailSection({
       <div className="catalog-detail-subtitle">
         <h2>{title}</h2>
         {isAdmin && (
-          <Button type="button" onClick={onEdit}>
-            Edit
-          </Button>
+          <Button type="button" onClick={onEdit}>{ui.action("edit")}</Button>
         )}
       </div>
       {isEmpty ? <p className="catalog-empty">{emptyMessage}</p> : children}
@@ -243,12 +243,12 @@ function FanMountsTable({ mounts }: Readonly<{ mounts: FanMountRow[] }>) {
         {mounts.map((mount) => (
           <TableRow key={mount.location}>
             <TableHead className="table-stub" scope="row">
-              {mount.location}
+              {enumText.fanMount(mount.location)}
             </TableHead>
             <TableCell>
               {mount.options
                 .map(formatFanMountOption)
-                .join(mount.singleDiameterOnly ? ", " : " or ")}
+                .join(mount.singleDiameterOnly ? ", " : ` ${ui.label("or")} `)}
             </TableCell>
           </TableRow>
         ))}
@@ -266,7 +266,7 @@ function RadiatorsTable({
         {radiators.map((radiator) => (
           <TableRow key={radiator.location}>
             <TableHead className="table-stub" scope="row">
-              {radiator.location}
+              {enumText.radiatorMount(radiator.location)}
             </TableHead>
             <TableCell>{radiator.label}</TableCell>
           </TableRow>
@@ -285,7 +285,7 @@ function DriveBaysTable({
         {driveBays.map((bay) => (
           <TableRow key={`${bay.formFactors.join("-")}-${bay.slotCount}`}>
             <TableHead className="table-stub" scope="row">
-              {bay.formFactors.join(", ")}
+              {bay.formFactors.map(formatDriveBayFormFactor).join(", ")}
             </TableHead>
             <TableCell>{bay.slotCount}</TableCell>
           </TableRow>
@@ -306,10 +306,10 @@ function PcieSlotsTable({
             key={`${slot.orientation}-${slot.lowProfileSlots}-${slot.slotCount}`}
           >
             <TableHead className="table-stub" scope="row">
-              {slot.orientation}
+              {enumText.pcieSlotOrientation(slot.orientation)}
             </TableHead>
             <TableCell>
-              {slot.lowProfileSlots ? "Low Profile" : "Full Height"} x
+              {slot.lowProfileSlots ? ui.label("lowProfileTitle") : ui.label("fullHeightTitle")} x
               {slot.slotCount}
             </TableCell>
           </TableRow>
@@ -334,19 +334,19 @@ export function ChassisDetailPage() {
   const manufacturers = useCatalogManufacturers("chassis");
 
   if (query.isPending) {
-    return <PageStatus>Loading chassis…</PageStatus>;
+    return <PageStatus>{ui.empty("loading", { entity: ui.entity("chassis") })}</PageStatus>;
   }
 
   if (query.isError || !chassis) {
     return (
       <section className="catalog-page">
         <p>
-          <Link to="/catalog/chassis">Back to Chassis</Link>
+          <Link to="/catalog/chassis">{ui.empty("backTo", { entity: ui.nav("products.chassis") })}</Link>
         </p>
         <PageStatus>
           {query.isError
             ? parseApiError(query.error).message
-            : "Chassis not found."}
+            : ui.empty("chassisNotFound")}
         </PageStatus>
       </section>
     );
@@ -358,14 +358,14 @@ export function ChassisDetailPage() {
   return (
     <section className="catalog-page">
       <p>
-        <Link to="/catalog/chassis">Back to Chassis</Link>
+        <Link to="/catalog/chassis">{ui.empty("backTo", { entity: ui.nav("products.chassis") })}</Link>
       </p>
       <div className="catalog-detail-title">
         <h1>{chassis.name}</h1>
         {!isAdmin && <AddToBuildButton chassisId={chassis.id} />}
         {isAdmin && (
           <Button type="button" onClick={() => setEditing(true)}>
-            Edit
+            {ui.action("edit")}
           </Button>
         )}
       </div>
@@ -377,7 +377,7 @@ export function ChassisDetailPage() {
       />
       <ChildEditDialog<MbFormFactor>
         open={editingMbFormFactors}
-        title="Edit motherboard form factors"
+        title={ui.dialog("editMotherboardFormFactors")}
         values={chassis.mbFormFactors}
         columns={mbFormFactorColumns}
         createRow={() => "Atx"}
@@ -387,7 +387,7 @@ export function ChassisDetailPage() {
       />
       <ChildEditDialog<PsuFormFactor>
         open={editingPsuFormFactors}
-        title="Edit PSU form factors"
+        title={ui.dialog("editPsuFormFactors")}
         values={chassis.psuFormFactors}
         columns={psuFormFactorColumns}
         createRow={() => "Atx"}
@@ -397,7 +397,7 @@ export function ChassisDetailPage() {
       />
       <ChildEditDialog<ChassisFanMount>
         open={editingFanMounts}
-        title="Edit fan mounts"
+        title={ui.dialog("editFanMounts")}
         values={chassis.fanMounts}
         columns={fanMountColumns}
         createRow={() => ({
@@ -411,7 +411,7 @@ export function ChassisDetailPage() {
       />
       <ChildEditDialog<ChassisRadiator>
         open={editingRadiators}
-        title="Edit radiators"
+        title={ui.dialog("editRadiators")}
         values={chassis.radiators}
         columns={radiatorColumns}
         createRow={() => ({
@@ -425,7 +425,7 @@ export function ChassisDetailPage() {
       />
       <ChildEditDialog<ChassisDriveBay>
         open={editingDriveBays}
-        title="Edit drive bays"
+        title={ui.dialog("editDriveBays")}
         values={chassis.driveBays}
         columns={driveBayColumns}
         createRow={() => ({ formFactors: ["Inch35"], slotCount: 1 })}
@@ -435,7 +435,7 @@ export function ChassisDetailPage() {
       />
       <ChildEditDialog<ChassisPcieSlot>
         open={editingPcieSlots}
-        title="Edit PCIe slots"
+        title={ui.dialog("editPcieSlots")}
         values={chassis.pcieSlots}
         columns={pcieSlotColumns}
         createRow={() => ({
@@ -450,70 +450,54 @@ export function ChassisDetailPage() {
 
       <div className="catalog-table-trio">
         <div>
-          <h2>Dimensions</h2>
+          <h2>{ui.section("dimensions")}</h2>
           <Table>
             <TableBody>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Length
-                </TableHead>
-                <TableCell>{chassis.lengthMm} mm</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("length")}</TableHead>
+                <TableCell>{chassis.lengthMm} {ui.unit("mm")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Width
-                </TableHead>
-                <TableCell>{chassis.widthMm} mm</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("width")}</TableHead>
+                <TableCell>{chassis.widthMm} {ui.unit("mm")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Height
-                </TableHead>
-                <TableCell>{chassis.heightMm} mm</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("height")}</TableHead>
+                <TableCell>{chassis.heightMm} {ui.unit("mm")}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
         </div>
         <div>
-          <h2>Motherboard Dimensions</h2>
+          <h2>{ui.section("motherboardDimensions")}</h2>
           <Table>
             <TableBody>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Width
-                </TableHead>
-                <TableCell>{chassis.motherboardMaxWidthMm} mm</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("width")}</TableHead>
+                <TableCell>{chassis.motherboardMaxWidthMm} {ui.unit("mm")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Height
-                </TableHead>
-                <TableCell>{chassis.motherboardMaxHeightMm} mm</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("height")}</TableHead>
+                <TableCell>{chassis.motherboardMaxHeightMm} {ui.unit("mm")}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
         </div>
         <div>
-          <h2>Clearances</h2>
+          <h2>{ui.section("clearances")}</h2>
           <Table>
             <TableBody>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  CPU Cooler
-                </TableHead>
-                <TableCell>{chassis.maxCpuCoolerHeightMm} mm</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("cpuCooler")}</TableHead>
+                <TableCell>{chassis.maxCpuCoolerHeightMm} {ui.unit("mm")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Graphics Card
-                </TableHead>
-                <TableCell>{chassis.maxGraphicsCardLengthMm} mm</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("graphicsCard")}</TableHead>
+                <TableCell>{chassis.maxGraphicsCardLengthMm} {ui.unit("mm")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  PSU
-                </TableHead>
-                <TableCell>{chassis.maxPsuLengthMm} mm</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("psu")}</TableHead>
+                <TableCell>{chassis.maxPsuLengthMm} {ui.unit("mm")}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -521,40 +505,42 @@ export function ChassisDetailPage() {
       </div>
       <div className="catalog-table-pair">
         <DetailSection
-          title="Motherboard form factors"
+          title={ui.section("motherboardFormFactors")}
           isAdmin={isAdmin}
           onEdit={() => setEditingMbFormFactors(true)}
           isEmpty={chassis.mbFormFactors.length === 0}
-          emptyMessage="No motherboard form factors."
+          emptyMessage={ui.empty("noneSimple", { entity: ui.entity("motherboardFormFactors") })}
         >
-          <JoinedValues values={chassis.mbFormFactors} />
+          <JoinedValues values={chassis.mbFormFactors.map(enumText.mbFormFactor)} />
         </DetailSection>
         <DetailSection
-          title="PSU form factors"
+          title={ui.section("psuFormFactors")}
           isAdmin={isAdmin}
           onEdit={() => setEditingPsuFormFactors(true)}
           isEmpty={chassis.psuFormFactors.length === 0}
-          emptyMessage="No PSU form factors."
+          emptyMessage={ui.empty("noneSimple", { entity: ui.entity("psuFormFactors") })}
         >
-          <JoinedValues values={chassis.psuFormFactors} />
+          <JoinedValues
+            values={chassis.psuFormFactors.map(enumText.psuFormFactor)}
+          />
         </DetailSection>
       </div>
       <div className="catalog-table-pair">
         <DetailSection
-          title="Fan mounts"
+          title={ui.section("fanMounts")}
           isAdmin={isAdmin}
           onEdit={() => setEditingFanMounts(true)}
           isEmpty={mounts.length === 0}
-          emptyMessage="No fan mounts."
+          emptyMessage={ui.empty("noneSimple", { entity: ui.entity("fanMounts") })}
         >
           <FanMountsTable mounts={mounts} />
         </DetailSection>
         <DetailSection
-          title="Radiators"
+          title={ui.section("radiators")}
           isAdmin={isAdmin}
           onEdit={() => setEditingRadiators(true)}
           isEmpty={radiators.length === 0}
-          emptyMessage="No radiator mounts."
+          emptyMessage={ui.empty("noneSimple", { entity: ui.entity("radiatorMounts") })}
         >
           <RadiatorsTable radiators={radiators} />
         </DetailSection>
@@ -562,20 +548,20 @@ export function ChassisDetailPage() {
 
       <div className="catalog-table-pair">
         <DetailSection
-          title="Drive bays"
+          title={ui.section("driveBays")}
           isAdmin={isAdmin}
           onEdit={() => setEditingDriveBays(true)}
           isEmpty={chassis.driveBays.length === 0}
-          emptyMessage="No drive bays."
+          emptyMessage={ui.empty("noneSimple", { entity: ui.entity("driveBays") })}
         >
           <DriveBaysTable driveBays={chassis.driveBays} />
         </DetailSection>
         <DetailSection
-          title="PCIe slots"
+          title={ui.section("pcieSlots")}
           isAdmin={isAdmin}
           onEdit={() => setEditingPcieSlots(true)}
           isEmpty={chassis.pcieSlots.length === 0}
-          emptyMessage="No PCIe slots."
+          emptyMessage={ui.empty("noneSimple", { entity: ui.entity("pcieSlots") })}
         >
           <PcieSlotsTable pcieSlots={chassis.pcieSlots} />
         </DetailSection>

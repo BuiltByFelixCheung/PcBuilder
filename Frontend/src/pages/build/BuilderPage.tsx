@@ -38,6 +38,7 @@ import {
   type PcBuildPart,
 } from "@/api/builds";
 import { PageStatus } from "@/components/PageStatus.tsx";
+import { enumText, ui } from "@/i18n/translate-enum";
 import { usePcBuildCompatibility } from "@/hooks/use-pc-build-compatibility";
 import { usePcBuildDetail } from "@/hooks/use-pc-build-detail";
 import { useChassisById } from "@/hooks/use-chassis";
@@ -92,9 +93,6 @@ type CompatibilityQuery = {
 type DisplayedBuild = PcBuildDraft &
   Pick<PcBuildDetail, "name" | "description">;
 
-function formatCompatibilityLabel(value: string): string {
-  return value.replace(/([a-z])([A-Z])/g, "$1 $2");
-}
 
 function CompatibilityStatus({
   query,
@@ -104,7 +102,7 @@ function CompatibilityStatus({
     <Card className="builder-compatibility h-fit w-full">
       <CardHeader>
         <CardTitle>
-          <h2>Compatibility</h2>
+          <h2>{ui.section("compatibility")}</h2>
         </CardTitle>
       </CardHeader>
       <CardContent className="text-muted-foreground">
@@ -119,11 +117,11 @@ function CompatibilityDetails({
   enabled,
 }: Readonly<{ query: CompatibilityQuery; enabled: boolean }>) {
   if (!enabled) {
-    return <p>Add parts to check compatibility.</p>;
+    return <p>{ui.message("addPartsToCheck")}</p>;
   }
 
   if (query.isPending && !query.data) {
-    return <p>Checking compatibility…</p>;
+    return <p>{ui.message("checkingCompatibility")}</p>;
   }
 
   if (query.isError) {
@@ -136,16 +134,19 @@ function CompatibilityDetails({
 
   return (
     <div className="flex flex-col gap-3">
-      <p>{formatCompatibilityLabel(query.data.status)}</p>
+      <p>{enumText.compatibilityStatus(query.data.status)}</p>
       {query.data.issues.length === 0 ? (
-        <p>No issues.</p>
+        <p>{ui.message("noIssues")}</p>
       ) : (
         <ul className="list-disc space-y-1 pl-5">
           {query.data.issues.map((issue, index) => (
             <li key={issueKey(issue, index)}>
-              {formatCompatibilityLabel(issue.reason)}
+              {enumText.compatibilityReason(issue.reason)}
               {issue.rated && issue.executing
-                ? ` (${issue.executing} vs ${issue.rated})`
+                ? ` ${ui.message("executingVsRated", {
+                    executing: issue.executing,
+                    rated: issue.rated,
+                  })}`
                 : null}
             </li>
           ))}
@@ -203,7 +204,7 @@ function SaveBuildDialog({
       aria-labelledby="save-build-title"
     >
       <div className="auth-dialog-card">
-        <h2 id="save-build-title">Save build</h2>
+        <h2 id="save-build-title">{ui.action("saveBuild")}</h2>
         <form
           noValidate
           onSubmit={(event) => {
@@ -218,7 +219,7 @@ function SaveBuildDialog({
               </p>
             ) : null}
             <Field data-invalid={nameError ? true : undefined}>
-              <FieldLabel htmlFor="build-name">Name</FieldLabel>
+              <FieldLabel htmlFor="build-name">{ui.label("name")}</FieldLabel>
               <Input
                 id="build-name"
                 value={name}
@@ -230,7 +231,7 @@ function SaveBuildDialog({
               <FieldError errors={nameError ? [{ message: nameError }] : []} />
             </Field>
             <Field data-invalid={descriptionError ? true : undefined}>
-              <FieldLabel htmlFor="build-description">Description</FieldLabel>
+              <FieldLabel htmlFor="build-description">{ui.label("description")}</FieldLabel>
               <textarea
                 id="build-description"
                 rows={4}
@@ -254,25 +255,23 @@ function SaveBuildDialog({
                       onIsPublicChange(checked === true)
                     }
                   />
-                  <FieldLabel htmlFor="build-public">Public</FieldLabel>
+                  <FieldLabel htmlFor="build-public">{ui.label("public")}</FieldLabel>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Listed on Browse Builds for anyone to view.
+                  {ui.message("publicBuildHint")}
                 </p>
               </Field>
             ) : null}
             <div className="flex flex-wrap gap-2">
               <Button type="submit" disabled={isSaving}>
-                {isSaving ? "Saving..." : "Save"}
+                {isSaving ? ui.action("saving") : ui.action("save")}
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 disabled={isSaving}
                 onClick={onCancel}
-              >
-                Cancel
-              </Button>
+              >{ui.action("cancel")}</Button>
             </div>
           </FieldGroup>
         </form>
@@ -395,13 +394,13 @@ function saveFormErrors(
 ): { nameError?: string; descriptionError?: string } {
   const errors: { nameError?: string; descriptionError?: string } = {};
   if (!name) {
-    errors.nameError = "Build name is required.";
+    errors.nameError = ui.message("buildNameRequired");
   } else if (name.length > 100) {
-    errors.nameError = "Build name must be 100 characters or fewer.";
+    errors.nameError = ui.message("buildNameTooLong");
   }
   if (description.length > 500) {
     errors.descriptionError =
-      "Build description must be 500 characters or fewer.";
+      ui.message("buildDescriptionTooLong");
   }
   return errors;
 }
@@ -409,7 +408,7 @@ function saveFormErrors(
 function saveFailureMessage(sourceId: string | null, error: unknown): string {
   const parsed = parseApiError(error);
   if (sourceId && parsed.status === 401) {
-    return "Builds by guests cannot be updated";
+    return ui.message("guestBuildsCannotUpdate");
   }
   return parsed.message;
 }
@@ -429,13 +428,13 @@ function builderPageBlocked(input: {
     return <PageStatus>{parseApiError(input.loadError).message}</PageStatus>;
   }
   if (input.isViewing && !input.viewed) {
-    return <PageStatus>Loading build…</PageStatus>;
+    return <PageStatus>{ui.empty("loading", { entity: ui.entity("build") })}</PageStatus>;
   }
   if (input.isEditingSaved && input.savedLoaded && !input.canEditSaved) {
     return <Navigate to={builderViewHref(input.buildId!)} replace />;
   }
   if (input.isEditingSaved && input.sourceId !== input.buildId) {
-    return <PageStatus>Loading build…</PageStatus>;
+    return <PageStatus>{ui.empty("loading", { entity: ui.entity("build") })}</PageStatus>;
   }
   return null;
 }
@@ -724,14 +723,14 @@ function BuilderWorkspace({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Component</TableHead>
-                <TableHead>Selected</TableHead>
+                <TableHead>{ui.label("component")}</TableHead>
+                <TableHead>{ui.label("selected")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <SingularSlot
-                label="Chassis"
-                chooseLabel="Choose a chassis"
+                label={ui.label("chassis")}
+                chooseLabel={ui.action("chooseChassis")}
                 catalogHref="/catalog/chassis"
                 detailHref={catalogDetailHref(
                   "/catalog/chassis",
@@ -743,8 +742,8 @@ function BuilderWorkspace({
                 readOnly={isViewing}
               />
               <SingularSlot
-                label="Motherboard"
-                chooseLabel="Choose a motherboard"
+                label={ui.label("motherboard")}
+                chooseLabel={ui.action("chooseMotherboard")}
                 catalogHref="/catalog/motherboards"
                 detailHref={catalogDetailHref(
                   "/catalog/motherboards",
@@ -756,8 +755,8 @@ function BuilderWorkspace({
                 readOnly={isViewing}
               />
               <SingularSlot
-                label="CPU"
-                chooseLabel="Choose a CPU"
+                label={ui.label("cpu")}
+                chooseLabel={ui.action("chooseCpu")}
                 catalogHref="/catalog/cpus"
                 detailHref={catalogDetailHref("/catalog/cpus", displayed.cpuId)}
                 productType="cpu"
@@ -766,8 +765,8 @@ function BuilderWorkspace({
                 readOnly={isViewing}
               />
               <SingularSlot
-                label="CPU cooler"
-                chooseLabel="Choose a CPU cooler"
+                label={ui.label("cpuCooler")}
+                chooseLabel={ui.action("chooseCpuCooler")}
                 catalogHref="/catalog/cpu-coolers"
                 detailHref={catalogDetailHref(
                   "/catalog/cpu-coolers",
@@ -779,8 +778,8 @@ function BuilderWorkspace({
                 readOnly={isViewing}
               />
               <SingularSlot
-                label="Memory"
-                chooseLabel="Choose a memory kit"
+                label={ui.label("memory")}
+                chooseLabel={ui.action("chooseMemoryKit")}
                 catalogHref="/catalog/memories"
                 detailHref={catalogDetailHref(
                   "/catalog/memories",
@@ -792,8 +791,8 @@ function BuilderWorkspace({
                 readOnly={isViewing}
               />
               <SingularSlot
-                label="Graphics card"
-                chooseLabel="Choose a graphics card"
+                label={ui.label("graphicsCard")}
+                chooseLabel={ui.action("chooseGraphicsCard")}
                 catalogHref="/catalog/graphics-cards"
                 detailHref={catalogDetailHref(
                   "/catalog/graphics-cards",
@@ -805,8 +804,8 @@ function BuilderWorkspace({
                 readOnly={isViewing}
               />
               <SingularSlot
-                label="Power supply"
-                chooseLabel="Choose a PSU"
+                label={ui.label("powerSupply")}
+                chooseLabel={ui.action("choosePsu")}
                 catalogHref="/catalog/psus"
                 detailHref={catalogDetailHref("/catalog/psus", displayed.psuId)}
                 productType="psu"
@@ -815,9 +814,9 @@ function BuilderWorkspace({
                 readOnly={isViewing}
               />
               <SingularSlot
-                label="Storage"
-                chooseLabel="Choose storage"
-                addLabel="Add storage"
+                label={ui.label("storage")}
+                chooseLabel={ui.action("chooseStorage")}
+                addLabel={ui.action("addStorage")}
                 catalogHref="/catalog/storage"
                 productType="storagedrive"
                 parts={displayed.storageDevices}
@@ -826,9 +825,9 @@ function BuilderWorkspace({
                 readOnly={isViewing}
               />
               <SingularSlot
-                label="Chassis fans"
-                chooseLabel="Choose chassis fans"
-                addLabel="Add a chassis fan"
+                label={ui.label("chassisFans")}
+                chooseLabel={ui.action("chooseChassisFans")}
+                addLabel={ui.action("addChassisFan")}
                 catalogHref="/catalog/chassis-fans"
                 productType="chassisfan"
                 parts={displayed.chassisFans}
@@ -837,9 +836,9 @@ function BuilderWorkspace({
                 readOnly={isViewing}
               />
               <SingularSlot
-                label="Wired network"
-                chooseLabel="Choose a wired adapter"
-                addLabel="Add a wired adapter"
+                label={ui.label("wiredNetwork")}
+                chooseLabel={ui.action("chooseWiredAdapter")}
+                addLabel={ui.action("addWiredAdapter")}
                 catalogHref="/catalog/wired-network-adapters"
                 productType="wirednetworkadapter"
                 parts={displayed.wiredNetworkAdapters}
@@ -848,9 +847,9 @@ function BuilderWorkspace({
                 readOnly={isViewing}
               />
               <SingularSlot
-                label="Wireless network"
-                chooseLabel="Choose a wireless adapter"
-                addLabel="Add a wireless adapter"
+                label={ui.label("wirelessNetwork")}
+                chooseLabel={ui.action("chooseWirelessAdapter")}
+                addLabel={ui.action("addWirelessAdapter")}
                 catalogHref="/catalog/wireless-network-adapters"
                 productType="wirelessnetworkadapter"
                 parts={displayed.wirelessNetworkAdapters}
@@ -871,14 +870,14 @@ function buildHeading(name: string, isViewing: boolean): string {
   if (trimmed) {
     return trimmed;
   }
-  return isViewing ? "PC build" : "New build";
+  return isViewing ? ui.label("pcBuild") : ui.label("newBuild");
 }
 
 function buildLead(description: string, isViewing: boolean): string {
   if (!isViewing) {
-    return "Choose parts from the catalog, then come back here to review, replace, or remove them.";
+    return ui.message("builderLead");
   }
-  return description || "Saved build.";
+  return description || ui.label("savedBuild");
 }
 
 function BuilderActions({
@@ -905,7 +904,7 @@ function BuilderActions({
     return (
       <div className="flex flex-wrap gap-2">
         <Button type="button" asChild>
-          <Link to={builderHref(buildId)}>Edit this build</Link>
+          <Link to={builderHref(buildId)}>{ui.action("editThisBuild")}</Link>
         </Button>
       </div>
     );
@@ -919,7 +918,7 @@ function BuilderActions({
         disabled={!canSave}
         onClick={onSave}
       >
-        Save build
+        {ui.action("saveBuild")}
       </Button>
       <Button
         type="button"
@@ -927,7 +926,7 @@ function BuilderActions({
         disabled={!hasParts}
         onClick={onClear}
       >
-        Clear build
+        {ui.action("clearBuild")}
       </Button>
     </div>
   );
@@ -1016,10 +1015,10 @@ function SelectedSingularPart({
   }
 
   if (query.isPending && !query.data) {
-    return <span>Loading…</span>;
+    return <span>{ui.empty("loadingEllipsis")}</span>;
   }
 
-  const name = query.data?.name ?? "Unknown part";
+  const name = query.data?.name ?? ui.label("unknownPart");
   const manufacturer = query.data?.manufacturerName;
 
   return (
@@ -1030,7 +1029,7 @@ function SelectedSingularPart({
           <p className="catalog-lead mb-0!">{manufacturer}</p>
         ) : null}
         {query.isError ? (
-          <p className="catalog-lead mb-0!">Could not load this part.</p>
+          <p className="catalog-lead mb-0!">{ui.message("couldNotLoadPart")}</p>
         ) : null}
       </div>
       {readOnly ? null : (
@@ -1040,14 +1039,14 @@ function SelectedSingularPart({
             variant="outline"
             onClick={() => navigate(catalogHref)}
           >
-            Change
+            {ui.action("change")}
           </Button>
           <Button
             type="button"
             variant="outline"
             onClick={() => build.removeFromBuild(productType, partId)}
           >
-            Remove
+            {ui.action("remove")}
           </Button>
         </div>
       )}
@@ -1138,7 +1137,8 @@ function SelectedMultiPart({
   const build = usePcBuild();
   const query = usePart(part.partId);
   const name =
-    query.data?.name ?? (query.isPending ? "Loading…" : "Unknown part");
+    query.data?.name ??
+    (query.isPending ? ui.empty("loadingEllipsis") : ui.label("unknownPart"));
   const manufacturer = query.data?.manufacturerName;
 
   return (
@@ -1150,13 +1150,13 @@ function SelectedMultiPart({
         ) : null}
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <span>Qty {part.quantity}</span>
+        <span>{ui.message("quantityCount", { count: part.quantity })}</span>
         {readOnly ? null : (
           <>
             <Button
               type="button"
               variant="outline"
-              aria-label={`Decrease ${name} quantity`}
+              aria-label={ui.message("decreaseQuantity", { name })}
               onClick={() =>
                 build.setQuantity(productType, part.partId, part.quantity - 1)
               }
@@ -1166,7 +1166,7 @@ function SelectedMultiPart({
             <Button
               type="button"
               variant="outline"
-              aria-label={`Increase ${name} quantity`}
+              aria-label={ui.message("increaseQuantity", { name })}
               onClick={() =>
                 build.setQuantity(productType, part.partId, part.quantity + 1)
               }
@@ -1178,14 +1178,14 @@ function SelectedMultiPart({
               variant="outline"
               onClick={() => navigate(catalogHref)}
             >
-              Change
+              {ui.action("change")}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => build.removeFromBuild(productType, part.partId)}
             >
-              Remove
+              {ui.action("remove")}
             </Button>
           </>
         )}
@@ -1201,7 +1201,7 @@ function ChooseOrNone({
 }: Readonly<{ readOnly?: boolean; label: string; href: string }>) {
   const navigate = useNavigate();
   if (readOnly) {
-    return <span>None</span>;
+    return <span>{ui.label("none")}</span>;
   }
   return (
     <Button type="button" onClick={() => navigate(href)}>

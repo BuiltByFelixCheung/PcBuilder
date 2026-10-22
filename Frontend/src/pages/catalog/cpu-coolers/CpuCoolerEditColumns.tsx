@@ -20,33 +20,36 @@ import {
   RADIATOR_CLASSES,
   formatRadiatorClass,
 } from "@/api/enums";
+import { enumText, ui } from "@/i18n/translate-enum";
 
 export function CpuCoolerEditColumns(
   manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<CpuCoolerListItem>[] {
   return [
     nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    enumSelectBulkColumn("Type", "type", CPU_COOLER_TYPES),
-    optionalNumberColumn("Length (mm)", "coolerLengthMm"),
-    optionalNumberColumn("Width (mm)", "coolerWidthMm"),
-    optionalNumberColumn("Height (mm)", "coolerHeightMm"),
-    optionalNumberColumn("Max RAM height (mm)", "maxRamHeightMm"),
-    enumSelectBulkColumn("Radiator class", "radiatorClass", RADIATOR_CLASSES, {
+    idSelectBulkColumn(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    enumSelectBulkColumn(ui.label("type"), "type", CPU_COOLER_TYPES, {
+      label: enumText.cpuCoolerType,
+    }),
+    optionalNumberColumn(ui.label("lengthMm"), "coolerLengthMm"),
+    optionalNumberColumn(ui.label("widthMm"), "coolerWidthMm"),
+    optionalNumberColumn(ui.label("heightMm"), "coolerHeightMm"),
+    optionalNumberColumn(ui.label("maxRamHeightMm"), "maxRamHeightMm"),
+    enumSelectBulkColumn(ui.label("radiatorClass"), "radiatorClass", RADIATOR_CLASSES, {
       empty: "null",
-      emptyLabel: "N/A",
+      emptyLabel: ui.label("na"),
       label: formatRadiatorClass,
     }),
-    optionalNumberColumn("Radiator length (mm)", "radiatorLengthMm"),
-    optionalNumberColumn("Radiator width (mm)", "radiatorWidthMm"),
-    optionalNumberColumn("Radiator height (mm)", "radiatorHeightMm"),
-    optionalNumberColumn("Water block length (mm)", "waterBlockLengthMm"),
-    optionalNumberColumn("Water block width (mm)", "waterBlockWidthMm"),
-    optionalNumberColumn("Water block height (mm)", "waterBlockHeightMm"),
-    optionalNumberColumn("Fan thickness (mm)", "fanThicknessMm"),
-    optionalNumberColumn("Fan width (mm)", "fanWidthMm"),
-    optionalNumberColumn("Fan height (mm)", "fanHeightMm"),
-    integerColumn("Fan count", "fanCount", {
+    optionalNumberColumn(ui.label("radiatorLengthMm"), "radiatorLengthMm"),
+    optionalNumberColumn(ui.label("radiatorWidthMm"), "radiatorWidthMm"),
+    optionalNumberColumn(ui.label("radiatorHeightMm"), "radiatorHeightMm"),
+    optionalNumberColumn(ui.label("waterBlockLengthMm"), "waterBlockLengthMm"),
+    optionalNumberColumn(ui.label("waterBlockWidthMm"), "waterBlockWidthMm"),
+    optionalNumberColumn(ui.label("waterBlockHeightMm"), "waterBlockHeightMm"),
+    optionalNumberColumn(ui.label("fanThicknessMm"), "fanThicknessMm"),
+    optionalNumberColumn(ui.label("fanWidthMm"), "fanWidthMm"),
+    optionalNumberColumn(ui.label("fanHeightMm"), "fanHeightMm"),
+    integerColumn(ui.label("fanCount"), "fanCount", {
       type: "number",
       min: 0,
       fallback: null,
@@ -59,17 +62,19 @@ export function CpuCoolerBasicFields(
 ): CatalogField<CpuCoolerListItem>[] {
   return [
     nameField(),
-    idSelectField("Manufacturer", "manufacturerId", manufacturers),
-    enumSelectField("Type", "type", CPU_COOLER_TYPES),
+    idSelectField(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    enumSelectField(ui.label("type"), "type", CPU_COOLER_TYPES, {
+      label: enumText.cpuCoolerType,
+    }),
   ];
 }
 
 export function AirCoolerFields(): CatalogField<CpuCoolerListItem>[] {
   return [
-    optionalNumberField("Length (mm)", "coolerLengthMm"),
-    optionalNumberField("Width (mm)", "coolerWidthMm"),
-    optionalNumberField("Height (mm)", "coolerHeightMm"),
-    optionalNumberField("Max RAM height (mm)", "maxRamHeightMm"),
+    optionalNumberField(ui.label("lengthMm"), "coolerLengthMm"),
+    optionalNumberField(ui.label("widthMm"), "coolerWidthMm"),
+    optionalNumberField(ui.label("heightMm"), "coolerHeightMm"),
+    optionalNumberField(ui.label("maxRamHeightMm"), "maxRamHeightMm"),
   ];
 }
 
@@ -87,31 +92,31 @@ export function CpuCoolerFields(
 
 export function RadiatorFields(): CatalogField<CpuCoolerListItem>[] {
   return [
-    enumSelectField("Radiator class", "radiatorClass", RADIATOR_CLASSES, {
+    enumSelectField(ui.label("radiatorClass"), "radiatorClass", RADIATOR_CLASSES, {
       empty: "null",
-      emptyLabel: "N/A",
+      emptyLabel: ui.label("na"),
       label: formatRadiatorClass,
     }),
-    optionalNumberField("Radiator length (mm)", "radiatorLengthMm"),
-    optionalNumberField("Radiator width (mm)", "radiatorWidthMm"),
-    optionalNumberField("Radiator height (mm)", "radiatorHeightMm"),
+    optionalNumberField(ui.label("radiatorLengthMm"), "radiatorLengthMm"),
+    optionalNumberField(ui.label("radiatorWidthMm"), "radiatorWidthMm"),
+    optionalNumberField(ui.label("radiatorHeightMm"), "radiatorHeightMm"),
   ];
 }
 
 export function WaterBlockFields(): CatalogField<CpuCoolerListItem>[] {
   return [
-    optionalNumberField("Water block length (mm)", "waterBlockLengthMm"),
-    optionalNumberField("Water block width (mm)", "waterBlockWidthMm"),
-    optionalNumberField("Water block height (mm)", "waterBlockHeightMm"),
+    optionalNumberField(ui.label("waterBlockLengthMm"), "waterBlockLengthMm"),
+    optionalNumberField(ui.label("waterBlockWidthMm"), "waterBlockWidthMm"),
+    optionalNumberField(ui.label("waterBlockHeightMm"), "waterBlockHeightMm"),
   ];
 }
 
 export function FansFields(): CatalogField<CpuCoolerListItem>[] {
   return [
-    optionalNumberField("Fan thickness (mm)", "fanThicknessMm"),
-    optionalNumberField("Fan width (mm)", "fanWidthMm"),
-    optionalNumberField("Fan height (mm)", "fanHeightMm"),
-    integerField("Fan count", "fanCount", {
+    optionalNumberField(ui.label("fanThicknessMm"), "fanThicknessMm"),
+    optionalNumberField(ui.label("fanWidthMm"), "fanWidthMm"),
+    optionalNumberField(ui.label("fanHeightMm"), "fanHeightMm"),
+    integerField(ui.label("fanCount"), "fanCount", {
       type: "number",
       min: 0,
       fallback: null,

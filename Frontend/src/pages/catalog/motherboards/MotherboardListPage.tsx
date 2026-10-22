@@ -26,6 +26,7 @@ import {
   motherboardListSearchFromParams,
 } from "@/api/catalog/params/motherboard-list-params";
 import { toInteger } from "@/api/helper";
+import {enumText, ui} from "@/i18n/translate-enum";
 import {
   DDR_GENERATIONS,
   MB_FORM_FACTORS,
@@ -33,7 +34,7 @@ import {
   type DdrGeneration,
 } from "@/api/enums";
 import { usePcBuild } from "@/builds";
-import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { CatalogListResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importMotherboards } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
@@ -85,17 +86,20 @@ export function MotherboardListPage() {
           isAdmin,
           (id) => `/catalog/motherboards/${id}`,
         ),
-        columnHelper.accessor("socketName", { header: "Socket" }),
-        columnHelper.accessor("chipsetName", { header: "Chipset" }),
-        columnHelper.accessor("formFactor", { header: "Form factor" }),
-        columnHelper.accessor("ddrGeneration", {
-          header: "DDR",
-          cell: (info) => info.getValue().replace("Ddr", "DDR"),
+        columnHelper.accessor("socketName", { header: ui.header("socket") }),
+        columnHelper.accessor("chipsetName", { header: ui.header("chipset") }),
+        columnHelper.accessor("formFactor", {
+          header: ui.header("formFactor"),
+          cell: (info) => enumText.mbFormFactor(info.getValue()),
         }),
-        columnHelper.accessor("ramSlots", { header: "RAM slots" }),
+        columnHelper.accessor("ddrGeneration", {
+          header: ui.header("ddr"),
+          cell: (info) => enumText.ddrGeneration(info.getValue()),
+        }),
+        columnHelper.accessor("ramSlots", { header: ui.header("ramSlots") }),
         columnHelper.accessor("wifiEnabled", {
-          header: "Wi-Fi",
-          cell: (info) => (info.getValue() ? "Yes" : "No"),
+          header: ui.header("wifi"),
+          cell: (info) => (info.getValue() ? ui.label("yes") : ui.label("no")),
         }),
       ]),
     [isAdmin],
@@ -106,8 +110,8 @@ export function MotherboardListPage() {
     rowSelection,
     setRowSelection,
     queryKey: motherboardKeys.all,
-    singular: "motherboard",
-    plural: "motherboards",
+    singular: ui.label("nMotherboard"),
+    plural: ui.label("nMotherboards"),
     deleteByIds: (ids) => deleteMotherboards({ ids }),
   });
   const excelImport = useExcelImport({
@@ -175,10 +179,8 @@ export function MotherboardListPage() {
 
   return (
     <section className="catalog-page">
-      <h1>Motherboards</h1>
-      <p className="catalog-lead">
-        Browse the catalog, then apply filters when you need a narrower set.
-      </p>
+      <h1>{ui.nav("products.motherboards")}</h1>
+      <p className="catalog-lead">{ui.message("browseCatalogLead")}</p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <CatalogFilterGroup>
@@ -193,7 +195,7 @@ export function MotherboardListPage() {
             />
             <CatalogIdSelectField
               id="motherboard-manufacturer"
-              label="Manufacturer"
+              label={ui.label("manufacturer")}
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
@@ -204,7 +206,7 @@ export function MotherboardListPage() {
               }
             />
             <Field>
-              <FieldLabel htmlFor="motherboard-socket">Socket</FieldLabel>
+              <FieldLabel htmlFor="motherboard-socket">{ui.label("socket")}</FieldLabel>
               <select
                 id="motherboard-socket"
                 className={selectClassName}
@@ -217,7 +219,7 @@ export function MotherboardListPage() {
                   }))
                 }
               >
-                <option value="">Any</option>
+                <option value="">{ui.label("any")}</option>
                 {sockets.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.name}
@@ -227,7 +229,7 @@ export function MotherboardListPage() {
             </Field>
             <CatalogIdSelectField
               id="motherboard-chipset"
-              label="Chipset"
+              label={ui.label("chipset")}
               value={draft.chipsetId}
               options={chipsetOptions}
               onChange={(value) =>
@@ -239,15 +241,16 @@ export function MotherboardListPage() {
             />
             <CatalogEnumField
               id="motherboard-form-factor"
-              label="Form factor"
+              label={ui.label("formFactor")}
               value={draft.formFactor}
               options={MB_FORM_FACTORS}
+              formatOption={enumText.mbFormFactor}
               onChange={(formFactor) =>
                 setDraft((current) => ({ ...current, formFactor }))
               }
             />
             <Field>
-              <FieldLabel htmlFor="motherboard-ddr">DDR</FieldLabel>
+              <FieldLabel htmlFor="motherboard-ddr">{ui.label("ddr")}</FieldLabel>
               <select
                 id="motherboard-ddr"
                 className={selectClassName}
@@ -260,25 +263,26 @@ export function MotherboardListPage() {
                   }))
                 }
               >
-                <option value="">Any</option>
+                <option value="">{ui.label("any")}</option>
                 {DDR_GENERATIONS.map((generation) => (
                   <option key={generation} value={generation}>
-                    {generation.replace("Ddr", "DDR")}
+                    {enumText.ddrGeneration(generation)}
                   </option>
                 ))}
               </select>
             </Field>
             <CatalogEnumField
               id="motherboard-ram-form-factor"
-              label="RAM form factor"
+              label={ui.label("ramFormFactor")}
               value={draft.ramFormFactor}
               options={RAM_FORM_FACTORS}
+              formatOption={enumText.ramFormFactor}
               onChange={(ramFormFactor) =>
                 setDraft((current) => ({ ...current, ramFormFactor }))
               }
             />
             <Field>
-              <FieldLabel htmlFor="motherboard-wifi">Wi-Fi</FieldLabel>
+              <FieldLabel htmlFor="motherboard-wifi">{ui.label("wifi")}</FieldLabel>
               <select
                 id="motherboard-wifi"
                 className={selectClassName}
@@ -293,13 +297,13 @@ export function MotherboardListPage() {
                   }))
                 }
               >
-                <option value="">Any</option>
-                <option value="true">Yes</option>
-                <option value="false">No</option>
+                <option value="">{ui.label("any")}</option>
+                <option value="true">{ui.label("yes")}</option>
+                <option value="false">{ui.label("no")}</option>
               </select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="motherboard-bluetooth">Bluetooth</FieldLabel>
+              <FieldLabel htmlFor="motherboard-bluetooth">{ui.label("bluetooth")}</FieldLabel>
               <select
                 id="motherboard-bluetooth"
                 className={selectClassName}
@@ -314,13 +318,13 @@ export function MotherboardListPage() {
                   }))
                 }
               >
-                <option value="">Any</option>
-                <option value="true">Yes</option>
-                <option value="false">No</option>
+                <option value="">{ui.label("any")}</option>
+                <option value="true">{ui.label("yes")}</option>
+                <option value="false">{ui.label("no")}</option>
               </select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="motherboard-ram-slots">RAM slots</FieldLabel>
+              <FieldLabel htmlFor="motherboard-ram-slots">{ui.label("ramSlots")}</FieldLabel>
               <Input
                 id="motherboard-ram-slots"
                 type="number"
@@ -335,9 +339,7 @@ export function MotherboardListPage() {
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="motherboard-max-memory">
-                Max memory (GB)
-              </FieldLabel>
+              <FieldLabel htmlFor="motherboard-max-memory">{ui.label("maxMemoryGb")}</FieldLabel>
               <Input
                 id="motherboard-max-memory"
                 type="number"
@@ -352,9 +354,7 @@ export function MotherboardListPage() {
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="motherboard-max-dimm">
-                Max DIMM size (GB)
-              </FieldLabel>
+              <FieldLabel htmlFor="motherboard-max-dimm">{ui.label("maxDimmSizeGb")}</FieldLabel>
               <Input
                 id="motherboard-max-dimm"
                 type="number"
@@ -369,9 +369,7 @@ export function MotherboardListPage() {
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="motherboard-sata-ports">
-                SATA ports
-              </FieldLabel>
+              <FieldLabel htmlFor="motherboard-sata-ports">{ui.label("sataPorts")}</FieldLabel>
               <Input
                 id="motherboard-sata-ports"
                 type="number"
@@ -386,9 +384,7 @@ export function MotherboardListPage() {
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="motherboard-pwm-fan-headers">
-                PWM fan headers
-              </FieldLabel>
+              <FieldLabel htmlFor="motherboard-pwm-fan-headers">{ui.label("pwmFanHeaders")}</FieldLabel>
               <Input
                 id="motherboard-pwm-fan-headers"
                 type="number"
@@ -403,9 +399,7 @@ export function MotherboardListPage() {
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="motherboard-dc-fan-headers">
-                DC fan headers
-              </FieldLabel>
+              <FieldLabel htmlFor="motherboard-dc-fan-headers">{ui.label("dcFanHeaders")}</FieldLabel>
               <Input
                 id="motherboard-dc-fan-headers"
                 type="number"
@@ -420,9 +414,7 @@ export function MotherboardListPage() {
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="motherboard-eps-connectors">
-                EPS connectors
-              </FieldLabel>
+              <FieldLabel htmlFor="motherboard-eps-connectors">{ui.label("epsConnectors")}</FieldLabel>
               <Input
                 id="motherboard-eps-connectors"
                 type="number"
@@ -438,8 +430,8 @@ export function MotherboardListPage() {
             </Field>
             <CatalogRangeField
               id="motherboard-width"
-              label="Width (mm)"
-              maxAriaLabel="Width max"
+              label={ui.label("widthMm")}
+              maxAriaLabel={ui.label("widthMax")}
               range={draft.widthMm}
               onChange={(widthMm) =>
                 setDraft((current) => ({ ...current, widthMm }))
@@ -447,8 +439,8 @@ export function MotherboardListPage() {
             />
             <CatalogRangeField
               id="motherboard-height"
-              label="Height (mm)"
-              maxAriaLabel="Height max"
+              label={ui.label("heightMm")}
+              maxAriaLabel={ui.label("heightMax")}
               range={draft.heightMm}
               onChange={(heightMm) =>
                 setDraft((current) => ({ ...current, heightMm }))
@@ -457,36 +449,28 @@ export function MotherboardListPage() {
           </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <CatalogPagedResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={items}
-            filtering={filtering}
-            loadingMessage="Loading motherboards…"
-            emptyFilteredMessage="No motherboards match these filters."
-            emptyMessage="No motherboards in the catalog yet."
-            isAdmin={isAdmin}
-            newItemLabel="New Motherboard"
-            newItemTo="/catalog/motherboards/new"
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onEditSelected={startEditing}
-            onImport={excelImport.openImport}
-            pageIndex={pageIndex}
-            pageCount={pageCount}
-            onPageChange={goToPage}
-          />
-        </div>
+        <CatalogListResults
+          entity="motherboards"
+          query={query}
+          items={items}
+          filtering={filtering}
+          columns={columns}
+          isAdmin={isAdmin}
+          newItemLabel={ui.action("newMotherboard")}
+          newItemTo="/catalog/motherboards/new"
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onImport={excelImport.openImport}
+          onEditSelected={startEditing}
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          onPageChange={goToPage}
+        />
       </div>
       {editRows ? (
         <BulkEditDialog
-          title="Edit Motherboards"
+          title={ui.dialog("editMotherboards")}
           rows={editRows}
           columns={MotherboardEditColumns(manufacturers, sockets, chipsets)}
           onClose={() => setEditRows(null)}

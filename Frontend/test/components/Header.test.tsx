@@ -85,7 +85,7 @@ describe("header chrome", () => {
         />
       </MemoryRouter>,
     );
-    expect(screen.getByText(testUser.email)).toBeInTheDocument();
+    expect(screen.getByText(testUser.userName)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Sign out" }));
     expect(logout).toHaveBeenCalled();
   });
@@ -124,7 +124,13 @@ describe("header chrome", () => {
       layout.getByRole("link", { name: "PC Builder" }),
     ).toBeInTheDocument();
     layout.unmount();
-    expect(render(<HomePage />).container).toBeInTheDocument();
+    expect(
+      render(
+        <MemoryRouter>
+          <HomePage />
+        </MemoryRouter>,
+      ).container,
+    ).toBeInTheDocument();
     expect(
       render(<PageStatus>Wait</PageStatus>).getByText("Wait"),
     ).toBeInTheDocument();

@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useCpuCooler } from "@/hooks/use-cpu-coolers.ts";
+import { enumText, ui } from "@/i18n/translate-enum";
 import {
   useCatalogManufacturers,
   useCatalogSockets,
@@ -36,21 +37,17 @@ function BasicInfoTable({ cooler }: Readonly<{ cooler: CpuCoolerDetail }>) {
   return (
     <div>
       <div className="catalog-detail-title">
-        <h2>Basic Information</h2>
+        <h2>{ui.section("basicInformation")}</h2>
       </div>
       <Table>
         <TableBody>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Manufacturer
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("manufacturer")}</TableHead>
             <TableCell>{cooler.manufacturerName}</TableCell>
           </TableRow>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Type
-            </TableHead>
-            <TableCell>{cooler.type === "Air" ? "Air" : "Liquid"}</TableCell>
+            <TableHead className="table-stub" scope="row">{ui.label("type")}</TableHead>
+            <TableCell>{enumText.cpuCoolerType(cooler.type)}</TableCell>
           </TableRow>
         </TableBody>
       </Table>
@@ -62,32 +59,24 @@ function AirCoolerTable({ cooler }: Readonly<{ cooler: CpuCoolerDetail }>) {
   return (
     <div>
       <div className="catalog-detail-title">
-        <h2>Dimensions</h2>
+        <h2>{ui.section("dimensions")}</h2>
       </div>
       <Table>
         <TableBody>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Length (mm)
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("lengthMm")}</TableHead>
             <TableCell>{cooler.coolerLengthMm}</TableCell>
           </TableRow>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Width (mm)
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("widthMm")}</TableHead>
             <TableCell>{cooler.coolerWidthMm}</TableCell>
           </TableRow>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Height (mm)
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("heightMm")}</TableHead>
             <TableCell>{cooler.coolerHeightMm}</TableCell>
           </TableRow>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Max RAM height (mm)
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("maxRamHeightMm")}</TableHead>
             <TableCell>{cooler.maxRamHeightMm}</TableCell>
           </TableRow>
         </TableBody>
@@ -100,26 +89,20 @@ function WaterBlockTable({ cooler }: Readonly<{ cooler: CpuCoolerDetail }>) {
   return (
     <div>
       <div className="catalog-detail-title">
-        <h2>Water Block Dimensions</h2>
+        <h2>{ui.section("waterBlockDimensions")}</h2>
       </div>
       <Table>
         <TableBody>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Length (mm)
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("lengthMm")}</TableHead>
             <TableCell>{cooler.waterBlockLengthMm}</TableCell>
           </TableRow>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Width (mm)
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("widthMm")}</TableHead>
             <TableCell>{cooler.waterBlockWidthMm}</TableCell>
           </TableRow>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Height (mm)
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("heightMm")}</TableHead>
             <TableCell>{cooler.waterBlockHeightMm}</TableCell>
           </TableRow>
         </TableBody>
@@ -132,32 +115,24 @@ function RadiatorTable({ cooler }: Readonly<{ cooler: CpuCoolerDetail }>) {
   return (
     <div>
       <div className="catalog-detail-title">
-        <h2>Radiator Dimensions</h2>
+        <h2>{ui.section("radiatorDimensions")}</h2>
       </div>
       <Table>
         <TableBody>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Length (mm)
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("lengthMm")}</TableHead>
             <TableCell>{cooler.radiatorLengthMm}</TableCell>
           </TableRow>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Width (mm)
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("widthMm")}</TableHead>
             <TableCell>{cooler.radiatorWidthMm}</TableCell>
           </TableRow>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Height (mm)
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("heightMm")}</TableHead>
             <TableCell>{cooler.radiatorHeightMm}</TableCell>
           </TableRow>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Radiator class
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("radiatorClass")}</TableHead>
             <TableCell>
               {cooler.radiatorClass
                 ? formatRadiatorClass(cooler.radiatorClass)
@@ -174,32 +149,24 @@ function FansTable({ cooler }: Readonly<{ cooler: CpuCoolerDetail }>) {
   return (
     <div>
       <div className="catalog-detail-title">
-        <h2>Fans</h2>
+        <h2>{ui.section("fans")}</h2>
       </div>
       <Table>
         <TableBody>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Fan thickness (mm)
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("fanThicknessMm")}</TableHead>
             <TableCell>{cooler.fanThicknessMm ?? "—"}</TableCell>
           </TableRow>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Fan width (mm)
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("fanWidthMm")}</TableHead>
             <TableCell>{cooler.fanWidthMm}</TableCell>
           </TableRow>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Fan height (mm)
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("fanHeightMm")}</TableHead>
             <TableCell>{cooler.fanHeightMm}</TableCell>
           </TableRow>
           <TableRow>
-            <TableHead className="table-stub" scope="row">
-              Fan count
-            </TableHead>
+            <TableHead className="table-stub" scope="row">{ui.label("fanCount")}</TableHead>
             <TableCell>{cooler.fanCount}</TableCell>
           </TableRow>
         </TableBody>
@@ -231,15 +198,13 @@ function SocketTable({
   return (
     <div>
       <div className="catalog-detail-title">
-        <h2>Sockets</h2>
+        <h2>{ui.section("sockets")}</h2>
         {onEdit ? (
-          <Button type="button" onClick={onEdit}>
-            Edit sockets
-          </Button>
+          <Button type="button" onClick={onEdit}>{ui.action("editSockets")}</Button>
         ) : null}
       </div>
       {groups.length === 0 ? (
-        <p className="catalog-empty">No supported sockets.</p>
+        <p className="catalog-empty">{ui.empty("noSupportedSockets")}</p>
       ) : (
         <Table>
           <TableBody>
@@ -274,19 +239,19 @@ export function CpuCoolerDetailPage() {
   const sockets = useCatalogSockets();
 
   if (query.isPending) {
-    return <PageStatus>Loading CPU cooler…</PageStatus>;
+    return <PageStatus>{ui.empty("loading", { entity: ui.entity("cpuCooler") })}</PageStatus>;
   }
 
   if (query.isError || !cooler) {
     return (
       <section className="catalog-page">
         <p>
-          <Link to="/catalog/cpu-coolers">Back to CPU Coolers</Link>
+          <Link to="/catalog/cpu-coolers">{ui.empty("backTo", { entity: ui.nav("products.cpuCoolers") })}</Link>
         </p>
         <PageStatus>
           {query.isError
             ? parseApiError(query.error).message
-            : "CPU cooler not found."}
+            : ui.empty("cpuCoolerNotFound")}
         </PageStatus>
       </section>
     );
@@ -295,7 +260,7 @@ export function CpuCoolerDetailPage() {
   return (
     <section className="catalog-page">
       <p>
-        <Link to="/catalog/cpu-coolers">Back to CPU Coolers</Link>
+        <Link to="/catalog/cpu-coolers">{ui.empty("backTo", { entity: ui.nav("products.cpuCoolers") })}</Link>
       </p>
       <div className="catalog-detail-title">
         <h1>{cooler.name}</h1>
@@ -310,18 +275,18 @@ export function CpuCoolerDetailPage() {
               void navigate(builderHref(currentBuild.sourceId));
             }}
           >
-            Add to Build
+            {ui.action("addToBuild")}
           </Button>
         )}
         {isAdmin && (
           <Button type="button" onClick={() => setEditing(true)}>
-            Edit
+            {ui.action("edit")}
           </Button>
         )}
       </div>
       {editing ? (
         <CatalogEditDialog
-          title="Edit CPU cooler"
+          title={ui.dialog("editCpuCooler")}
           item={cpuCoolerListItem(cooler)}
           fields={CpuCoolerFields(manufacturers)}
           onClose={() => setEditing(false)}

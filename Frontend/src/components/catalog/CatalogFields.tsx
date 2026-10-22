@@ -3,15 +3,8 @@ import { toInteger } from "@/api/helper";
 import { DecimalInput } from "@/components/catalog/DecimalInput";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ChoiceSelect, emptyChoice } from "@/components/ChoiceSelect";
+import { ui } from "@/i18n/translate-enum";
 
 type Named = { id: string; name: string };
 type IdOption = { id: string; name: string };
@@ -26,10 +19,10 @@ export type CatalogField<T> = {
 
 export function nameField<T extends Named>(): CatalogField<T> {
   return {
-    label: "Name",
+    label: ui.label("name"),
     control: (item, update) => (
       <Input
-        aria-label={`Name for ${item.name}`}
+        aria-label={ui.message("fieldFor", { field: ui.label("name"), name: item.name })}
         value={item.name}
         onChange={(event) => update({ ...item, name: event.target.value })}
       />
@@ -37,7 +30,7 @@ export function nameField<T extends Named>(): CatalogField<T> {
   };
 }
 
-const emptyOption = "__blank__";
+const emptyOption = emptyChoice;
 
 export function idSelectField<T extends Named>(
   label: string,
@@ -55,35 +48,27 @@ export function idSelectField<T extends Named>(
         current !== "" && choices.some((option) => option.id === current);
       const showBlank = blankLabel != null || !known;
       return (
-        <Select
-          value={known ? current : emptyOption}
+        <ChoiceSelect
+          label={label}
+          ariaLabel={
+            item.name
+              ? ui.message("fieldFor", { field: label, name: item.name })
+              : label
+          }
+          value={known ? current : emptyChoice}
+          blankLabel={blankLabel}
+          showBlank={showBlank}
+          options={choices.map((option) => ({
+            value: option.id,
+            label: option.name,
+          }))}
           onValueChange={(next) =>
             update({
               ...item,
-              [field]: next === emptyOption ? "" : next,
+              [field]: next === emptyChoice ? "" : next,
             } as T)
           }
-        >
-          <SelectTrigger
-            aria-label={item.name ? `${label} for ${item.name}` : label}
-            className="w-full"
-          >
-            <SelectValue placeholder={blankLabel ?? ""} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>{label}</SelectLabel>
-              {showBlank ? (
-                <SelectItem value={emptyOption}>{blankLabel ?? ""}</SelectItem>
-              ) : null}
-              {choices.map((option) => (
-                <SelectItem key={option.id} value={option.id}>
-                  {option.name}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+        />
       );
     },
   };
@@ -112,8 +97,20 @@ export function enumSelectField<T extends Named, V extends string | number>(
         values.some((entry) => String(entry) === currentValue);
       const showBlank = options?.empty != null || !known;
       return (
-        <Select
+        <ChoiceSelect
+          label={label}
+          ariaLabel={
+            item.name
+              ? ui.message("fieldFor", { field: label, name: item.name })
+              : label
+          }
           value={known ? currentValue : emptyOption}
+          blankLabel={options?.emptyLabel}
+          showBlank={showBlank}
+          options={values.map((entry) => ({
+            value: String(entry),
+            label: options?.label ? options.label(entry) : String(entry),
+          }))}
           onValueChange={(next) => {
             if (next === emptyOption) {
               update({
@@ -125,29 +122,7 @@ export function enumSelectField<T extends Named, V extends string | number>(
             const match = values.find((entry) => String(entry) === next);
             update({ ...item, [field]: match ?? next } as T);
           }}
-        >
-          <SelectTrigger
-            aria-label={item.name ? `${label} for ${item.name}` : label}
-            className="w-full"
-          >
-            <SelectValue placeholder={options?.emptyLabel ?? ""} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>{label}</SelectLabel>
-              {showBlank ? (
-                <SelectItem value={emptyOption}>
-                  {options?.emptyLabel ?? ""}
-                </SelectItem>
-              ) : null}
-              {values.map((entry) => (
-                <SelectItem key={String(entry)} value={String(entry)}>
-                  {options?.label ? options.label(entry) : String(entry)}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+        />
       );
     },
   };
@@ -172,7 +147,7 @@ export function numberField<T extends Named>(
       const current = item[field] as number | null | undefined;
       return (
         <Input
-          aria-label={`${label} for ${item.name}`}
+          aria-label={ui.message("fieldFor", { field: label, name: item.name })}
           type={options.type}
           min={options.min}
           value={current == null ? "" : String(current)}
@@ -216,7 +191,7 @@ export function optionalNumberField<T extends Named>(
     half: true,
     control: (item, update) => (
       <DecimalInput
-        label={item.name ? `${label} for ${item.name}` : label}
+        label={item.name ? ui.message("fieldFor", { field: label, name: item.name }) : label}
         value={item[field] as number | null | undefined}
         onValue={(next) => update({ ...item, [field]: next } as T)}
       />

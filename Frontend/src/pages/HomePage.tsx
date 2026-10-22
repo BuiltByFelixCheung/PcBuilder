@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ui } from "@/i18n/translate-enum";
 
 export function HomePage() {
   const { isAdmin } = useAuth();
@@ -15,36 +16,29 @@ export function HomePage() {
   return (
     <section className="catalog-page">
       <h1>PC Builder</h1>
-      <p className="catalog-lead">
-        Pick parts, check compatibility, and save a build. Public builds show up
-        on Browse Builds; private ones stay on My builds.
-      </p>
+      <p className="catalog-lead">{ui.message("homeLead")}</p>
       <div className="browse-builds-grid">
         {isAdmin ? null : (
           <>
             <Card className="browse-builds-card">
               <CardHeader>
-                <CardTitle>Start a build</CardTitle>
-                <CardDescription>
-                  Open the builder and add parts one slot at a time.
-                </CardDescription>
+                <CardTitle>{ui.page("startABuild")}</CardTitle>
+                <CardDescription>{ui.message("startBuildDescription")}</CardDescription>
               </CardHeader>
               <CardFooter>
                 <Button asChild variant="outline" size="sm">
-                  <Link to="/builds/current">Open builder</Link>
+                  <Link to="/builds/current">{ui.action("openBuilder")}</Link>
                 </Button>
               </CardFooter>
             </Card>
             <Card className="browse-builds-card">
               <CardHeader>
-                <CardTitle>Browse builds</CardTitle>
-                <CardDescription>
-                  See public builds other members have shared.
-                </CardDescription>
+                <CardTitle>{ui.page("browseBuilds")}</CardTitle>
+                <CardDescription>{ui.message("browseBuildsDescription")}</CardDescription>
               </CardHeader>
               <CardFooter>
                 <Button asChild variant="outline" size="sm">
-                  <Link to="/builds">View public builds</Link>
+                  <Link to="/builds">{ui.action("viewPublicBuilds")}</Link>
                 </Button>
               </CardFooter>
             </Card>
@@ -52,14 +46,12 @@ export function HomePage() {
         )}
         <Card className="browse-builds-card">
           <CardHeader>
-            <CardTitle>Parts catalog</CardTitle>
-            <CardDescription>
-              Chassis, CPUs, GPUs, and the rest of the inventory.
-            </CardDescription>
+            <CardTitle>{ui.page("partsCatalog")}</CardTitle>
+            <CardDescription>{ui.message("partsCatalogDescription")}</CardDescription>
           </CardHeader>
           <CardFooter>
             <Button asChild variant="outline" size="sm">
-              <Link to="/catalog/chassis">Browse chassis</Link>
+              <Link to="/catalog/chassis">{ui.action("browseChassis")}</Link>
             </Button>
           </CardFooter>
         </Card>

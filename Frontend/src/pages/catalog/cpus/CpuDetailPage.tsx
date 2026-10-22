@@ -17,6 +17,7 @@ import { useAuth } from "@/auth/use-auth";
 import { useState } from "react";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
 import { ChildCollectionDialog } from "@/components/catalog/ChildCollectionDialog";
+import { enumText, ui } from "@/i18n/translate-enum";
 import {
   cpuKeys,
   updateCpu,
@@ -56,19 +57,19 @@ export function CpuDetailPage() {
   const chipsets = chipsetsQuery.data ?? [];
 
   if (query.isPending) {
-    return <PageStatus>Loading CPU…</PageStatus>;
+    return <PageStatus>{ui.empty("loading", { entity: ui.entity("cpu") })}</PageStatus>;
   }
 
   if (query.isError || !cpu) {
     return (
       <section className="catalog-page">
         <p>
-          <Link to="/catalog/cpus">Back to CPUs</Link>
+          <Link to="/catalog/cpus">{ui.empty("backTo", { entity: ui.nav("products.cpus") })}</Link>
         </p>
         <PageStatus>
           {query.isError
             ? parseApiError(query.error).message
-            : "CPU not found."}
+            : ui.empty("cpuNotFound")}
         </PageStatus>
       </section>
     );
@@ -77,7 +78,7 @@ export function CpuDetailPage() {
   return (
     <section className="catalog-page">
       <p>
-        <Link to="/catalog/cpus">Back to CPUs</Link>
+        <Link to="/catalog/cpus">{ui.empty("backTo", { entity: ui.nav("products.cpus") })}</Link>
       </p>
       <div className="catalog-detail-title">
         <h1>{cpu.name}</h1>
@@ -89,18 +90,18 @@ export function CpuDetailPage() {
               navigate(builderHref(currentBuild.sourceId));
             }}
           >
-            Add to Build
+            {ui.action("addToBuild")}
           </Button>
         )}
         {isAdmin && (
           <Button type="button" onClick={() => setEditing(true)}>
-            Edit
+            {ui.action("edit")}
           </Button>
         )}
       </div>
       {editing ? (
         <CatalogEditDialog
-          title="Edit CPU"
+          title={ui.dialog("editCpu")}
           item={cpuListItem(cpu)}
           fields={CpuFields(manufacturers, series, sockets)}
           onClose={() => setEditing(false)}
@@ -114,7 +115,7 @@ export function CpuDetailPage() {
       ) : null}
       {editingRam ? (
         <ChildCollectionDialog<CpuRamCompat>
-          title="Edit RAM compatibility"
+          title={ui.dialog("editRamCompatibility")}
           rows={cpu.ramCompats}
           columns={ramCompatColumns}
           createRow={() => ({
@@ -134,7 +135,7 @@ export function CpuDetailPage() {
       ) : null}
       {editingChipsets ? (
         <ChildCollectionDialog<CpuSupportChipset>
-          title="Edit supported chipsets"
+          title={ui.dialog("editSupportedChipsets")}
           rows={cpu.supportChipsets}
           columns={supportChipsetColumns(
             chipsetOptions(chipsets, cpu.supportChipsets, cpu.manufacturerId),
@@ -161,58 +162,42 @@ export function CpuDetailPage() {
       <div className="catalog-table-pair">
         <div>
           <div className="catalog-detail-subtitle">
-            <h2>Basic information</h2>
+            <h2>{ui.section("basicInformation")}</h2>
           </div>
           <Table>
             <TableBody>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Manufacturer
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("manufacturer")}</TableHead>
                 <TableCell>{cpu.manufacturerName}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Series
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("series")}</TableHead>
                 <TableCell>{cpu.seriesName}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Socket
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("socket")}</TableHead>
                 <TableCell>{cpu.socketName}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Max memory
-                </TableHead>
-                <TableCell>{cpu.maxMemoryGb} GB</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("maxMemory")}</TableHead>
+                <TableCell>{cpu.maxMemoryGb} {ui.unit("gb")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  TDP
-                </TableHead>
-                <TableCell>{cpu.thermalDesignPower} W</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("tdp")}</TableHead>
+                <TableCell>{cpu.thermalDesignPower} {ui.unit("watts")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Power
-                </TableHead>
-                <TableCell>{cpu.powerConsumptionWatts} W</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("power")}</TableHead>
+                <TableCell>{cpu.powerConsumptionWatts} {ui.unit("watts")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Integrated graphics
-                </TableHead>
-                <TableCell>{cpu.integratedGraphics ? "Yes" : "No"}</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("integratedGraphics")}</TableHead>
+                <TableCell>{cpu.integratedGraphics ? ui.label("yes") : ui.label("no")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Stock cooler
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("stockCooler")}</TableHead>
                 <TableCell>
-                  {cpu.includedStockCooler ? "Included" : "Not included"}
+                  {cpu.includedStockCooler ? ui.label("included") : ui.label("notIncluded")}
                 </TableCell>
               </TableRow>
             </TableBody>
@@ -220,15 +205,15 @@ export function CpuDetailPage() {
         </div>
         <div>
           <div className="catalog-detail-subtitle">
-            <h2>RAM compatibility</h2>
+            <h2>{ui.section("ramCompatibility")}</h2>
             {isAdmin && (
               <Button type="button" onClick={() => setEditingRam(true)}>
-                Edit RAM
+                {ui.action("editRam")}
               </Button>
             )}
           </div>
           {cpu.ramCompats.length === 0 ? (
-            <p>No RAM compatibility entries.</p>
+            <p>{ui.empty("noRamCompatibility")}</p>
           ) : (
             <Table>
               <TableBody>
@@ -237,21 +222,26 @@ export function CpuDetailPage() {
                     key={`${compat.ddrGeneration}-${compat.ramModuleCount}-${compat.ramRank}`}
                   >
                     <TableHead className="table-stub" scope="row">
-                      <span>{compat.ddrGeneration.replace("Ddr", "DDR")}</span>{" "}
-                      {compat.ramRank === "DualRank" ? "Dual" : "Single"} X{" "}
+                      <span>{enumText.ddrGeneration(compat.ddrGeneration)}</span>{" "}
+                      {enumText.ramRank(compat.ramRank)} X{" "}
                       {compat.ramModuleCount}
                     </TableHead>
-                    <TableCell>Max {compat.maxSpeedMts} MT/s</TableCell>
+                    <TableCell>
+                      {ui.message("maxSpeedValue", {
+                        speed: compat.maxSpeedMts,
+                        unit: ui.unit("mtS"),
+                      })}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           )}
           <div className="catalog-detail-subtitle">
-            <h2>Supported chipsets</h2>
+            <h2>{ui.section("supportedChipsets")}</h2>
             {isAdmin && (
               <Button type="button" onClick={() => setEditingChipsets(true)}>
-                Edit chipsets
+                {ui.action("editChipsets")}
               </Button>
             )}
           </div>
@@ -266,7 +256,7 @@ export function CpuDetailPage() {
           </p>
           <br />
           <p>
-            <b>Note:</b> * indicates that the chipset requires a BIOS update.
+            <b>{ui.label("note")}</b> {ui.message("biosUpdateNote")}
           </p>
         </div>
       </div>

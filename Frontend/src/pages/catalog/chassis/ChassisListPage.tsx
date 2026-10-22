@@ -26,7 +26,7 @@ import {
   emptyChassisFilter,
 } from "@/api/catalog/params/chassis-list-params";
 import { MB_FORM_FACTORS } from "@/api/enums";
-import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { CatalogListResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importChassis } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
@@ -39,6 +39,7 @@ import {
 import { BulkEditDialog } from "@/components/BulkEditDialog";
 import { ChassisEditColumns } from "@/pages/catalog/chassis/ChassisEditColumns";
 import { useQueryClient } from "@tanstack/react-query";
+import { enumText, ui } from "@/i18n/translate-enum";
 
 const EMPTY_ITEMS: ChassisListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -67,23 +68,23 @@ export function ChassisListPage() {
           isAdmin,
           (id) => `/catalog/chassis/${id}`,
         ),
-        columnHelper.accessor("lengthMm", { header: "Length (mm)" }),
-        columnHelper.accessor("widthMm", { header: "Width (mm)" }),
-        columnHelper.accessor("heightMm", { header: "Height (mm)" }),
+        columnHelper.accessor("lengthMm", { header: ui.header("lengthMm") }),
+        columnHelper.accessor("widthMm", { header: ui.header("widthMm") }),
+        columnHelper.accessor("heightMm", { header: ui.header("heightMm") }),
         columnHelper.accessor("motherboardMaxWidthMm", {
-          header: "Motherboard Max Width (mm)",
+          header: ui.header("motherboardMaxWidthMm"),
         }),
         columnHelper.accessor("motherboardMaxHeightMm", {
-          header: "Motherboard Max Height (mm)",
+          header: ui.header("motherboardMaxHeightMm"),
         }),
         columnHelper.accessor("maxCpuCoolerHeightMm", {
-          header: "Max CPU Cooler Height (mm)",
+          header: ui.header("maxCpuCoolerHeightMm"),
         }),
         columnHelper.accessor("maxGraphicsCardLengthMm", {
-          header: "Max Graphics Card Length (mm)",
+          header: ui.header("maxGraphicsCardLengthMm"),
         }),
         columnHelper.accessor("maxPsuLengthMm", {
-          header: "Max PSU Length (mm)",
+          header: ui.header("maxPsuLengthMm"),
         }),
       ]),
     [isAdmin],
@@ -94,8 +95,8 @@ export function ChassisListPage() {
     rowSelection,
     setRowSelection,
     queryKey: chassisKeys.all,
-    singular: "chassis",
-    plural: "chassis",
+    singular: ui.label("nChassis"),
+    plural: ui.label("nChassis"),
     deleteByIds: (ids) => deleteChassis({ ids }),
   });
   const excelImport = useExcelImport({
@@ -139,10 +140,8 @@ export function ChassisListPage() {
 
   return (
     <section className="catalog-page">
-      <h1>Chassis</h1>
-      <p className="catalog-lead">
-        Browse the catalog, then apply filters when you need a narrower set.
-      </p>
+      <h1>{ui.nav("products.chassis")}</h1>
+      <p className="catalog-lead">{ui.message("browseCatalogLead")}</p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <CatalogFilterGroup>
@@ -153,7 +152,7 @@ export function ChassisListPage() {
             />
             <CatalogIdSelectField
               id="chassis-manufacturer"
-              label="Manufacturer"
+              label={ui.label("manufacturer")}
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
@@ -161,12 +160,12 @@ export function ChassisListPage() {
               }
             />
             <Field>
-              <FieldLabel htmlFor="chassis-length-min">Length (mm)</FieldLabel>
+              <FieldLabel htmlFor="chassis-length-min">{ui.label("lengthMm")}</FieldLabel>
               <div className="flex gap-2">
                 <DecimalInput
                   id="chassis-length-min"
-                  label="Length min"
-                  placeholder="Min"
+                  label={ui.label("lengthMin")}
+                  placeholder={ui.label("min")}
                   value={draft.lengthMm?.min}
                   onValue={(min) =>
                     setDraft((current) => ({
@@ -180,8 +179,8 @@ export function ChassisListPage() {
                 />
                 <DecimalInput
                   id="chassis-length-max"
-                  label="Length max"
-                  placeholder="Max"
+                  label={ui.label("lengthMax")}
+                  placeholder={ui.label("max")}
                   value={draft.lengthMm?.max}
                   onValue={(max) =>
                     setDraft((current) => ({
@@ -196,12 +195,12 @@ export function ChassisListPage() {
               </div>
             </Field>
             <Field>
-              <FieldLabel htmlFor="chassis-width-min">Width (mm)</FieldLabel>
+              <FieldLabel htmlFor="chassis-width-min">{ui.label("widthMm")}</FieldLabel>
               <div className="flex gap-2">
                 <DecimalInput
                   id="chassis-width-min"
-                  label="Width min"
-                  placeholder="Min"
+                  label={ui.label("widthMin")}
+                  placeholder={ui.label("min")}
                   value={draft.widthMm?.min}
                   onValue={(min) =>
                     setDraft((current) => ({
@@ -215,8 +214,8 @@ export function ChassisListPage() {
                 />
                 <DecimalInput
                   id="chassis-width-max"
-                  label="Width max"
-                  placeholder="Max"
+                  label={ui.label("widthMax")}
+                  placeholder={ui.label("max")}
                   value={draft.widthMm?.max}
                   onValue={(max) =>
                     setDraft((current) => ({
@@ -231,12 +230,12 @@ export function ChassisListPage() {
               </div>
             </Field>
             <Field>
-              <FieldLabel htmlFor="chassis-height-min">Height (mm)</FieldLabel>
+              <FieldLabel htmlFor="chassis-height-min">{ui.label("heightMm")}</FieldLabel>
               <div className="flex gap-2">
                 <DecimalInput
                   id="chassis-height-min"
-                  label="Height min"
-                  placeholder="Min"
+                  label={ui.label("heightMin")}
+                  placeholder={ui.label("min")}
                   value={draft.heightMm?.min}
                   onValue={(min) =>
                     setDraft((current) => ({
@@ -250,8 +249,8 @@ export function ChassisListPage() {
                 />
                 <DecimalInput
                   id="chassis-height-max"
-                  label="Height max"
-                  placeholder="Max"
+                  label={ui.label("heightMax")}
+                  placeholder={ui.label("max")}
                   value={draft.heightMm?.max}
                   onValue={(max) =>
                     setDraft((current) => ({
@@ -266,14 +265,12 @@ export function ChassisListPage() {
               </div>
             </Field>
             <Field>
-              <FieldLabel htmlFor="chassis-motherboard-max-width-min">
-                Motherboard Max Width (mm)
-              </FieldLabel>
+              <FieldLabel htmlFor="chassis-motherboard-max-width-min">{ui.label("motherboardMaxWidthMm")}</FieldLabel>
               <div className="flex gap-2">
                 <DecimalInput
                   id="chassis-motherboard-max-width-min"
-                  label="Motherboard max width min"
-                  placeholder="Min"
+                  label={ui.label("motherboardMaxWidthMin")}
+                  placeholder={ui.label("min")}
                   value={draft.motherboardMaxWidthMm?.min}
                   onValue={(min) =>
                     setDraft((current) => ({
@@ -287,8 +284,8 @@ export function ChassisListPage() {
                 />
                 <DecimalInput
                   id="chassis-motherboard-max-width-max"
-                  label="Motherboard max width max"
-                  placeholder="Max"
+                  label={ui.label("motherboardMaxWidthMax")}
+                  placeholder={ui.label("max")}
                   value={draft.motherboardMaxWidthMm?.max}
                   onValue={(max) =>
                     setDraft((current) => ({
@@ -303,14 +300,12 @@ export function ChassisListPage() {
               </div>
             </Field>
             <Field>
-              <FieldLabel htmlFor="chassis-motherboard-max-height-min">
-                Motherboard Max Height (mm)
-              </FieldLabel>
+              <FieldLabel htmlFor="chassis-motherboard-max-height-min">{ui.label("motherboardMaxHeightMm")}</FieldLabel>
               <div className="flex gap-2">
                 <DecimalInput
                   id="chassis-motherboard-max-height-min"
-                  label="Motherboard max height min"
-                  placeholder="Min"
+                  label={ui.label("motherboardMaxHeightMin")}
+                  placeholder={ui.label("min")}
                   value={draft.motherboardMaxHeightMm?.min}
                   onValue={(min) =>
                     setDraft((current) => ({
@@ -324,8 +319,8 @@ export function ChassisListPage() {
                 />
                 <DecimalInput
                   id="chassis-motherboard-max-height-max"
-                  label="Motherboard max height max"
-                  placeholder="Max"
+                  label={ui.label("motherboardMaxHeightMax")}
+                  placeholder={ui.label("max")}
                   value={draft.motherboardMaxHeightMm?.max}
                   onValue={(max) =>
                     setDraft((current) => ({
@@ -340,14 +335,12 @@ export function ChassisListPage() {
               </div>
             </Field>
             <Field>
-              <FieldLabel htmlFor="chassis-max-cpu-cooler-height-min">
-                Max CPU Cooler Height (mm)
-              </FieldLabel>
+              <FieldLabel htmlFor="chassis-max-cpu-cooler-height-min">{ui.label("maxCpuCoolerHeightMm")}</FieldLabel>
               <div className="flex gap-2">
                 <DecimalInput
                   id="chassis-max-cpu-cooler-height-min"
-                  label="Max CPU cooler height min"
-                  placeholder="Min"
+                  label={ui.label("maxCpuCoolerHeightMin")}
+                  placeholder={ui.label("min")}
                   value={draft.maxCpuCoolerHeightMm?.min}
                   onValue={(min) =>
                     setDraft((current) => ({
@@ -361,8 +354,8 @@ export function ChassisListPage() {
                 />
                 <DecimalInput
                   id="chassis-max-cpu-cooler-height-max"
-                  label="Max CPU cooler height max"
-                  placeholder="Max"
+                  label={ui.label("maxCpuCoolerHeightMax")}
+                  placeholder={ui.label("max")}
                   value={draft.maxCpuCoolerHeightMm?.max}
                   onValue={(max) =>
                     setDraft((current) => ({
@@ -377,14 +370,12 @@ export function ChassisListPage() {
               </div>
             </Field>
             <Field>
-              <FieldLabel htmlFor="chassis-max-graphics-card-length-min">
-                Max Graphics Card Length (mm)
-              </FieldLabel>
+              <FieldLabel htmlFor="chassis-max-graphics-card-length-min">{ui.label("maxGraphicsCardLengthMm")}</FieldLabel>
               <div className="flex gap-2">
                 <DecimalInput
                   id="chassis-max-graphics-card-length-min"
-                  label="Max graphics card length min"
-                  placeholder="Min"
+                  label={ui.label("maxGraphicsCardLengthMin")}
+                  placeholder={ui.label("min")}
                   value={draft.maxGraphicsCardLengthMm?.min}
                   onValue={(min) =>
                     setDraft((current) => ({
@@ -398,8 +389,8 @@ export function ChassisListPage() {
                 />
                 <DecimalInput
                   id="chassis-max-graphics-card-length-max"
-                  label="Max graphics card length max"
-                  placeholder="Max"
+                  label={ui.label("maxGraphicsCardLengthMax")}
+                  placeholder={ui.label("max")}
                   value={draft.maxGraphicsCardLengthMm?.max}
                   onValue={(max) =>
                     setDraft((current) => ({
@@ -414,14 +405,12 @@ export function ChassisListPage() {
               </div>
             </Field>
             <Field>
-              <FieldLabel htmlFor="chassis-max-psu-length-min">
-                Max PSU Length (mm)
-              </FieldLabel>
+              <FieldLabel htmlFor="chassis-max-psu-length-min">{ui.label("maxPsuLengthMm")}</FieldLabel>
               <div className="flex gap-2">
                 <DecimalInput
                   id="chassis-max-psu-length-min"
-                  label="Max PSU length min"
-                  placeholder="Min"
+                  label={ui.label("maxPsuLengthMin")}
+                  placeholder={ui.label("min")}
                   value={draft.maxPsuLengthMm?.min}
                   onValue={(min) =>
                     setDraft((current) => ({
@@ -435,8 +424,8 @@ export function ChassisListPage() {
                 />
                 <DecimalInput
                   id="chassis-max-psu-length-max"
-                  label="Max PSU length max"
-                  placeholder="Max"
+                  label={ui.label("maxPsuLengthMax")}
+                  placeholder={ui.label("max")}
                   value={draft.maxPsuLengthMm?.max}
                   onValue={(max) =>
                     setDraft((current) => ({
@@ -451,7 +440,7 @@ export function ChassisListPage() {
               </div>
             </Field>
             <Field>
-              <FieldLabel>Supported MB Form Factors</FieldLabel>
+              <FieldLabel>{ui.label("supportedMbFormFactors")}</FieldLabel>
               <div className="flex flex-wrap gap-2">
                 {MB_FORM_FACTORS.map((formFactor) => {
                   const id = `chassis-mb-form-factor-${formFactor}`;
@@ -474,7 +463,7 @@ export function ChassisListPage() {
                           }))
                         }
                       />
-                      {formFactor}
+                      {enumText.mbFormFactor(formFactor)}
                     </label>
                   );
                 })}
@@ -483,36 +472,28 @@ export function ChassisListPage() {
           </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <CatalogPagedResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={items}
-            filtering={filtering}
-            loadingMessage="Loading chassis…"
-            emptyFilteredMessage="No chassis match these filters."
-            emptyMessage="No chassis in the catalog yet."
-            isAdmin={isAdmin}
-            newItemLabel="New Chassis"
-            newItemTo="/catalog/chassis/new"
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onEditSelected={startEditing}
-            onImport={excelImport.openImport}
-            pageIndex={pageIndex}
-            pageCount={pageCount}
-            onPageChange={goToPage}
-          />
-        </div>
+        <CatalogListResults
+          entity="chassis"
+          query={query}
+          items={items}
+          filtering={filtering}
+          columns={columns}
+          isAdmin={isAdmin}
+          newItemLabel={ui.action("newChassis")}
+          newItemTo="/catalog/chassis/new"
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onImport={excelImport.openImport}
+          onEditSelected={startEditing}
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          onPageChange={goToPage}
+        />
       </div>
       {editRows ? (
         <BulkEditDialog
-          title="Edit Chassis"
+          title={ui.dialog("editChassis")}
           rows={editRows}
           columns={ChassisEditColumns(manufacturers)}
           onClose={() => setEditRows(null)}

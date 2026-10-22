@@ -23,7 +23,7 @@ public static class ChassisMotherboardCompatibility
         if (formFactors.Count == 0)
             return board => false;
 
-        return CompatibilityExpression.Bind(
+        return CompatibilityExpression.Bind<Motherboard>(
             Body,
             formFactors,
             chassis.MotherboardMaxHeightMm,
@@ -108,7 +108,11 @@ public static class ChassisGraphicsCardCompatibility
     public static Expression<Func<GraphicsCard, bool>> Filter(Chassis chassis)
     {
         var (lowProfile, fullHeight) = SlotCapacity(chassis);
-        return CompatibilityExpression.Bind(Body, chassis.MaxGraphicsCardLengthMm, lowProfile, fullHeight);
+        return CompatibilityExpression.Bind<GraphicsCard>(
+            Body,
+            chassis.MaxGraphicsCardLengthMm,
+            lowProfile,
+            fullHeight);
     }
 
     private static (int LowProfile, int FullHeight) SlotCapacity(Chassis chassis) =>

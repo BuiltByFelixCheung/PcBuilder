@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ui } from "@/i18n/translate-enum";
 
 const excelAccept =
   ".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -65,7 +66,7 @@ export function ImportExcelDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Import from Excel</DialogTitle>
+          <DialogTitle>{ui.action("importFromExcel")}</DialogTitle>
         </DialogHeader>
         <input
           id={inputId}
@@ -73,7 +74,7 @@ export function ImportExcelDialog({
           className="sr-only"
           type="file"
           accept={excelAccept}
-          aria-label="Excel file"
+          aria-label={ui.label("excelFile")}
           onChange={(event) => onFileChange(event.target.files?.[0] ?? null)}
         />
         <Attachment state={state} className="w-full">
@@ -82,16 +83,16 @@ export function ImportExcelDialog({
           </AttachmentMedia>
           <AttachmentContent>
             <AttachmentTitle>
-              {fileName ?? "Choose an Excel file"}
+              {fileName ?? ui.label("chooseExcelFile")}
             </AttachmentTitle>
             <AttachmentDescription role={error ? "alert" : undefined}>
-              {error ?? (fileName ? "Excel workbook" : ".xls or .xlsx")}
+              {error ?? (fileName ? ui.label("excelWorkbook") : ui.label("excelExtensions"))}
             </AttachmentDescription>
           </AttachmentContent>
           {fileName ? (
             <AttachmentActions>
               <AttachmentAction
-                aria-label={`Remove ${fileName}`}
+                aria-label={ui.message("removeNamed", { name: fileName })}
                 disabled={importing}
                 onClick={clearFile}
               >
@@ -104,7 +105,7 @@ export function ImportExcelDialog({
               <label
                 htmlFor={inputId}
                 aria-label={
-                  fileName ? `Replace ${fileName}` : "Choose an Excel file"
+                  fileName ? ui.message("replaceNamed", { name: fileName }) : ui.label("chooseExcelFile")
                 }
               />
             </AttachmentTrigger>
@@ -116,7 +117,7 @@ export function ImportExcelDialog({
             disabled={fileName === null || importing}
             onClick={onImport}
           >
-            {importing ? "Importing…" : "Import"}
+            {importing ? ui.action("importing") : ui.action("import")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { ui } from "@/i18n/translate-enum";
 
 export function Authenticated({
   user,
@@ -15,8 +16,8 @@ export function Authenticated({
     <>
       <span className="nav-user">
         {user?.userName}
-        {isAdmin ? <span className="role-pill">Admin</span> : null}
-        {isMember ? <span className="role-pill">Member</span> : null}
+        {isAdmin ? <span className="role-pill">{ui.label("admin")}</span> : null}
+        {isMember ? <span className="role-pill">{ui.label("member")}</span> : null}
       </span>
       <NavLink
         to="/account"
@@ -24,14 +25,14 @@ export function Authenticated({
           isActive ? "nav-link active" : "nav-link"
         }
       >
-        Account
+        {ui.nav("account")}
       </NavLink>
       <button
         type="button"
         className="nav-link nav-button"
         onClick={() => void handleLogout()}
       >
-        Sign out
+        {ui.action("signOut")}
       </button>
     </>
   );

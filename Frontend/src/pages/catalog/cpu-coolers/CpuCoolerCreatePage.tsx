@@ -25,6 +25,7 @@ import {
 } from "@/pages/catalog/cpu-coolers/CpuCoolerEditColumns";
 import { Card, CardTitle, CardContent, CardHeader } from "@/components/ui/card";
 import { SocketCheckboxGroup } from "@/pages/catalog/cpu-coolers/SocketCheckboxGroup";
+import { ui } from "@/i18n/translate-enum";
 
 const emptyCooler = unsetCatalogItem<CpuCoolerListItem>({
   id: "",
@@ -58,9 +59,9 @@ export function CpuCoolerCreatePage() {
 
   return (
     <CatalogCreateForm
-      title="New CPU cooler"
+      title={ui.dialog("newCpuCooler")}
       backTo="/catalog/cpu-coolers"
-      backLabel="Back to CPU coolers"
+      backLabel={ui.empty("backTo", { entity: ui.nav("products.cpuCoolers") })}
       saving={saving}
       error={error}
       onSubmit={() =>
@@ -84,7 +85,7 @@ export function CpuCoolerCreatePage() {
         <div className="catalog-create-column">
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle>{ui.section("basicInformation")}</CardTitle>
             </CardHeader>
             <CardContent>
               <CatalogScalarFields
@@ -96,7 +97,7 @@ export function CpuCoolerCreatePage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Fans</CardTitle>
+              <CardTitle>{ui.section("fans")}</CardTitle>
             </CardHeader>
             <CardContent>
               <CatalogScalarFields
@@ -111,7 +112,7 @@ export function CpuCoolerCreatePage() {
           {item.type === "Air" && (
             <Card>
               <CardHeader>
-                <CardTitle>Dimensions</CardTitle>
+                <CardTitle>{ui.section("dimensions")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <CatalogScalarFields
@@ -126,7 +127,7 @@ export function CpuCoolerCreatePage() {
             <>
               <Card>
                 <CardHeader>
-                  <CardTitle>Water block</CardTitle>
+                  <CardTitle>{ui.label("waterBlock")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CatalogScalarFields
@@ -138,7 +139,7 @@ export function CpuCoolerCreatePage() {
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle>Radiator</CardTitle>
+                  <CardTitle>{ui.label("radiator")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CatalogScalarFields
@@ -153,7 +154,7 @@ export function CpuCoolerCreatePage() {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Sockets</CardTitle>
+            <CardTitle>{ui.section("sockets")}</CardTitle>
           </CardHeader>
           <CardContent>
             <SocketCheckboxGroup

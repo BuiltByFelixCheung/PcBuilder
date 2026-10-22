@@ -9,6 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ui } from "@/i18n/translate-enum";
 
 type ManagementActionsProps = {
   hasSelection: boolean;
@@ -33,13 +34,15 @@ export function ManagementActions({
   newItemTo,
   onNewItem,
 }: Readonly<ManagementActionsProps>) {
-  const deleteLabel = deleting ? "Deleting…" : "Delete Selected";
+  const deleteLabel = deleting
+    ? ui.action("deleting")
+    : ui.action("deleteSelected");
 
   return (
     <TooltipProvider>
       <div className="catalog-results-actions">
         <ManagementButton
-          label="Edit Selected"
+          label={ui.action("editSelected")}
           icon={Pencil}
           disabled={!hasSelection || !onEditSelected}
           onClick={onEditSelected}
@@ -57,7 +60,11 @@ export function ManagementActions({
           onClick={onNewItem}
         />
         {showImport && onImport ? (
-          <ManagementButton label="Import" icon={FileUp} onClick={onImport} />
+          <ManagementButton
+            label={ui.action("import")}
+            icon={FileUp}
+            onClick={onImport}
+          />
         ) : null}
       </div>
     </TooltipProvider>

@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/card";
 import { useOwnBuilds } from "@/hooks/use-own-builds";
 import { selectedVisibleIds, useBulkDelete } from "@/hooks/use-bulk-delete";
+import { ui } from "@/i18n/translate-enum";
 
 const EMPTY_ITEMS: never[] = [];
 
@@ -44,8 +45,8 @@ export function ManageBuildsPage() {
     rowSelection,
     setRowSelection,
     queryKey: pcBuildKeys.lists(),
-    singular: "build",
-    plural: "builds",
+    singular: ui.label("nBuild"),
+    plural: ui.label("nBuilds"),
     deleteByIds: (ids) => deletePcBuilds({ ids }),
   });
   const hasSelection = selectedVisibleIds(rowSelection, items).length > 0;
@@ -66,12 +67,10 @@ export function ManageBuildsPage() {
 
   return (
     <section className="catalog-page">
-      <h1>My Builds</h1>
-      <p className="catalog-lead">
-        Your saved PC builds. Edit or delete them as needed.
-      </p>
+      <h1>{ui.page("myBuilds")}</h1>
+      <p className="catalog-lead">{ui.message("myBuildsLead")}</p>
 
-      {isInitialLoading ? <PageStatus>Loading builds…</PageStatus> : null}
+      {isInitialLoading ? <PageStatus>{ui.empty("loading", { entity: ui.entity("builds") })}</PageStatus> : null}
 
       {query.isError ? (
         <PageStatus>{parseApiError(query.error).message}</PageStatus>
@@ -79,7 +78,7 @@ export function ManageBuildsPage() {
 
       {!isInitialLoading && !query.isError && items.length === 0 ? (
         <PageStatus>
-          No public builds yet. <Link to="/builds/current">Start a build</Link>
+          {ui.empty("noPublicBuildsStart")} <Link to="/builds/current">{ui.action("startABuild")}</Link>
         </PageStatus>
       ) : null}
 
@@ -93,7 +92,7 @@ export function ManageBuildsPage() {
               disabled={!hasSelection || bulkDelete.isDeleting}
               onClick={() => void bulkDelete.onDeleteSelected()}
             >
-              {bulkDelete.isDeleting ? "Deleting…" : "Delete selected"}
+              {bulkDelete.isDeleting ? ui.action("deleting") : ui.action("deleteSelectedLower")}
             </Button>
             {bulkDelete.deleteError ? (
               <p className="text-sm text-destructive">{bulkDelete.deleteError}</p>
@@ -107,11 +106,11 @@ export function ManageBuildsPage() {
                     <Link to={builderHref(build.id)}>{build.name}</Link>
                   </CardTitle>
                   <CardDescription>
-                    {build.description?.trim() || "No description."}
+                    {build.description?.trim() || ui.label("noDescription")}
                   </CardDescription>
                   <CardAction>
                     <Checkbox
-                      aria-label={`Select ${build.name}`}
+                      aria-label={ui.message("selectNamed", { name: build.name })}
                       checked={Boolean(rowSelection[build.id])}
                       onCheckedChange={(checked) =>
                         setRowSelection((current) => {
@@ -128,7 +127,7 @@ export function ManageBuildsPage() {
                 </CardHeader>
                 <CardFooter className="gap-2">
                   <Button asChild variant="outline" size="sm">
-                    <Link to={builderHref(build.id)}>Edit build</Link>
+                    <Link to={builderHref(build.id)}>{ui.action("editBuild")}</Link>
                   </Button>
                   <Button
                     type="button"
@@ -137,7 +136,7 @@ export function ManageBuildsPage() {
                     disabled={deleteMutation.isPending}
                     onClick={() => deleteMutation.mutate(build.id)}
                   >
-                    Delete build
+                    {ui.action("deleteBuild")}
                   </Button>
                 </CardFooter>
               </Card>

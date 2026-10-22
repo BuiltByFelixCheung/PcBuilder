@@ -36,7 +36,7 @@ import { usePcBuild } from "@/builds/use-pc-build";
 import { useAuth } from "@/auth/use-auth";
 import { unsetCatalogItem } from "@/components/catalog/catalog-create";
 import { CatalogCreateDialog } from "@/components/catalog/CatalogCreateDialog";
-import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { CatalogListResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importChassisFans } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
@@ -51,6 +51,7 @@ import {
 } from "@/components/catalog/CatalogFilterFields";
 import { useQueryClient } from "@tanstack/react-query";
 import { BulkEditDialog } from "@/components/BulkEditDialog";
+import { ui } from "@/i18n/translate-enum";
 import {
   ChassisFanEditColumns,
   ChassisFanFields,
@@ -88,8 +89,8 @@ export function ChassisFanListPage() {
     rowSelection,
     setRowSelection,
     queryKey: chassisFanKeys.all,
-    singular: "chassis fan",
-    plural: "chassis fans",
+    singular: ui.label("nChassisFan"),
+    plural: ui.label("nChassisFans"),
     deleteByIds: (ids) => deleteChassisFans({ ids }),
   });
   const excelImport = useExcelImport({
@@ -118,18 +119,18 @@ export function ChassisFanListPage() {
           (id) => `/catalog/chassis-fans/${id}`,
         ),
         columnHelper.accessor("diameterMm", {
-          header: "Diameter",
+          header: ui.header("diameter"),
           cell: (info) => formatFanDiameterMm(info.getValue()),
         }),
-        columnHelper.accessor("fansCountPerPack", { header: "Pack size" }),
-        columnHelper.accessor("thicknessMm", { header: "Thickness (mm)" }),
+        columnHelper.accessor("fansCountPerPack", { header: ui.header("packSize") }),
+        columnHelper.accessor("thicknessMm", { header: ui.header("thicknessMm") }),
         columnHelper.accessor("headerType", {
-          header: "Header",
+          header: ui.header("header"),
           cell: (info) => formatFanHeaderType(info.getValue()),
         }),
         columnHelper.accessor("supportsDaisyChain", {
-          header: "Daisy chain",
-          cell: (info) => (info.getValue() ? "Yes" : "No"),
+          header: ui.header("daisyChain"),
+          cell: (info) => (info.getValue() ? ui.label("yes") : ui.label("no")),
         }),
       ]),
     [isAdmin],
@@ -187,10 +188,8 @@ export function ChassisFanListPage() {
 
   return (
     <section className="catalog-page">
-      <h1>Chassis Fans</h1>
-      <p className="catalog-lead">
-        Browse the catalog, then apply filters when you need a narrower set.
-      </p>
+      <h1>{ui.nav("products.chassisFans")}</h1>
+      <p className="catalog-lead">{ui.message("browseCatalogLead")}</p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <CatalogFilterGroup>
@@ -205,7 +204,7 @@ export function ChassisFanListPage() {
             />
             <CatalogIdSelectField
               id="fan-manufacturer"
-              label="Manufacturer"
+              label={ui.label("manufacturer")}
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
@@ -217,7 +216,7 @@ export function ChassisFanListPage() {
             />
             <CatalogEnumField
               id="fan-diameter"
-              label="Diameter"
+              label={ui.label("diameter")}
               value={draft.diameterMm}
               options={FAN_DIAMETERS_MM}
               formatOption={formatFanDiameterMm}
@@ -226,7 +225,7 @@ export function ChassisFanListPage() {
               }
             />
             <Field>
-              <FieldLabel htmlFor="fan-pack">Fans per pack</FieldLabel>
+              <FieldLabel htmlFor="fan-pack">{ui.label("fansPerPack")}</FieldLabel>
               <Input
                 id="fan-pack"
                 type="number"
@@ -242,7 +241,7 @@ export function ChassisFanListPage() {
             </Field>
             <CatalogEnumField
               id="fan-header"
-              label="Header"
+              label={ui.label("header")}
               value={draft.headerType}
               options={FAN_HEADER_TYPES}
               formatOption={formatFanHeaderType}
@@ -252,7 +251,7 @@ export function ChassisFanListPage() {
             />
             <CatalogOptionalBooleanField
               id="fan-daisy-chain"
-              label="Daisy chain"
+              label={ui.label("daisyChain")}
               value={draft.supportsDaisyChain}
               onChange={(supportsDaisyChain) =>
                 setDraft((current) => ({ ...current, supportsDaisyChain }))
@@ -261,36 +260,28 @@ export function ChassisFanListPage() {
           </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <CatalogPagedResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={items}
-            filtering={filtering}
-            loadingMessage="Loading chassis fans…"
-            emptyFilteredMessage="No chassis fans match these filters."
-            emptyMessage="No chassis fans in the catalog yet."
-            isAdmin={isAdmin}
-            newItemLabel="New Chassis Fan"
-            onNewItem={() => setCreating(true)}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onEditSelected={startEditing}
-            onImport={excelImport.openImport}
-            pageIndex={pageIndex}
-            pageCount={pageCount}
-            onPageChange={goToPage}
-          />
-        </div>
+        <CatalogListResults
+          entity="chassisFans"
+          query={query}
+          items={items}
+          filtering={filtering}
+          columns={columns}
+          isAdmin={isAdmin}
+          newItemLabel={ui.action("newChassisFan")}
+          onNewItem={() => setCreating(true)}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onImport={excelImport.openImport}
+          onEditSelected={startEditing}
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          onPageChange={goToPage}
+        />
       </div>
       {creating ? (
         <CatalogCreateDialog
-          title="New chassis fan"
+          title={ui.dialog("newChassisFan")}
           item={emptyFan}
           fields={ChassisFanFields(manufacturers)}
           queryKey={chassisFanKeys.all}
@@ -301,7 +292,7 @@ export function ChassisFanListPage() {
       ) : null}
       {editRows ? (
         <BulkEditDialog
-          title="Edit Chassis Fans"
+          title={ui.dialog("editChassisFans")}
           rows={editRows}
           columns={ChassisFanEditColumns(manufacturers)}
           onClose={() => setEditRows(null)}

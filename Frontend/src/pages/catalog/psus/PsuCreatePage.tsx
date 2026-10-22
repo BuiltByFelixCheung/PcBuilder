@@ -19,6 +19,7 @@ import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers";
 import { PsuFields } from "@/pages/catalog/psus/PsuEditColumns";
 import { cableColumns } from "@/pages/catalog/psus/PsuChildColumns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ui } from "@/i18n/translate-enum";
 
 const emptyPsu = unsetCatalogItem<PsuListItem>({
   id: "",
@@ -41,9 +42,9 @@ export function PsuCreatePage() {
 
   return (
     <CatalogCreateForm
-      title="New PSU"
+      title={ui.dialog("newPsu")}
       backTo="/catalog/psus"
-      backLabel="Back to PSUs"
+      backLabel={ui.empty("backTo", { entity: ui.nav("products.psus") })}
       saving={saving}
       error={error}
       onSubmit={() =>
@@ -58,7 +59,7 @@ export function PsuCreatePage() {
       <div className="grid grid-cols-1 items-start gap-8 *:min-w-0 min-[1025px]:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
+            <CardTitle>{ui.section("basicInformation")}</CardTitle>
           </CardHeader>
           <CardContent>
             <CatalogScalarFields
@@ -69,7 +70,7 @@ export function PsuCreatePage() {
           </CardContent>
         </Card>
         <CatalogCollectionEditor
-          title="Cables"
+          title={ui.section("cables")}
           columns={cableColumns}
           rows={cables}
           onChange={setCables}

@@ -42,7 +42,8 @@ import {
   formSelectClassName,
   NameField,
 } from "@/components/filters/ListFilters";
-import { MasterDataResults } from "@/components/master-data/MasterDataResults";
+import { MasterDataListResults } from "@/components/master-data/MasterDataResults";
+import { ui } from "@/i18n/translate-enum";
 
 const EMPTY_ITEMS: SocketOption[] = [];
 const columnHelper = createColumnHelper<
@@ -60,23 +61,25 @@ function isSocketFilterActive(filter: SocketFilter) {
   return Boolean(filter.name || filter.manufacturerId);
 }
 
-const columns = columnHelper.columns([
+function listColumns() {
+  return columnHelper.columns([
   createSelectionColumn(columnHelper),
   columnHelper.accessor("name", {
-    header: "Name",
+    header: ui.header("name"),
     cell: (info) => (
       <Link to={socketEditPath(info.row.original.id)}>{info.getValue()}</Link>
     ),
   }),
-  columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
+  columnHelper.accessor("manufacturerName", { header: ui.header("manufacturer") }),
 ]);
+}
 
 function socketEditColumns(
   manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<SocketOption>[] {
   return [
     nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
+    idSelectBulkColumn(ui.label("manufacturer"), "manufacturerId", manufacturers),
   ];
 }
 
@@ -93,6 +96,7 @@ export function SocketListPage() {
   const [applied, setApplied] = useState<SocketFilter>(emptySocketFilter);
   const filtering = isSocketFilterActive(applied);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const columns = useMemo(() => listColumns(), []);
   const [editRows, setEditRows] = useState<SocketOption[] | null>(null);
   const manufacturers = useIdNameChoices(
     items,
@@ -108,8 +112,8 @@ export function SocketListPage() {
     rowSelection,
     setRowSelection,
     queryKey: masterDataKeys.sockets,
-    singular: "socket",
-    plural: "sockets",
+    singular: ui.label("nSocket"),
+    plural: ui.label("nSockets"),
     deleteByIds: (ids) => deleteSockets({ ids }),
   });
   const excelImport = useExcelImport({
@@ -134,10 +138,8 @@ export function SocketListPage() {
 
   return (
     <section className="catalog-page">
-      <h1>Sockets</h1>
-      <p className="catalog-lead">
-        Browse the master data, then apply filters when you need a narrower set.
-      </p>
+      <h1>{ui.nav("master.sockets")}</h1>
+      <p className="catalog-lead">{ui.message("browseMasterDataLead")}</p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <FieldGroup className="catalog-filter-grid">
@@ -147,9 +149,7 @@ export function SocketListPage() {
               onChange={(name) => setDraft((current) => ({ ...current, name }))}
             />
             <Field>
-              <FieldLabel htmlFor="socket-manufacturer">
-                Manufacturer
-              </FieldLabel>
+              <FieldLabel htmlFor="socket-manufacturer">{ui.label("manufacturer")}</FieldLabel>
               <select
                 id="socket-manufacturer"
                 className={formSelectClassName}
@@ -161,7 +161,7 @@ export function SocketListPage() {
                   }))
                 }
               >
-                <option value="">All</option>
+                <option value="">{ui.label("all")}</option>
                 {manufacturers.map((manufacturer) => (
                   <option key={manufacturer.id} value={manufacturer.id}>
                     {manufacturer.name}
@@ -172,32 +172,25 @@ export function SocketListPage() {
           </FieldGroup>
           <FilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <MasterDataResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={visibleItems}
-            filtering={filtering}
-            loadingMessage="Loading sockets…"
-            emptyFilteredMessage="No sockets match these filters."
-            emptyMessage="No sockets yet."
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onEditSelected={startEditing}
-            onImport={excelImport.openImport}
-            newItemTo={socketEditPath(newMasterDataEditValue)}
-            newItemLabel="New Socket"
-          />
-        </div>
+        <MasterDataListResults
+          entity="sockets"
+          empty="noneYet"
+          query={query}
+          items={visibleItems}
+          filtering={filtering}
+          columns={columns}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onEditSelected={startEditing}
+          onImport={excelImport.openImport}
+          newItemTo={socketEditPath(newMasterDataEditValue)}
+          newItemLabel={ui.action("newSocket")}
+        />
       </div>
       {editRows ? (
         <BulkEditDialog
-          title="Edit sockets"
+          title={ui.dialog("editSockets")}
           rows={editRows}
           columns={socketEditColumns(manufacturers)}
           onClose={() => setEditRows(null)}
@@ -210,10 +203,10 @@ export function SocketListPage() {
                   ?.name ?? row.manufacturerName,
             }));
             if (sockets.some((row) => row.name.length === 0)) {
-              throw new Error("Name is required.");
+              throw new Error(ui.message("nameRequired"));
             }
             if (sockets.some((row) => row.name.length > 200)) {
-              throw new Error("Name must not exceed 200 characters.");
+              throw new Error(ui.message("nameTooLong200"));
             }
             await updateSockets(sockets);
             await queryClient.invalidateQueries({

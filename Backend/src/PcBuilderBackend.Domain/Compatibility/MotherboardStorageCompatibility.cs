@@ -26,9 +26,9 @@ public static class MotherboardStorageCompatibility
         if (list.Count == 0)
             return PartsCompatibilityResult.Compatible();
 
-        foreach (var drive in list)
+        foreach (var formFactor in list.Select(drive => drive.FormFactor))
         {
-            if (ConsumesSataPortCompiled(drive.FormFactor) || StorageDriveCompatibility.IsM2Form(drive.FormFactor))
+            if (ConsumesSataPortCompiled(formFactor) || StorageDriveCompatibility.IsM2Form(formFactor))
                 continue;
 
             throw new ArgumentOutOfRangeException(nameof(drives), "Storage form factor is not recognized.");

@@ -28,6 +28,7 @@ import {
   RAM_RANKS,
   type DdrGeneration,
 } from "@/api/enums";
+import {enumText, ui} from "@/i18n/translate-enum";
 import { optionsForDdr } from "@/pages/catalog/memories/memory-ddr-options";
 import {
   Select,
@@ -63,7 +64,7 @@ function memoryNumberSelect(
 ) {
   const current = item[field];
   const known = options.includes(current);
-  const _blankLabel = emptyLabel ?? "Please Select...";
+  const _blankLabel = emptyLabel ?? ui.label("pleaseSelect");
   return (
     <Select
       value={known ? String(current) : emptyOption}
@@ -75,7 +76,7 @@ function memoryNumberSelect(
       }
     >
       <SelectTrigger
-        aria-label={`${label} for ${item.name}`}
+        aria-label={ui.message("fieldFor", { field: label, name: item.name })}
         className="w-full"
       >
         <SelectValue placeholder={emptyLabel} />
@@ -120,10 +121,10 @@ function memorySpeedSelect(
   update: (next: MemoryDetail) => void,
 ) {
   return memoryNumberSelect(
-    "Speed",
+    ui.label("speed"),
     "maxMemorySpeedMts",
     optionsForDdr(item.ddrGeneration, DDR4_SPEED_MT_S, DDR5_SPEED_MT_S),
-    "MT/s",
+    ui.unit("mtS"),
     item,
     update,
   );
@@ -134,7 +135,7 @@ function modulesCountSelect(
   update: (next: MemoryDetail) => void,
 ) {
   return memoryNumberSelect(
-    "Modules Count",
+    ui.label("modulesCount"),
     "modulesCount",
     MODULES_COUNT,
     "",
@@ -190,21 +191,21 @@ function ddrGenerationSelect(
     >
       <SelectTrigger
         aria-label={
-          row.name ? `DDR Generation for ${row.name}` : "DDR Generation"
+          row.name ? `${ui.label("ddrGeneration")} (${row.name})` : ui.label("ddrGeneration")
         }
         className="w-full"
       >
-        <SelectValue placeholder="DDR Generation" />
+        <SelectValue placeholder={ui.label("ddrGeneration")} />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <SelectLabel>DDR Generation</SelectLabel>
+          <SelectLabel>{ui.label("ddrGeneration")}</SelectLabel>
           {showBlank ? (
-            <SelectItem value={emptyOption}>Please Select...</SelectItem>
+            <SelectItem value={emptyOption}>{ui.label("pleaseSelect")}</SelectItem>
           ) : null}
           {DDR_GENERATIONS.map((generation) => (
             <SelectItem key={generation} value={generation}>
-              {generation}
+              {enumText.ddrGeneration(generation)}
             </SelectItem>
           ))}
         </SelectGroup>
@@ -218,28 +219,32 @@ export function MemoryEditColumns(
 ): BulkEditColumn<MemoryDetail>[] {
   return [
     nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
+    idSelectBulkColumn(ui.label("manufacturer"), "manufacturerId", manufacturers),
     {
-      header: "Color",
+      header: ui.header("color"),
       cell: (row, update) => (
         <Input
-          aria-label={`Color for ${row.name}`}
+          aria-label={ui.message("fieldFor", { field: ui.label("color"), name: row.name })}
           value={row.color}
           onChange={(event) => update({ ...row, color: event.target.value })}
         />
       ),
     },
     {
-      header: "DDR Generation",
+      header: ui.header("ddrGeneration"),
       cell: (row, update) => ddrGenerationSelect(row, update),
     },
-    enumSelectBulkColumn("RAM Form Factor", "ramFormFactor", RAM_FORM_FACTORS),
-    enumSelectBulkColumn("RAM Rank", "ramRank", RAM_RANKS),
+    enumSelectBulkColumn(ui.label("ramFormFactor"), "ramFormFactor", RAM_FORM_FACTORS, {
+      label: enumText.ramFormFactor,
+    }),
+    enumSelectBulkColumn(ui.label("ramRank"), "ramRank", RAM_RANKS, {
+      label: enumText.ramRank,
+    }),
     {
-      header: "Module Size",
+      header: ui.header("moduleSize"),
       cell: (row, update) =>
         memoryGbSelect(
-          "Module Size",
+          ui.label("moduleSize"),
           "memorySizePerStickGb",
           DDR4_MODULE_SIZE_GB,
           DDR5_MODULE_SIZE_GB,
@@ -248,10 +253,10 @@ export function MemoryEditColumns(
         ),
     },
     {
-      header: "Kit Size",
+      header: ui.header("kitSize"),
       cell: (row, update) =>
         memoryGbSelect(
-          "Kit Size",
+          ui.label("kitSize"),
           "totalMemorySizeGb",
           DDR4_KIT_SIZE_GB,
           DDR5_KIT_SIZE_GB,
@@ -260,14 +265,14 @@ export function MemoryEditColumns(
         ),
     },
     {
-      header: "Speed",
+      header: ui.header("speed"),
       cell: (row, update) => memorySpeedSelect(row, update),
     },
     {
-      header: "Modules Count",
+      header: ui.header("modulesCount"),
       cell: (row, update) => modulesCountSelect(row, update),
     },
-    optionalNumberColumn("Height (mm)", "heightMm"),
+    optionalNumberColumn(ui.label("heightMm"), "heightMm"),
   ];
 }
 
@@ -278,42 +283,42 @@ export function MemoryFields(
   return [
     nameField(),
     idSelectField(
-      "Manufacturer",
+      ui.label("manufacturer"),
       "manufacturerId",
       manufacturers,
-      "Please Select...",
+      ui.label("pleaseSelect"),
     ),
     {
-      label: "Color",
+      label: ui.label("color"),
       control: (item, update) => (
         <Input
-          aria-label={`Color for ${item.name}`}
+          aria-label={ui.message("fieldFor", { field: ui.label("color"), name: item.name })}
           value={item.color}
           onChange={(event) => update({ ...item, color: event.target.value })}
         />
       ),
     },
     {
-      label: "DDR Generation",
+      label: ui.label("ddrGeneration"),
       control: (item, update) => ddrGenerationSelect(item, update, newRecord),
     },
-    enumSelectField(
-      "RAM Form Factor",
-      "ramFormFactor",
-      RAM_FORM_FACTORS,
-      newRecord ? { empty: "null", emptyLabel: "Please Select..." } : undefined,
-    ),
-    enumSelectField(
-      "RAM Rank",
-      "ramRank",
-      RAM_RANKS,
-      newRecord ? { empty: "null", emptyLabel: "Please Select..." } : undefined,
-    ),
+    enumSelectField(ui.label("ramFormFactor"), "ramFormFactor", RAM_FORM_FACTORS, {
+      ...(newRecord
+        ? { empty: "null" as const, emptyLabel: ui.label("pleaseSelect") }
+        : {}),
+      label: enumText.ramFormFactor,
+    }),
+    enumSelectField(ui.label("ramRank"), "ramRank", RAM_RANKS, {
+      ...(newRecord
+        ? { empty: "null" as const, emptyLabel: ui.label("pleaseSelect") }
+        : {}),
+      label: enumText.ramRank,
+    }),
     {
-      label: "Module Size",
+      label: ui.label("moduleSize"),
       control: (item, update) =>
         memoryGbSelect(
-          "Module Size",
+          ui.label("moduleSize"),
           "memorySizePerStickGb",
           DDR4_MODULE_SIZE_GB,
           DDR5_MODULE_SIZE_GB,
@@ -322,10 +327,10 @@ export function MemoryFields(
         ),
     },
     {
-      label: "Kit Size",
+      label: ui.label("kitSize"),
       control: (item, update) =>
         memoryGbSelect(
-          "Kit Size",
+          ui.label("kitSize"),
           "totalMemorySizeGb",
           DDR4_KIT_SIZE_GB,
           DDR5_KIT_SIZE_GB,
@@ -334,13 +339,13 @@ export function MemoryFields(
         ),
     },
     {
-      label: "Speed",
+      label: ui.label("speed"),
       control: (item, update) => memorySpeedSelect(item, update),
     },
     {
-      label: "Modules Count",
+      label: ui.label("modulesCountLong"),
       control: (item, update) => modulesCountSelect(item, update),
     },
-    optionalNumberField("Height (mm)", "heightMm"),
+    optionalNumberField(ui.label("heightMm"), "heightMm"),
   ];
 }

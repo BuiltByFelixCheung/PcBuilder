@@ -23,21 +23,22 @@ import {
 import { formSelectClassName } from "@/components/filters/ListFilters";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { ui } from "@/i18n/translate-enum";
 
 export function ChassisFanEditColumns(
   manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<ChassisFan>[] {
   return [
     nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    enumSelectBulkColumn("Diameter", "diameterMm", FAN_DIAMETERS_MM, {
+    idSelectBulkColumn(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    enumSelectBulkColumn(ui.label("diameter"), "diameterMm", FAN_DIAMETERS_MM, {
       label: formatFanDiameterMm,
     }),
     {
-      header: "Pack size",
+      header: ui.header("packSize"),
       cell: (row, update) => (
         <select
-          aria-label={`Pack size for ${row.name}`}
+          aria-label={ui.message("fieldFor", { field: ui.label("packSize"), name: row.name })}
           className={formSelectClassName}
           value={row.fansCountPerPack}
           onChange={(event) =>
@@ -55,15 +56,15 @@ export function ChassisFanEditColumns(
         </select>
       ),
     },
-    optionalNumberColumn("Thickness (mm)", "thicknessMm"),
-    enumSelectBulkColumn("Header", "headerType", FAN_HEADER_TYPES, {
+    optionalNumberColumn(ui.label("thicknessMm"), "thicknessMm"),
+    enumSelectBulkColumn(ui.label("header"), "headerType", FAN_HEADER_TYPES, {
       label: formatFanHeaderType,
     }),
     {
-      header: "Daisy chain",
+      header: ui.header("daisyChain"),
       cell: (row, update) => (
         <Checkbox
-          aria-label={`Daisy chain for ${row.name}`}
+          aria-label={ui.message("fieldFor", { field: ui.label("daisyChain"), name: row.name })}
           checked={row.supportsDaisyChain}
           onCheckedChange={(checked) => {
             const supportsDaisyChain = checked === true;
@@ -79,10 +80,10 @@ export function ChassisFanEditColumns(
       ),
     },
     {
-      header: "Max daisy chain",
+      header: ui.header("maxDaisyChain"),
       cell: (row, update) => (
         <Input
-          aria-label={`Max daisy chain for ${row.name}`}
+          aria-label={ui.message("fieldFor", { field: ui.label("maxDaisyChain"), name: row.name })}
           type="number"
           min={2}
           disabled={!row.supportsDaisyChain}
@@ -104,18 +105,18 @@ export function ChassisFanFields(
 ): CatalogField<ChassisFan>[] {
   return [
     nameField(),
-    idSelectField("Manufacturer", "manufacturerId", manufacturers),
-    enumSelectField("Diameter", "diameterMm", FAN_DIAMETERS_MM, {
+    idSelectField(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    enumSelectField(ui.label("diameter"), "diameterMm", FAN_DIAMETERS_MM, {
       label: formatFanDiameterMm,
     }),
     {
-      label: "Pack size",
+      label: ui.label("packSize"),
       control: (item, update) => {
         const sizes = Array.from({ length: 10 }, (_, index) => index + 1);
         const known = sizes.includes(item.fansCountPerPack);
         return (
           <select
-            aria-label={`Pack size for ${item.name}`}
+            aria-label={ui.message("fieldFor", { field: ui.label("packSize"), name: item.name })}
             className={formSelectClassName}
             value={known ? item.fansCountPerPack : ""}
             onChange={(event) =>
@@ -125,7 +126,7 @@ export function ChassisFanFields(
               })
             }
           >
-            {known ? null : <option value="">Select pack size</option>}
+            {known ? null : <option value="">{ui.label("selectPackSize")}</option>}
             {sizes.map((size) => (
               <option key={size} value={size}>
                 {size}
@@ -135,16 +136,16 @@ export function ChassisFanFields(
         );
       },
     },
-    optionalNumberField("Thickness (mm)", "thicknessMm"),
-    enumSelectField("Header", "headerType", FAN_HEADER_TYPES, {
+    optionalNumberField(ui.label("thicknessMm"), "thicknessMm"),
+    enumSelectField(ui.label("header"), "headerType", FAN_HEADER_TYPES, {
       label: formatFanHeaderType,
     }),
     {
-      label: "Daisy chain",
+      label: ui.label("daisyChain"),
       orientation: "horizontal",
       control: (item, update) => (
         <Checkbox
-          aria-label="Daisy chain"
+          aria-label={ui.label("daisyChain")}
           checked={item.supportsDaisyChain}
           onCheckedChange={(checked) => {
             const supportsDaisyChain = checked === true;
@@ -160,11 +161,11 @@ export function ChassisFanFields(
       ),
     },
     {
-      label: "Max fans per daisy chain",
+      label: ui.label("maxFansPerDaisyChain"),
       half: true,
       control: (item, update) => (
         <Input
-          aria-label={`Max fans per daisy chain for ${item.name}`}
+          aria-label={ui.message("fieldFor", { field: ui.label("maxFansPerDaisyChain"), name: item.name })}
           type="number"
           min={2}
           disabled={!item.supportsDaisyChain}

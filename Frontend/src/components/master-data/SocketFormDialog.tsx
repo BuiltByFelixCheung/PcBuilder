@@ -25,17 +25,20 @@ import {
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
 import { formSelectClassName } from "@/components/filters/ListFilters";
+import { ui } from "@/i18n/translate-enum";
 
-const socketFormSchema = z.object({
+function socketFormSchema() {
+  return z.object({
   name: z
     .string()
     .trim()
-    .min(1, "Name is required.")
-    .max(100, "Name must not exceed 100 characters."),
-  manufacturerId: z.string().min(1, "Manufacturer is required."),
+    .min(1, ui.message("nameRequired"))
+    .max(100, ui.message("nameTooLong")),
+  manufacturerId: z.string().min(1, ui.message("manufacturerRequired")),
 });
+}
 
-type SocketFormValues = z.infer<typeof socketFormSchema>;
+type SocketFormValues = z.infer<ReturnType<typeof socketFormSchema>>;
 
 type SocketFormDialogProps = {
   editingId: string;
@@ -56,12 +59,12 @@ export function SocketFormDialog({
       items={sockets}
       settled={socketsSettled}
       onClose={onClose}
-      editTitle="Edit Socket"
-      loadingMessage="Loading Socket…"
+      editTitle={ui.dialog("editSocket")}
+      loadingMessage={ui.empty("loading", { entity: ui.entity("socket") })}
       missing={
         <MasterDataMissing
-          title="Socket not found"
-          description="This socket is not in the current list."
+          title={ui.empty("notFoundEntity", { entity: ui.entity("socket") })}
+          description={ui.message("notInListSocket")}
           onClose={onClose}
         />
       }
@@ -85,8 +88,8 @@ function SocketForm({
 
   return (
     <MasterDataOptions
-      title="Edit Socket"
-      loadingMessage="Loading Socket…"
+      title={ui.dialog("editSocket")}
+      loadingMessage={ui.empty("loading", { entity: ui.entity("socket") })}
       onClose={onClose}
       queries={[manufacturers]}
     >
@@ -112,7 +115,7 @@ function SocketFields({
 }>) {
   const queryClient = useQueryClient();
   const form = useForm<SocketFormValues>({
-    resolver: zodResolver(socketFormSchema),
+    resolver: zodResolver(socketFormSchema()),
     defaultValues: {
       name: socket?.name ?? "",
       manufacturerId: socket?.manufacturerId ?? "",
@@ -128,7 +131,7 @@ function SocketFields({
   const busy = isSubmitting || isDeleting;
 
   async function onDelete() {
-    if (!socket || !window.confirm(`Delete ${socket.name}?`)) return;
+    if (!socket || !window.confirm(ui.message("deleteNamed", { name: socket.name }))) return;
     setIsDeleting(true);
     try {
       await deleteSocket(socket.id);
@@ -162,7 +165,7 @@ function SocketFields({
 
   return (
     <MasterDataFormShell
-      title="Edit Socket"
+      title={ui.dialog("editSocket")}
       error={errors.root?.message}
       onSubmit={handleSubmit(onSubmit)}
       onClose={onClose}
@@ -170,25 +173,25 @@ function SocketFields({
       deleteDisabled={busy}
       deleting={isDeleting}
       cancelDisabled={busy}
-      submitLabel={isSubmitting ? "Saving…" : "Save"}
+      submitLabel={isSubmitting ? ui.action("saving") : ui.action("save")}
       submitDisabled={busy}
     >
       <FormTextField
         id="socket-edit-name"
-        label="Name"
+        label={ui.label("name")}
         required
         error={errors.name}
         registration={register("name")}
       />
       <Field data-invalid={errors.manufacturerId ? true : undefined}>
-        <FieldLabel htmlFor="socket-edit-manufacturer">Manufacturer</FieldLabel>
+        <FieldLabel htmlFor="socket-edit-manufacturer">{ui.label("manufacturer")}</FieldLabel>
         <select
           id="socket-edit-manufacturer"
           className={formSelectClassName}
           aria-invalid={errors.manufacturerId ? true : undefined}
           {...register("manufacturerId")}
         >
-          <option value="">Select a manufacturer</option>
+          <option value="">{ui.label("selectManufacturer")}</option>
           {manufacturers.map((manufacturer) => (
             <option key={manufacturer.id} value={manufacturer.id}>
               {manufacturer.name}

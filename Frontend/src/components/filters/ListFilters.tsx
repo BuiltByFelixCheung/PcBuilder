@@ -10,6 +10,7 @@ import {
   SelectGroup,
   SelectLabel,
 } from "../ui/select";
+import { ui } from "@/i18n/translate-enum";
 
 export const formSelectClassName =
   "h-10 w-full min-w-0 rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
@@ -17,9 +18,9 @@ export const formSelectClassName =
 export function FilterActions({ onClear }: Readonly<{ onClear: () => void }>) {
   return (
     <div className="catalog-filter-actions">
-      <Button type="submit">Apply filters</Button>
+      <Button type="submit">{ui.action("applyFilters")}</Button>
       <Button type="button" variant="outline" onClick={onClear}>
-        Clear
+        {ui.action("clear")}
       </Button>
     </div>
   );
@@ -38,7 +39,7 @@ export function NameField({
 }>) {
   return (
     <Field>
-      <FieldLabel htmlFor={id}>Name</FieldLabel>
+      <FieldLabel htmlFor={id}>{ui.label("name")}</FieldLabel>
       <Input
         id={id}
         name={name}
@@ -61,7 +62,7 @@ export function SelectField({
   label,
   name,
   value,
-  emptyLabel = "Any",
+  emptyLabel,
   options,
   onValueChange,
 }: Readonly<{
@@ -73,6 +74,7 @@ export function SelectField({
   options: readonly SelectOption[];
   onValueChange: (value: string) => void;
 }>) {
+  const anyLabel = emptyLabel ?? ui.label("any");
   return (
     <Field>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
@@ -84,12 +86,12 @@ export function SelectField({
         }
       >
         <SelectTrigger id={id} className="w-full">
-          <SelectValue placeholder={emptyLabel} />
+          <SelectValue placeholder={anyLabel} />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
             <SelectLabel>{label}</SelectLabel>
-            <SelectItem value={emptyOption}>{emptyLabel}</SelectItem>
+            <SelectItem value={emptyOption}>{anyLabel}</SelectItem>
             {options.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
@@ -108,7 +110,7 @@ export function IdSelectField({
   name,
   value,
   options,
-  emptyLabel = "Any",
+  emptyLabel,
   onChange,
 }: Readonly<{
   id: string;

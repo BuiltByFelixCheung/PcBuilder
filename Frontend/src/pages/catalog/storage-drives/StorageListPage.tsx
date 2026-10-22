@@ -33,6 +33,7 @@ import {
   formatStorageFormFactor,
   type PcieGeneration,
 } from "@/api/enums";
+import {enumText, ui} from "@/i18n/translate-enum";
 import { formSelectClassName } from "@/components/filters/ListFilters";
 import {
   CatalogCompatibleCheckbox,
@@ -41,7 +42,7 @@ import {
 import { usePcBuild } from "@/builds/use-pc-build";
 import { unsetCatalogItem } from "@/components/catalog/catalog-create";
 import { CatalogCreateDialog } from "@/components/catalog/CatalogCreateDialog";
-import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { CatalogListResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importStorageDrives } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
@@ -103,15 +104,21 @@ export function StorageListPage() {
           isAdmin,
           (id) => `/catalog/storage/${id}`,
         ),
-        columnHelper.accessor("media", { header: "Media" }),
-        columnHelper.accessor("interface", { header: "Interface" }),
+        columnHelper.accessor("media", {
+          header: ui.header("media"),
+          cell: (info) => enumText.storageMedia(info.getValue()),
+        }),
+        columnHelper.accessor("interface", {
+          header: ui.header("interface"),
+          cell: (info) => enumText.storageInterface(info.getValue()),
+        }),
         columnHelper.accessor("formFactor", {
-          header: "Form factor",
+          header: ui.header("formFactor"),
           cell: (info) => formatStorageFormFactor(info.getValue()),
         }),
         columnHelper.accessor("capacityGb", {
-          header: "Capacity",
-          cell: (info) => `${info.getValue()} GB`,
+          header: ui.header("capacity"),
+          cell: (info) => `${info.getValue()} ${ui.unit("gb")}`,
         }),
       ]),
     [isAdmin],
@@ -122,8 +129,8 @@ export function StorageListPage() {
     rowSelection,
     setRowSelection,
     queryKey: storageDriveKeys.all,
-    singular: "storage drive",
-    plural: "storage drives",
+    singular: ui.label("nStorageDrive"),
+    plural: ui.label("nStorageDrives"),
     deleteByIds: (ids) => deleteStorageDrives({ ids }),
   });
   const excelImport = useExcelImport({
@@ -195,10 +202,8 @@ export function StorageListPage() {
 
   return (
     <section className="catalog-page">
-      <h1>Storage</h1>
-      <p className="catalog-lead">
-        Browse the catalog, then apply filters when you need a narrower set.
-      </p>
+      <h1>{ui.nav("products.storage")}</h1>
+      <p className="catalog-lead">{ui.message("browseCatalogLead")}</p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <CatalogFilterGroup>
@@ -213,7 +218,7 @@ export function StorageListPage() {
             />
             <CatalogIdSelectField
               id="storage-manufacturer"
-              label="Manufacturer"
+              label={ui.label("manufacturer")}
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
@@ -225,18 +230,20 @@ export function StorageListPage() {
             />
             <CatalogEnumField
               id="storage-media"
-              label="Media"
+              label={ui.label("media")}
               value={draft.media}
               options={STORAGE_MEDIAS}
+              formatOption={enumText.storageMedia}
               onChange={(media) =>
                 setDraft((current) => ({ ...current, media }))
               }
             />
             <CatalogEnumField
               id="storage-interface"
-              label="Interface"
+              label={ui.label("interface")}
               value={draft.interface}
               options={STORAGE_INTERFACES}
+              formatOption={enumText.storageInterface}
               onChange={(storageInterface) =>
                 setDraft((current) => ({
                   ...current,
@@ -246,7 +253,7 @@ export function StorageListPage() {
             />
             <CatalogEnumField
               id="storage-form-factor"
-              label="Form factor"
+              label={ui.label("formFactor")}
               value={draft.formFactor}
               options={STORAGE_FORM_FACTORS}
               formatOption={formatStorageFormFactor}
@@ -255,7 +262,7 @@ export function StorageListPage() {
               }
             />
             <Field>
-              <FieldLabel htmlFor="storage-pcie">PCIe generation</FieldLabel>
+              <FieldLabel htmlFor="storage-pcie">{ui.label("pcieGeneration")}</FieldLabel>
               <select
                 id="storage-pcie"
                 className={formSelectClassName}
@@ -268,18 +275,18 @@ export function StorageListPage() {
                   }))
                 }
               >
-                <option value="">Any</option>
+                <option value="">{ui.label("any")}</option>
                 {PCIE_GENERATIONS.map((generation) => (
                   <option key={generation} value={generation}>
-                    {generation.replace("Gen", "PCIe ")}
+                    {enumText.pcieGeneration(generation)}
                   </option>
                 ))}
               </select>
             </Field>
             <CatalogRangeField
               id="storage-capacity"
-              label="Capacity (GB)"
-              maxAriaLabel="Capacity max"
+              label={ui.label("capacityGb")}
+              maxAriaLabel={ui.label("capacityMax")}
               range={draft.capacityGb}
               onChange={(capacityGb) =>
                 setDraft((current) => ({ ...current, capacityGb }))
@@ -287,44 +294,36 @@ export function StorageListPage() {
             />
             <CatalogRangeField
               id="storage-rpm"
-              label="RPM"
-              maxAriaLabel="RPM max"
+              label={ui.label("rpm")}
+              maxAriaLabel={ui.label("rpmMax")}
               range={draft.rpm}
               onChange={(rpm) => setDraft((current) => ({ ...current, rpm }))}
             />
           </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <CatalogPagedResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={items}
-            filtering={filtering}
-            loadingMessage="Loading storage…"
-            emptyFilteredMessage="No storage drives match these filters."
-            emptyMessage="No storage drives in the catalog yet."
-            isAdmin={isAdmin}
-            newItemLabel="New Storage Drive"
-            onNewItem={() => setCreating(true)}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onImport={excelImport.openImport}
-            onEditSelected={startEditing}
-            pageIndex={pageIndex}
-            pageCount={pageCount}
-            onPageChange={goToPage}
-          />
-        </div>
+        <CatalogListResults
+          entity="storageDrives"
+          query={query}
+          items={items}
+          filtering={filtering}
+          columns={columns}
+          isAdmin={isAdmin}
+          newItemLabel={ui.action("newStorageDrive")}
+          onNewItem={() => setCreating(true)}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onImport={excelImport.openImport}
+          onEditSelected={startEditing}
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          onPageChange={goToPage}
+        />
       </div>
       {creating ? (
         <CatalogCreateDialog
-          title="New storage drive"
+          title={ui.dialog("newStorageDrive")}
           item={emptyDrive}
           fields={StorageFields(manufacturers)}
           queryKey={storageDriveKeys.all}
@@ -335,7 +334,7 @@ export function StorageListPage() {
       ) : null}
       {editRows ? (
         <BulkEditDialog
-          title="Edit Storage Drives"
+          title={ui.dialog("editStorageDrives")}
           rows={editRows}
           columns={StorageEditColumns(manufacturers)}
           onClose={() => setEditRows(null)}

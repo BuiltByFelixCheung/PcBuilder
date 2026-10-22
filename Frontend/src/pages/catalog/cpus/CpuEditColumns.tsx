@@ -13,6 +13,7 @@ import {
   type CatalogField,
 } from "@/components/catalog/CatalogFields";
 import type { CpuListItem } from "@/api/catalog/cpus";
+import { ui } from "@/i18n/translate-enum";
 
 type CountedField =
   "maxMemoryGb" | "thermalDesignPower" | "powerConsumptionWatts";
@@ -35,7 +36,7 @@ function manufacturerBulkColumn(
   sockets: readonly OwnedOption[],
 ): BulkEditColumn<CpuListItem> {
   const column = idSelectBulkColumn<CpuListItem>(
-    "Manufacturer",
+    ui.label("manufacturer"),
     "manufacturerId",
     manufacturers,
   );
@@ -68,17 +69,17 @@ export function CpuEditColumns(
   return [
     nameBulkColumn(),
     manufacturerBulkColumn(manufacturers, series, sockets),
-    idSelectBulkColumn("Series", "seriesId", (row) =>
+    idSelectBulkColumn(ui.label("series"), "seriesId", (row) =>
       series.filter((item) => item.manufacturerId === row.manufacturerId),
     ),
-    idSelectBulkColumn("Socket", "socketId", (row) =>
+    idSelectBulkColumn(ui.label("socket"), "socketId", (row) =>
       sockets.filter((item) => item.manufacturerId === row.manufacturerId),
     ),
-    counted("Max memory (GB)", "maxMemoryGb"),
-    switchBulkColumn("Integrated graphics", "integratedGraphics", "Yes", "No"),
-    switchBulkColumn("Included stock cooler", "includedStockCooler", "Yes", "No"),
-    counted("Thermal design power (W)", "thermalDesignPower"),
-    counted("Power consumption (W)", "powerConsumptionWatts"),
+    counted(ui.label("maxMemoryGb"), "maxMemoryGb"),
+    switchBulkColumn(ui.label("integratedGraphics"), "integratedGraphics", ui.label("yes"), ui.label("no")),
+    switchBulkColumn(ui.label("includedStockCooler"), "includedStockCooler", ui.label("yes"), ui.label("no")),
+    counted(ui.label("thermalDesignPowerW"), "thermalDesignPower"),
+    counted(ui.label("powerConsumptionW"), "powerConsumptionWatts"),
   ];
 }
 
@@ -88,7 +89,7 @@ function manufacturerField(
   sockets: readonly OwnedOption[],
 ): CatalogField<CpuListItem> {
   const field = idSelectField<CpuListItem>(
-    "Manufacturer",
+    ui.label("manufacturer"),
     "manufacturerId",
     manufacturers,
   );
@@ -121,16 +122,16 @@ export function CpuFields(
   return [
     nameField(),
     manufacturerField(manufacturers, series, sockets),
-    idSelectField("Series", "seriesId", (item) =>
+    idSelectField(ui.label("series"), "seriesId", (item) =>
       series.filter((option) => option.manufacturerId === item.manufacturerId),
     ),
-    idSelectField("Socket", "socketId", (item) =>
+    idSelectField(ui.label("socket"), "socketId", (item) =>
       sockets.filter((option) => option.manufacturerId === item.manufacturerId),
     ),
-    counted("Max memory (GB)", "maxMemoryGb"),
-    checkboxField("Integrated graphics", "integratedGraphics"),
-    checkboxField("Included stock cooler", "includedStockCooler"),
-    counted("Thermal design power (W)", "thermalDesignPower"),
-    counted("Power consumption (W)", "powerConsumptionWatts"),
+    counted(ui.label("maxMemoryGb"), "maxMemoryGb"),
+    checkboxField(ui.label("integratedGraphics"), "integratedGraphics"),
+    checkboxField(ui.label("includedStockCooler"), "includedStockCooler"),
+    counted(ui.label("thermalDesignPowerW"), "thermalDesignPower"),
+    counted(ui.label("powerConsumptionW"), "powerConsumptionWatts"),
   ];
 }

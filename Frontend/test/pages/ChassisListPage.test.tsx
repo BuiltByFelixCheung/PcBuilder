@@ -84,7 +84,7 @@ describe("ChassisListPage", () => {
     await user.type(screen.getByLabelText("Length min"), "400");
     await user.type(screen.getByLabelText("Length max"), "500");
     await user.click(screen.getByRole("button", { name: "More filters" }));
-    await user.click(screen.getByLabelText("Atx"));
+    await user.click(screen.getByLabelText("ATX"));
     await user.click(screen.getByRole("button", { name: "Apply filters" }));
     expect(listChassis).toHaveBeenCalledWith(
       expect.objectContaining({

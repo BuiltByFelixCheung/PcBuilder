@@ -3,8 +3,13 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "@/auth/use-auth";
 import { Header } from "@/components/layout/header";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
-import { catalogLinks, masterDataLinks } from "@/components/layout/nav-links";
+import {
+  getCatalogLinks,
+  getMasterDataLinks,
+} from "@/components/layout/nav-links";
+import { ui } from "@/i18n/translate-enum";
 
 function navClassName({ isActive }: { isActive: boolean }) {
   return isActive ? "nav-link active" : "nav-link";
@@ -17,6 +22,8 @@ export function MobileHeader() {
   const navigate = useNavigate();
   const location = useLocation();
   const [openPath, setOpenPath] = useState(location.pathname);
+  const catalogLinks = getCatalogLinks();
+  const masterDataLinks = getMasterDataLinks();
   if (openPath !== location.pathname) {
     setOpenPath(location.pathname);
     setOpen(false);
@@ -29,10 +36,11 @@ export function MobileHeader() {
 
   return (
     <header className="app-header mobile-header">
-      <Link to="/" className="brand">
-        PC Builder
+      <Link to="/" className="brand" aria-label="Logo">
+        <span className="logo" />
       </Link>
       <div className="app-nav">
+        <LanguageToggle />
         <ThemeToggle />
         <button
           type="button"
@@ -42,13 +50,17 @@ export function MobileHeader() {
           onClick={() => setOpen((value) => !value)}
         >
           {open ? <X aria-hidden /> : <Menu aria-hidden />}
-          Menu
+          {ui.nav("menu")}
         </button>
       </div>
       {open ? (
-        <nav id="mobile-app-nav" className="mobile-app-nav" aria-label="Menu">
+        <nav
+          id="mobile-app-nav"
+          className="mobile-app-nav"
+          aria-label={ui.nav("menu")}
+        >
           <div className="mobile-nav-section">
-            <p className="mobile-nav-label">Catalog</p>
+            <p className="mobile-nav-label">{ui.nav("catalog")}</p>
             {catalogLinks.map((link) => (
               <NavLink key={link.href} to={link.href} className={navClassName}>
                 {link.name}
@@ -58,15 +70,15 @@ export function MobileHeader() {
           {!isAdmin ? (
             <div className="mobile-nav-section">
               <NavLink to="/builds/current" className={navClassName}>
-                Builder
+                {ui.nav("builder")}
               </NavLink>
               <NavLink to="/builds" className={navClassName}>
-                Browse Builds
+                {ui.nav("browseBuilds")}
               </NavLink>
             </div>
           ) : (
             <div className="mobile-nav-section">
-              <p className="mobile-nav-label">Master Data</p>
+              <p className="mobile-nav-label">{ui.nav("masterData")}</p>
               {masterDataLinks.map((link) => (
                 <NavLink key={link.href} to={link.href} className={navClassName}>
                   {link.name}
