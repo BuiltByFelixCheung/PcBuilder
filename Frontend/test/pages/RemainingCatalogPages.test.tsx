@@ -274,7 +274,7 @@ describe("remaining catalog pages", () => {
     expect(
       await screen.findByRole("heading", { name: "RM850x" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Motherboard24Pin")).toBeInTheDocument();
+    expect(screen.getByText("Motherboard 24-pin")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to PSUs" })).toHaveAttribute(
       "href",
       "/catalog/psus",

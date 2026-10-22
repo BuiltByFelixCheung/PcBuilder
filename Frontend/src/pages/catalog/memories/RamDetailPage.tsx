@@ -10,6 +10,7 @@ import { builderHref, usePcBuild } from "@/builds";
 import { useAuth } from "@/auth/use-auth";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
 import { memoryKeys, updateMemory } from "@/api/catalog/memories";
+import { enumText, ui } from "@/i18n/translate-enum";
 import { MemoryFields } from "@/pages/catalog/memories/MemoryEditColumns";
 
 export function RamDetailPage() {
@@ -24,19 +25,19 @@ export function RamDetailPage() {
   const manufacturers = useCatalogManufacturers("ram");
 
   if (query.isPending) {
-    return <PageStatus>Loading RAM…</PageStatus>;
+    return <PageStatus>{ui.empty("loading", { entity: ui.entity("ram") })}</PageStatus>;
   }
 
   if (query.isError || !ram) {
     return (
       <section className="catalog-page">
         <p>
-          <Link to="/catalog/memories">Back to RAM</Link>
+          <Link to="/catalog/memories">{ui.empty("backTo", { entity: ui.nav("products.ram") })}</Link>
         </p>
         <PageStatus>
           {query.isError
             ? parseApiError(query.error).message
-            : "RAM not found."}
+            : ui.empty("ramNotFound")}
         </PageStatus>
       </section>
     );
@@ -45,7 +46,7 @@ export function RamDetailPage() {
   return (
     <section className="catalog-page">
       <p>
-        <Link to="/catalog/memories">Back to RAM</Link>
+        <Link to="/catalog/memories">{ui.empty("backTo", { entity: ui.nav("products.ram") })}</Link>
       </p>
       <div className="catalog-detail-title">
         <h1>{ram.name}</h1>
@@ -57,18 +58,18 @@ export function RamDetailPage() {
               navigate(builderHref(currentBuild.sourceId));
             }}
           >
-            Add to Build
+            {ui.action("addToBuild")}
           </Button>
         )}
         {isAdmin && (
           <Button type="button" onClick={() => setEditing(true)}>
-            Edit
+            {ui.action("edit")}
           </Button>
         )}
       </div>
       {editing ? (
         <CatalogEditDialog
-          title="Edit RAM"
+          title={ui.dialog("editRam")}
           item={ram}
           fields={MemoryFields(manufacturers)}
           onClose={() => setEditing(false)}
@@ -82,44 +83,44 @@ export function RamDetailPage() {
       ) : null}
       <dl className="catalog-details">
         <div>
-          <dt>Manufacturer</dt>
+          <dt>{ui.label("manufacturer")}</dt>
           <dd>{ram.manufacturerName}</dd>
         </div>
         <div>
-          <dt>Color</dt>
+          <dt>{ui.label("color")}</dt>
           <dd>{ram.color}</dd>
         </div>
         <div>
-          <dt>DDR Generation</dt>
-          <dd>{ram.ddrGeneration}</dd>
+          <dt>{ui.label("ddrGeneration")}</dt>
+          <dd>{enumText.ddrGeneration(ram.ddrGeneration)}</dd>
         </div>
         <div>
-          <dt>RAM Form Factor</dt>
-          <dd>{ram.ramFormFactor}</dd>
+          <dt>{ui.label("ramFormFactor")}</dt>
+          <dd>{enumText.ramFormFactor(ram.ramFormFactor)}</dd>
         </div>
         <div>
-          <dt>RAM Rank</dt>
-          <dd>{ram.ramRank}</dd>
+          <dt>{ui.label("ramRank")}</dt>
+          <dd>{enumText.ramRank(ram.ramRank)}</dd>
         </div>
         <div>
-          <dt>Memory Size Per Stick</dt>
-          <dd>{ram.memorySizePerStickGb} GB</dd>
+          <dt>{ui.label("memorySizePerStick")}</dt>
+          <dd>{ram.memorySizePerStickGb} {ui.unit("gb")}</dd>
         </div>
         <div>
-          <dt>Total Memory Size</dt>
-          <dd>{ram.totalMemorySizeGb} GB</dd>
+          <dt>{ui.label("totalMemorySize")}</dt>
+          <dd>{ram.totalMemorySizeGb} {ui.unit("gb")}</dd>
         </div>
         <div>
-          <dt>Modules Count</dt>
+          <dt>{ui.label("modulesCountLong")}</dt>
           <dd>{ram.modulesCount}</dd>
         </div>
         <div>
-          <dt>Max Memory Speed</dt>
-          <dd>{ram.maxMemorySpeedMts} MHz</dd>
+          <dt>{ui.label("maxMemorySpeed")}</dt>
+          <dd>{ram.maxMemorySpeedMts} {ui.unit("mhz")}</dd>
         </div>
         <div>
-          <dt>Height</dt>
-          <dd>{ram.heightMm} mm</dd>
+          <dt>{ui.label("height")}</dt>
+          <dd>{ram.heightMm} {ui.unit("mm")}</dd>
         </div>
       </dl>
     </section>

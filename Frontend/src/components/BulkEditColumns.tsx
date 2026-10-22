@@ -1,20 +1,13 @@
 import type { BulkEditColumn } from "@/components/BulkEditDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ChoiceSelect, emptyChoice } from "@/components/ChoiceSelect";
 import { toInteger } from "@/api/helper";
 import { DecimalInput } from "@/components/catalog/DecimalInput";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { Field } from "./ui/field";
+import { ui } from "@/i18n/translate-enum";
 
 type Named = { id: string; name: string };
 type IdOption = { id: string; name: string };
@@ -22,10 +15,10 @@ type FieldKey<T> = keyof T & string;
 
 export function nameBulkColumn<T extends Named>(): BulkEditColumn<T> {
   return {
-    header: "Name",
+    header: ui.header("name"),
     cell: (row, update) => (
       <Input
-        aria-label={`Name for ${row.name}`}
+        aria-label={ui.message("fieldFor", { field: ui.label("name"), name: row.name })}
         value={row.name}
         onChange={(event) => update({ ...row, name: event.target.value })}
       />
@@ -33,7 +26,7 @@ export function nameBulkColumn<T extends Named>(): BulkEditColumn<T> {
   };
 }
 
-const emptyOption = "__blank__";
+const emptyOption = emptyChoice;
 
 export function idSelectBulkColumn<T extends Named>(
   header: string,
@@ -50,35 +43,23 @@ export function idSelectBulkColumn<T extends Named>(
         current !== "" && choices.some((option) => option.id === current);
       const showBlank = blankLabel != null || !known;
       return (
-        <Select
-          value={known ? current : emptyOption}
+        <ChoiceSelect
+          label={header}
+          ariaLabel={ui.message("fieldFor", { field: header, name: row.name })}
+          value={known ? current : emptyChoice}
+          blankLabel={blankLabel}
+          showBlank={showBlank}
+          options={choices.map((option) => ({
+            value: option.id,
+            label: option.name,
+          }))}
           onValueChange={(next) =>
             update({
               ...row,
-              [field]: next === emptyOption ? "" : next,
+              [field]: next === emptyChoice ? "" : next,
             } as T)
           }
-        >
-          <SelectTrigger
-            aria-label={`${header} for ${row.name}`}
-            className="w-full"
-          >
-            <SelectValue placeholder={blankLabel ?? ""} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>{header}</SelectLabel>
-              {showBlank ? (
-                <SelectItem value={emptyOption}>{blankLabel ?? ""}</SelectItem>
-              ) : null}
-              {choices.map((option) => (
-                <SelectItem key={option.id} value={option.id}>
-                  {option.name}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+        />
       );
     },
   };
@@ -109,8 +90,16 @@ export function enumSelectBulkColumn<
         values.some((item) => String(item) === currentValue);
       const showBlank = options?.empty != null || !known;
       return (
-        <Select
+        <ChoiceSelect
+          label={header}
+          ariaLabel={ui.message("fieldFor", { field: header, name: row.name })}
           value={known ? currentValue : emptyOption}
+          blankLabel={options?.emptyLabel}
+          showBlank={showBlank}
+          options={values.map((item) => ({
+            value: String(item),
+            label: options?.label ? options.label(item) : String(item),
+          }))}
           onValueChange={(next) => {
             if (next === emptyOption) {
               update({
@@ -122,29 +111,7 @@ export function enumSelectBulkColumn<
             const match = values.find((item) => String(item) === next);
             update({ ...row, [field]: match ?? next } as T);
           }}
-        >
-          <SelectTrigger
-            aria-label={`${header} for ${row.name}`}
-            className="w-full"
-          >
-            <SelectValue placeholder={options?.emptyLabel ?? ""} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>{header}</SelectLabel>
-              {showBlank ? (
-                <SelectItem value={emptyOption}>
-                  {options?.emptyLabel ?? ""}
-                </SelectItem>
-              ) : null}
-              {values.map((item) => (
-                <SelectItem key={String(item)} value={String(item)}>
-                  {options?.label ? options.label(item) : String(item)}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+        />
       );
     },
   };
@@ -172,7 +139,7 @@ export function numberBulkColumn<T extends Named>(
       const current = row[field] as number | null | undefined;
       return (
         <Input
-          aria-label={`${label} for ${row.name}`}
+          aria-label={ui.message("fieldFor", { field: label, name: row.name })}
           type={options.type}
           min={options.min}
           value={current == null ? "" : String(current)}
@@ -197,7 +164,7 @@ export function optionalNumberColumn<T extends Named>(
     numeric: true,
     cell: (row, update) => (
       <DecimalInput
-        label={`${header} for ${row.name}`}
+        label={ui.message("fieldFor", { field: header, name: row.name })}
         value={row[field] as number | null | undefined}
         onValue={(next) => update({ ...row, [field]: next } as T)}
       />
@@ -220,7 +187,7 @@ export function checkboxBulkColumn<T extends Named>(
     header,
     cell: (row, update) => (
       <Checkbox
-        aria-label={`${header} for ${row.name}`}
+        aria-label={ui.message("fieldFor", { field: header, name: row.name })}
         checked={row[field] === true}
         onCheckedChange={(checked) =>
           update({ ...row, [field]: checked === true } as T)
@@ -241,7 +208,7 @@ export function switchBulkColumn<T extends Named>(
     cell: (row, update) => (
       <Field orientation="horizontal">
         <Switch
-          aria-label={`${header} for ${row.name}`}
+          aria-label={ui.message("fieldFor", { field: header, name: row.name })}
           checked={row[field] === true}
           onCheckedChange={(checked) =>
             update({ ...row, [field]: checked === true } as T)

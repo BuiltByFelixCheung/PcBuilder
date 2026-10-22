@@ -8,12 +8,16 @@ import {
   type ResetPasswordValues,
 } from "../../auth/schemas.ts";
 import { useAuth } from "../../auth/use-auth.ts";
-import { FormTextField } from "@/components/FormTextField.tsx";
-import { Button } from "@/components/ui/button";
+import {
+  AuthSubmitButton,
+  AuthSuccessDialog,
+  PasswordControlField,
+} from "@/components/auth/AuthFormParts";
 import { FieldGroup } from "@/components/ui/field";
 import { applyApiFieldErrors } from "../../lib/rhf-api-errors.ts";
+import { ui } from "@/i18n/translate-enum";
 
-const PAGE_TITLE = "Reset Password";
+const PAGE_TITLE = () => ui.page("resetPassword");
 
 export function ResetPasswordPage() {
   const { resetPassword } = useAuth();
@@ -25,7 +29,7 @@ export function ResetPasswordPage() {
   const hasResetLink = email !== "" && token !== "";
 
   const form = useForm<ResetPasswordValues>({
-    resolver: zodResolver(resetPasswordSchema),
+    resolver: zodResolver(resetPasswordSchema()),
     defaultValues: { password: "", confirmPassword: "" },
   });
   const {
@@ -71,10 +75,10 @@ export function ResetPasswordPage() {
     return (
       <section className="auth-page">
         <div className="auth-card">
-          <h1>{PAGE_TITLE}</h1>
-          <p className="auth-lead">This reset link is invalid or incomplete.</p>
+          <h1>{PAGE_TITLE()}</h1>
+          <p className="auth-lead">{ui.message("invalidResetLink")}</p>
           <p className="auth-switch">
-            <Link to="/forgot-password">Request a new reset link</Link>
+            <Link to="/forgot-password">{ui.action("requestNewResetLink")}</Link>
           </p>
         </div>
       </section>
@@ -83,60 +87,43 @@ export function ResetPasswordPage() {
 
   return (
     <section className="auth-page">
-      <dialog
-        className="auth-dialog"
+      <AuthSuccessDialog
         open={dialogOpen}
-        aria-labelledby="reset-success-title"
-      >
-        <div className="auth-dialog-card">
-          <h2 id="reset-success-title">Password reset</h2>
-          <p>Your password has been updated. You can sign in with it now.</p>
-          <button
-            type="button"
-            className="auth-submit"
-            onClick={() => void navigate("/login", { replace: true })}
-          >
-            Close
-          </button>
-        </div>
-      </dialog>
+        titleId="reset-success-title"
+        title={ui.message("passwordReset")}
+        message={ui.message("passwordUpdatedCanSignIn")}
+        onClose={() => void navigate("/login", { replace: true })}
+      />
       <form className="auth-card" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <h1>{PAGE_TITLE}</h1>
-        <p className="auth-lead">Choose a new password for your account.</p>
+        <h1>{PAGE_TITLE()}</h1>
+        <p className="auth-lead">{ui.message("chooseNewPassword")}</p>
         {errors.root?.message ? (
           <p className="form-error" role="alert">
             {errors.root.message}
           </p>
         ) : null}
         <FieldGroup>
-          <FormTextField
+          <PasswordControlField
             id="password"
-            label="New Password"
-            type="password"
+            label={ui.label("newPassword")}
             autoComplete="new-password"
-            required
-            hint="At least 10 characters, with upper and lower case, a number, and a symbol."
+            hint={ui.message("passwordHint")}
             error={errors.password}
             registration={register("password")}
           />
-          <FormTextField
+          <PasswordControlField
             id="confirmPassword"
-            label="Confirm New Password"
-            type="password"
+            label={ui.label("confirmNewPassword")}
             autoComplete="new-password"
-            required
             error={errors.confirmPassword}
             registration={register("confirmPassword")}
           />
         </FieldGroup>
-        <Button
-          type="submit"
-          size="lg"
-          className="mt-6 h-10 w-full"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Resetting Password…" : PAGE_TITLE}
-        </Button>
+        <AuthSubmitButton
+          pending={isSubmitting}
+          pendingLabel={ui.label("resettingPassword")}
+          label={PAGE_TITLE()}
+        />
       </form>
     </section>
   );

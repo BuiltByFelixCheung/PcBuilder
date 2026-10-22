@@ -1,4 +1,5 @@
 import axios from "axios";
+import { ui } from "@/i18n/translate-enum";
 
 export type ApiError = {
   status?: number;
@@ -14,7 +15,7 @@ type ProblemDetails = {
 
 export function parseApiError(error: unknown): ApiError {
   if (!axios.isAxiosError(error)) {
-    return { message: "Something went wrong. Try again.", fieldErrors: {} };
+    return { message: ui.message("somethingWrong"), fieldErrors: {} };
   }
 
   const status = error.response?.status;
@@ -22,7 +23,7 @@ export function parseApiError(error: unknown): ApiError {
   if (!error.response || (status !== undefined && status >= 500)) {
     return {
       status,
-      message: "Cannot reach the server. Is the API running?",
+      message: ui.message("cannotReachServer"),
       fieldErrors: {},
     };
   }
@@ -30,13 +31,13 @@ export function parseApiError(error: unknown): ApiError {
   const fieldErrors = normalizeFieldErrors(data?.errors);
 
   if (status === 401) {
-    return { status, message: "Invalid email or password.", fieldErrors: {} };
+    return { status, message: ui.message("invalidCredentials"), fieldErrors: {} };
   }
 
   if (status === 423) {
     return {
       status,
-      message: "This account is locked. Try again in a few minutes.",
+      message: ui.message("accountLocked"),
       fieldErrors: {},
     };
   }
@@ -49,7 +50,7 @@ export function parseApiError(error: unknown): ApiError {
     data?.detail ??
     data?.title ??
     error.message ??
-    "Request failed.";
+    ui.message("requestFailed");
 
   return { status, message, fieldErrors };
 }

@@ -14,12 +14,13 @@ import {
   applyApiFieldErrors,
   applyApiFormError,
 } from "../../lib/rhf-api-errors.ts";
+import { ui } from "@/i18n/translate-enum";
 
 export function ForgotPasswordPage() {
   const { forgotPassword } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const form = useForm<ForgotPasswordValues>({
-    resolver: zodResolver(forgotPasswordSchema),
+    resolver: zodResolver(forgotPasswordSchema()),
     defaultValues: { email: "" },
   });
   const {
@@ -48,23 +49,20 @@ export function ForgotPasswordPage() {
         aria-labelledby="forgot-success-title"
       >
         <div className="auth-dialog-card">
-          <h2 id="forgot-success-title">Check your email</h2>
-          <p>If an account exists for that address, we sent a reset link.</p>
+          <h2 id="forgot-success-title">{ui.message("checkYourEmail")}</h2>
+          <p>{ui.message("resetLinkSent")}</p>
           <button
             type="button"
             className="auth-submit"
             onClick={() => setDialogOpen(false)}
           >
-            Close
+            {ui.action("close")}
           </button>
         </div>
       </dialog>
       <form className="auth-card" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <h1 style={{ textAlign: "center" }}>Forgot Password</h1>
-        <p className="auth-lead">
-          Enter your email address below and we'll send you a link to reset your
-          password.
-        </p>
+        <h1 style={{ textAlign: "center" }}>{ui.page("forgotPassword")}</h1>
+        <p className="auth-lead">{ui.message("forgotLead")}</p>
         {errors.root?.message ? (
           <p className="form-error" role="alert">
             {errors.root?.message}
@@ -73,7 +71,7 @@ export function ForgotPasswordPage() {
         <FieldGroup>
           <FormTextField
             id="email"
-            label="Email"
+            label={ui.label("email")}
             type="email"
             autoComplete="email"
             required
@@ -82,7 +80,7 @@ export function ForgotPasswordPage() {
           />
         </FieldGroup>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Sending..." : "Reset Password"}
+          {isSubmitting ? ui.label("sending") : ui.action("resetPassword")}
         </Button>
       </form>
     </section>

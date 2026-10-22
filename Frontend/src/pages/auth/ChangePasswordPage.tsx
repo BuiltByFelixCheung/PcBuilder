@@ -8,12 +8,16 @@ import {
   type ChangePasswordValues,
 } from "../../auth/schemas.ts";
 import { useAuth } from "../../auth/use-auth.ts";
-import { FormTextField } from "@/components/FormTextField.tsx";
-import { Button } from "@/components/ui/button";
+import {
+  AuthSubmitButton,
+  AuthSuccessDialog,
+  PasswordControlField,
+} from "@/components/auth/AuthFormParts";
 import { FieldGroup } from "@/components/ui/field";
 import { applyApiFieldErrors } from "../../lib/rhf-api-errors.ts";
+import { ui } from "@/i18n/translate-enum";
 
-const PAGE_TITLE = "Change Password";
+const PAGE_TITLE = () => ui.action("changePassword");
 
 export function ChangePasswordPage() {
   const { changePassword, logout } = useAuth();
@@ -21,7 +25,7 @@ export function ChangePasswordPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const form = useForm<ChangePasswordValues>({
-    resolver: zodResolver(changePasswordSchema),
+    resolver: zodResolver(changePasswordSchema()),
     defaultValues: {
       currentPassword: "",
       newPassword: "",
@@ -85,69 +89,50 @@ export function ChangePasswordPage() {
 
   return (
     <section className="auth-page">
-      <dialog
-        className="auth-dialog"
+      <AuthSuccessDialog
         open={dialogOpen}
-        aria-labelledby="change-success-title"
-      >
-        <div className="auth-dialog-card">
-          <h2 id="change-success-title">Password changed</h2>
-          <p>Your password has been updated. You have to sign in again.</p>
-          <button
-            type="button"
-            className="auth-submit"
-            onClick={() => void handleLogout()}
-          >
-            Close
-          </button>
-        </div>
-      </dialog>
+        titleId="change-success-title"
+        title={ui.message("passwordChanged")}
+        message={ui.message("passwordUpdatedSignInAgain")}
+        onClose={() => void handleLogout()}
+      />
       <form className="auth-card" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <h1>{PAGE_TITLE}</h1>
-        <p className="auth-lead">Choose a new password for your account.</p>
+        <h1>{PAGE_TITLE()}</h1>
+        <p className="auth-lead">{ui.message("chooseNewPassword")}</p>
         {errors.root?.message ? (
           <p className="form-error" role="alert">
             {errors.root.message}
           </p>
         ) : null}
         <FieldGroup>
-          <FormTextField
+          <PasswordControlField
             id="currentPassword"
-            label="Current Password"
-            type="password"
+            label={ui.label("currentPassword")}
             autoComplete="current-password"
-            required
             error={errors.currentPassword}
             registration={register("currentPassword")}
           />
-          <FormTextField
+          <PasswordControlField
             id="newPassword"
-            label="New Password"
-            type="password"
+            label={ui.label("newPassword")}
             autoComplete="new-password"
-            required
-            hint="At least 10 characters, with upper and lower case, a number, and a symbol."
+            hint={ui.message("passwordHint")}
             error={errors.newPassword}
             registration={register("newPassword")}
           />
-          <FormTextField
+          <PasswordControlField
             id="confirmNewPassword"
-            label="Confirm New Password"
-            type="password"
+            label={ui.label("confirmNewPassword")}
             autoComplete="new-password"
-            required
             error={errors.confirmNewPassword}
             registration={register("confirmNewPassword")}
           />
         </FieldGroup>
-        <Button
-          type="submit"
-          size="lg"
-          className="mt-6 h-10 w-full"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Changing Password…" : PAGE_TITLE}
-        </Button>
+        <AuthSubmitButton
+          pending={isSubmitting}
+          pendingLabel={ui.label("changingPassword")}
+          label={PAGE_TITLE()}
+        />
       </form>
     </section>
   );

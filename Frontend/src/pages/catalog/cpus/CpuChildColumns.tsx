@@ -1,5 +1,6 @@
 import type { CpuRamCompat, CpuSupportChipset } from "@/api/catalog/cpus";
 import { DDR_GENERATIONS, RAM_RANKS } from "@/api/enums";
+import {enumText, ui} from "@/i18n/translate-enum";
 import type { ChildCollectionColumn } from "@/components/catalog/ChildCollectionDialog";
 import {
   idSelectField,
@@ -13,29 +14,33 @@ import { Switch } from "@/components/ui/switch";
 type NamedRamRow = CpuRamCompat & { id: string; name: string };
 type NamedChipsetRow = CpuSupportChipset & { id: string; name: string };
 
-const ddrField = idSelectField<NamedRamRow>(
-  "DDR generation",
-  "ddrGeneration",
-  DDR_GENERATIONS.map((generation) => ({
-    id: generation,
-    name: generation.replace("Ddr", "DDR"),
-  })),
-);
+function ddrField(): CatalogField<NamedRamRow> {
+  return idSelectField<NamedRamRow>(
+    ui.label("ddrGenerationShort"),
+    "ddrGeneration",
+    DDR_GENERATIONS.map((generation) => ({
+      id: generation,
+      name: enumText.ddrGeneration(generation),
+    })),
+  );
+}
 
-const rankField = idSelectField<NamedRamRow>(
-  "RAM rank",
-  "ramRank",
-  RAM_RANKS.map((rank) => ({
-    id: rank,
-    name: rank === "DualRank" ? "Dual" : "Single",
-  })),
-);
+function rankField(): CatalogField<NamedRamRow> {
+  return idSelectField<NamedRamRow>(
+    ui.label("ramRankShort"),
+    "ramRank",
+    RAM_RANKS.map((rank) => ({
+      id: rank,
+      name: enumText.ramRank(rank),
+    })),
+  );
+}
 
 function chipsetField(
   chipsets: { id: string; name: string }[],
 ): CatalogField<NamedChipsetRow> {
   return idSelectField<NamedChipsetRow>(
-    "Chipset",
+    ui.label("chipset"),
     "chipsetId",
     chipsets.map((chipset) => ({
       id: chipset.id,
@@ -75,18 +80,18 @@ function chipsetSelect(
 
 export const ramCompatColumns: ChildCollectionColumn<CpuRamCompat>[] = [
   {
-    header: "DDR",
-    cell: (row, update) => ramSelect(ddrField, row, update),
+    header: () => ui.header("ddr"),
+    cell: (row, update) => ramSelect(ddrField(), row, update),
   },
   {
-    header: "Rank",
-    cell: (row, update) => ramSelect(rankField, row, update),
+    header: () => ui.header("rank"),
+    cell: (row, update) => ramSelect(rankField(), row, update),
   },
   {
-    header: "Modules",
+    header: () => ui.header("modules"),
     cell: (row, update) => (
       <Input
-        aria-label="RAM module count"
+        aria-label={ui.label("ramModuleCount")}
         className="w-20"
         type="number"
         min={1}
@@ -98,10 +103,10 @@ export const ramCompatColumns: ChildCollectionColumn<CpuRamCompat>[] = [
     ),
   },
   {
-    header: "Max speed (MT/s)",
+    header: () => ui.header("maxSpeedMts"),
     cell: (row, update) => (
       <Input
-        aria-label="Max speed"
+        aria-label={ui.label("maxSpeed")}
         className="w-24"
         type="number"
         min={1}
@@ -119,23 +124,23 @@ export function supportChipsetColumns(
 ): ChildCollectionColumn<CpuSupportChipset>[] {
   return [
     {
-      header: "Chipset",
+      header: () => ui.header("chipset"),
       cell: (row, update) => chipsetSelect(chipsetField(chipsets), row, update),
     },
     {
-      header: "BIOS update",
+      header: () => ui.header("biosUpdate"),
       cell: (row, update) => (
         <Field orientation="horizontal">
           <Switch
             id="requiresBiosUpdate"
-            aria-label="BIOS update required"
+            aria-label={ui.label("biosUpdateRequired")}
             checked={row.requiresBiosUpdate}
             onCheckedChange={(checked) =>
               update({ ...row, requiresBiosUpdate: checked === true })
             }
           />
           <Label htmlFor="requiresBiosUpdate">
-            {row.requiresBiosUpdate ? "Required" : "Not Required"}
+            {row.requiresBiosUpdate ? ui.label("required") : ui.label("notRequired")}
           </Label>
         </Field>
       ),

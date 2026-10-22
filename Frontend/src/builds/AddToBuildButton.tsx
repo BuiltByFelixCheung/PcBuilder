@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { allowsBuildQuantity, builderHref } from "./types";
 import { usePcBuild } from "./use-pc-build";
 import type { CatalogProductType } from "./types";
+import { ui } from "@/i18n/translate-enum";
 
 export function AddToBuildButton({
   productType,
@@ -20,7 +21,7 @@ export function AddToBuildButton({
     <div className="add-to-build">
       {showQty ? (
         <>
-          <Label htmlFor={`build-qty-${partId}`}>QTY</Label>
+          <Label htmlFor={`build-qty-${partId}`}>{ui.label("qty")}</Label>
           <Input
             id={`build-qty-${partId}`}
             className="add-to-build-qty-input"
@@ -42,7 +43,7 @@ export function AddToBuildButton({
           void navigate(builderHref(build.sourceId));
         }}
       >
-        Add to Build
+        {ui.action("addToBuild")}
       </Button>
     </div>
   );

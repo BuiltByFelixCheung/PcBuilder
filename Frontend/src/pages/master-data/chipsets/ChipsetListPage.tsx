@@ -33,26 +33,29 @@ import {
   IdSelectField,
   NameField,
 } from "@/components/filters/ListFilters";
-import { MasterDataResults } from "@/components/master-data/MasterDataResults";
+import { MasterDataListResults } from "@/components/master-data/MasterDataResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
+import { ui } from "@/i18n/translate-enum";
 
 const EMPTY_ITEMS: ChipsetOption[] = [];
 const columnHelper = createColumnHelper<
   typeof dataTableFeatures,
   ChipsetOption
 >();
-const columns = columnHelper.columns([
+function listColumns() {
+  return columnHelper.columns([
   createSelectionColumn(columnHelper),
   columnHelper.accessor("name", {
-    header: "Name",
+    header: ui.header("name"),
     cell: (info) => (
       <Link to={chipsetEditPath(info.row.original.id)}>{info.getValue()}</Link>
     ),
   }),
-  columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
-  columnHelper.accessor("socketName", { header: "Socket" }),
+  columnHelper.accessor("manufacturerName", { header: ui.header("manufacturer") }),
+  columnHelper.accessor("socketName", { header: ui.header("socket") }),
 ]);
+}
 
 type ChipsetFilter = {
   name?: string;
@@ -78,6 +81,7 @@ export function ChipsetListPage() {
   const [applied, setApplied] = useState<ChipsetFilter>(emptyChipsetFilter);
   const filtering = isChipsetFilterActive(applied);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const columns = useMemo(() => listColumns(), []);
   const manufacturers = useIdNameChoices(
     items,
     "manufacturerId",
@@ -95,8 +99,8 @@ export function ChipsetListPage() {
     rowSelection,
     setRowSelection,
     queryKey: masterDataKeys.chipsets,
-    singular: "chipset",
-    plural: "chipsets",
+    singular: ui.label("nChipset"),
+    plural: ui.label("nChipsets"),
     deleteByIds: (ids) => deleteChipsets({ ids }),
   });
   const excelImport = useExcelImport({
@@ -116,10 +120,8 @@ export function ChipsetListPage() {
 
   return (
     <section className="catalog-page">
-      <h1>Chipsets</h1>
-      <p className="catalog-lead">
-        Browse the master data, then apply filters when you need a narrower set.
-      </p>
+      <h1>{ui.nav("master.chipsets")}</h1>
+      <p className="catalog-lead">{ui.message("browseMasterDataLead")}</p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <FieldGroup className="catalog-filter-grid">
@@ -129,9 +131,7 @@ export function ChipsetListPage() {
               onChange={(name) => setDraft((current) => ({ ...current, name }))}
             />
             <Field>
-              <FieldLabel htmlFor="chipset-manufacturer">
-                Manufacturer
-              </FieldLabel>
+              <FieldLabel htmlFor="chipset-manufacturer">{ui.label("manufacturer")}</FieldLabel>
               <select
                 id="chipset-manufacturer"
                 className={formSelectClassName}
@@ -144,7 +144,7 @@ export function ChipsetListPage() {
                   }))
                 }
               >
-                <option value="">Any</option>
+                <option value="">{ui.label("any")}</option>
                 {manufacturers.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.name}
@@ -154,7 +154,7 @@ export function ChipsetListPage() {
             </Field>
             <IdSelectField
               id="chipset-socket"
-              label="Socket"
+              label={ui.label("socket")}
               value={draft.socketId}
               options={socketOptions}
               onChange={(value) =>
@@ -167,27 +167,20 @@ export function ChipsetListPage() {
           </FieldGroup>
           <FilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <MasterDataResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={visibleItems}
-            filtering={filtering}
-            loadingMessage="Loading chipsets…"
-            emptyFilteredMessage="No chipsets match these filters."
-            emptyMessage="No chipsets yet."
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onImport={excelImport.openImport}
-            newItemTo={chipsetEditPath(newMasterDataEditValue)}
-            newItemLabel="New Chipset"
-          />
-        </div>
+        <MasterDataListResults
+          entity="chipsets"
+          empty="noneYet"
+          query={query}
+          items={visibleItems}
+          filtering={filtering}
+          columns={columns}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onImport={excelImport.openImport}
+          newItemTo={chipsetEditPath(newMasterDataEditValue)}
+          newItemLabel={ui.action("newChipset")}
+        />
       </div>
       {editingId ? (
         <ChipsetFormDialog

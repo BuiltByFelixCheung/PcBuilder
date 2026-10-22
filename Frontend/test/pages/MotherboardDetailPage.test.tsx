@@ -107,10 +107,10 @@ describe("MotherboardDetailPage", () => {
     expect(screen.getByText("ASUS")).toBeInTheDocument();
     expect(screen.getByText("X870")).toBeInTheDocument();
     expect(screen.getByText("DDR5")).toBeInTheDocument();
-    expect(screen.getAllByText("PCIe 5")).toHaveLength(2);
-    expect(screen.getByText("2280, 22110")).toBeInTheDocument();
-    expect(screen.getByText("Usb32Gen2")).toBeInTheDocument();
-    expect(screen.getByText("TypeC")).toBeInTheDocument();
+    expect(screen.getAllByText("PCIe 5.0")).toHaveLength(2);
+    expect(screen.getByText("M.2 2280, M.2 22110")).toBeInTheDocument();
+    expect(screen.getByText("USB 3.2 Gen 2")).toBeInTheDocument();
+    expect(screen.getByText("Type-C")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Back to Motherboards" }),
     ).toHaveAttribute("href", "/catalog/motherboards");

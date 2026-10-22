@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { ui } from "@/i18n/translate-enum";
 
 export function Anonymous() {
   return (
@@ -9,7 +10,7 @@ export function Anonymous() {
           isActive ? "nav-link active" : "nav-link"
         }
       >
-        Sign in
+        {ui.action("signIn")}
       </NavLink>
       <NavLink
         to="/register"
@@ -17,7 +18,7 @@ export function Anonymous() {
           isActive ? "nav-link active" : "nav-link"
         }
       >
-        Create account
+        {ui.page("createAccount")}
       </NavLink>
     </>
   );

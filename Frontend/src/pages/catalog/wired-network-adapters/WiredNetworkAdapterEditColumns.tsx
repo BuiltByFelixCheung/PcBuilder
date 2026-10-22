@@ -20,23 +20,30 @@ import {
   USB_VERSIONS,
   WIRED_HOST_INTERFACES,
 } from "@/api/enums";
+import { enumText, ui } from "@/i18n/translate-enum";
 
 export function WiredNetworkAdapterEditColumns(
   manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<WiredNetworkAdapter>[] {
   return [
     nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    enumSelectBulkColumn("Interface", "hostInterface", WIRED_HOST_INTERFACES),
-    numberBulkColumn("Max speed (Mbps)", "maxSpeedMbps", {
+    idSelectBulkColumn(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    enumSelectBulkColumn(ui.label("interface"), "hostInterface", WIRED_HOST_INTERFACES, {
+      label: enumText.ethernetInterface,
+    }),
+    numberBulkColumn(ui.label("maxSpeedMbps"), "maxSpeedMbps", {
       parse: toInteger,
       fallback: 0,
     }),
-    enumSelectBulkColumn("USB version", "usbVersion", USB_VERSIONS, {
+    enumSelectBulkColumn(ui.label("usbVersion"), "usbVersion", USB_VERSIONS, {
       empty: "null",
+      label: enumText.usbVersion,
     }),
-    enumSelectBulkColumn("USB type", "usbType", USB_TYPES, { empty: "keep" }),
-    enumSelectBulkColumn("PCIe slot", "pcieSlotType", PCIE_SLOT_TYPES, {
+    enumSelectBulkColumn(ui.label("usbType"), "usbType", USB_TYPES, {
+      empty: "keep",
+      label: enumText.usbType,
+    }),
+    enumSelectBulkColumn(ui.label("pcieSlot"), "pcieSlotType", PCIE_SLOT_TYPES, {
       empty: "keep",
     }),
   ];
@@ -47,17 +54,23 @@ export function WiredNetworkAdapterFields(
 ): CatalogField<WiredNetworkAdapter>[] {
   return [
     nameField(),
-    idSelectField("Manufacturer", "manufacturerId", manufacturers),
-    enumSelectField("Interface", "hostInterface", WIRED_HOST_INTERFACES),
-    numberField("Max speed (Mbps)", "maxSpeedMbps", {
+    idSelectField(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    enumSelectField(ui.label("interface"), "hostInterface", WIRED_HOST_INTERFACES, {
+      label: enumText.ethernetInterface,
+    }),
+    numberField(ui.label("maxSpeedMbps"), "maxSpeedMbps", {
       parse: toInteger,
       fallback: 0,
     }),
-    enumSelectField("USB version", "usbVersion", USB_VERSIONS, {
+    enumSelectField(ui.label("usbVersion"), "usbVersion", USB_VERSIONS, {
       empty: "null",
+      label: enumText.usbVersion,
     }),
-    enumSelectField("USB type", "usbType", USB_TYPES, { empty: "keep" }),
-    enumSelectField("PCIe slot", "pcieSlotType", PCIE_SLOT_TYPES, {
+    enumSelectField(ui.label("usbType"), "usbType", USB_TYPES, {
+      empty: "keep",
+      label: enumText.usbType,
+    }),
+    enumSelectField(ui.label("pcieSlot"), "pcieSlotType", PCIE_SLOT_TYPES, {
       empty: "keep",
     }),
   ];

@@ -25,17 +25,20 @@ import {
 } from "@/lib/rhf-api-errors.ts";
 import { formSelectClassName } from "@/components/filters/ListFilters";
 import { useState } from "react";
+import { ui } from "@/i18n/translate-enum";
 
-const gpuSeriesFormSchema = z.object({
+function gpuSeriesFormSchema() {
+  return z.object({
   name: z
     .string()
     .trim()
-    .min(1, "Name is required.")
-    .max(100, "Name must not exceed 100 characters."),
-  manufacturerId: z.string().min(1, "Manufacturer is required."),
+    .min(1, ui.message("nameRequired"))
+    .max(100, ui.message("nameTooLong")),
+  manufacturerId: z.string().min(1, ui.message("manufacturerRequired")),
 });
+}
 
-type GpuSeriesFormValues = z.infer<typeof gpuSeriesFormSchema>;
+type GpuSeriesFormValues = z.infer<ReturnType<typeof gpuSeriesFormSchema>>;
 
 type GpuSeriesFormDialogProps = {
   editingId: string;
@@ -56,12 +59,12 @@ export function GpuSeriesFormDialog({
       items={gpuSeries}
       settled={gpuSeriesSettled}
       onClose={onClose}
-      editTitle="Edit GPU series"
-      loadingMessage="Loading GPU series…"
+      editTitle={ui.dialog("editGpuSeries")}
+      loadingMessage={ui.empty("loading", { entity: ui.entity("gpuSeries") })}
       missing={
         <MasterDataMissing
-          title="GPU series not found"
-          description="This GPU series is not in the current list."
+          title={ui.empty("gpuSeriesNotFound")}
+          description={ui.message("notInListGpuSeries")}
           onClose={onClose}
         />
       }
@@ -81,8 +84,8 @@ function GpuSeriesForm({
   });
   return (
     <MasterDataOptions
-      title={gpuSeries ? "Edit GPU series" : "New GPU series"}
-      loadingMessage="Loading GPU series…"
+      title={gpuSeries ? ui.dialog("editGpuSeriesForm") : ui.dialog("newGpuSeriesForm")}
+      loadingMessage={ui.empty("loading", { entity: ui.entity("gpuSeries") })}
       onClose={onClose}
       queries={[manufacturers]}
     >
@@ -108,7 +111,7 @@ function GpuSeriesFields({
 }>) {
   const queryClient = useQueryClient();
   const form = useForm<GpuSeriesFormValues>({
-    resolver: zodResolver(gpuSeriesFormSchema),
+    resolver: zodResolver(gpuSeriesFormSchema()),
     defaultValues: {
       name: gpuSeries?.name ?? "",
       manufacturerId: gpuSeries?.manufacturerId ?? "",
@@ -146,7 +149,7 @@ function GpuSeriesFields({
   }
 
   async function onDelete() {
-    if (!gpuSeries || !window.confirm(`Delete ${gpuSeries.name}?`)) return;
+    if (!gpuSeries || !window.confirm(ui.message("deleteNamed", { name: gpuSeries.name }))) return;
     setIsDeleting(true);
     try {
       await deleteGpuSeries(gpuSeries.id);
@@ -162,11 +165,11 @@ function GpuSeriesFields({
 
   return (
     <MasterDataFormShell
-      title={gpuSeries ? "Edit GPU series" : "New GPU series"}
+      title={gpuSeries ? ui.dialog("editGpuSeriesForm") : ui.dialog("newGpuSeriesForm")}
       description={
         gpuSeries
-          ? "Update the name and manufacturer."
-          : "Add a GPU series to master data."
+          ? ui.message("updateNameManufacturer")
+          : ui.message("addGpuSeries")
       }
       error={errors.root?.message}
       onSubmit={handleSubmit(onSubmit)}
@@ -174,22 +177,20 @@ function GpuSeriesFields({
       onDelete={gpuSeries ? () => void onDelete() : undefined}
       deleteDisabled={isDeleting}
       deleting={isDeleting}
-      cancelLabel="Close"
+      cancelLabel={ui.action("close")}
       cancelDisabled={isSubmitting}
-      submitLabel={gpuSeries ? "Update" : "Create"}
+      submitLabel={gpuSeries ? ui.action("update") : ui.action("create")}
       submitDisabled={isSubmitting}
     >
       <FormTextField
         id="gpu-series-edit-name"
-        label="Name"
+        label={ui.label("name")}
         required
         error={errors.name}
         registration={register("name")}
       />
       <Field data-invalid={errors.manufacturerId ? true : undefined}>
-        <FieldLabel htmlFor="gpu-series-edit-manufacturer">
-          Manufacturer
-        </FieldLabel>
+        <FieldLabel htmlFor="gpu-series-edit-manufacturer">{ui.label("manufacturer")}</FieldLabel>
         <select
           id="gpu-series-edit-manufacturer"
           className={formSelectClassName}
@@ -199,7 +200,7 @@ function GpuSeriesFields({
             void manufacturerRegistration.onChange(event);
           }}
         >
-          <option value="">Select a manufacturer</option>
+          <option value="">{ui.label("selectManufacturer")}</option>
           {manufacturers.map((item) => (
             <option key={item.id} value={item.id}>
               {item.name}

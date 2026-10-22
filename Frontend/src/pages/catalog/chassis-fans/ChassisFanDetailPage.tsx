@@ -12,6 +12,7 @@ import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
 import { Button } from "@/components/ui/button";
 import { chassisFanKeys, updateChassisFan } from "@/api/catalog/chassis-fans";
 import { ChassisFanFields } from "@/pages/catalog/chassis-fans/ChassisFanEditColumns";
+import { ui } from "@/i18n/translate-enum";
 
 export function ChassisFanDetailPage() {
   const { chassisFanId } = useParams();
@@ -23,19 +24,19 @@ export function ChassisFanDetailPage() {
   const manufacturers = useCatalogManufacturers("chassisfan");
 
   if (query.isPending) {
-    return <PageStatus>Loading chassis fan…</PageStatus>;
+    return <PageStatus>{ui.empty("loading", { entity: ui.entity("chassisFan") })}</PageStatus>;
   }
 
   if (query.isError || !fan) {
     return (
       <section className="catalog-page">
         <p>
-          <Link to="/catalog/chassis-fans">Back to Chassis Fans</Link>
+          <Link to="/catalog/chassis-fans">{ui.empty("backTo", { entity: ui.nav("products.chassisFans") })}</Link>
         </p>
         <PageStatus>
           {query.isError
             ? parseApiError(query.error).message
-            : "Chassis fan not found."}
+            : ui.empty("chassisFanNotFound")}
         </PageStatus>
       </section>
     );
@@ -44,7 +45,7 @@ export function ChassisFanDetailPage() {
   return (
     <section className="catalog-page">
       <p>
-        <Link to="/catalog/chassis-fans">Back to Chassis Fans</Link>
+        <Link to="/catalog/chassis-fans">{ui.empty("backTo", { entity: ui.nav("products.chassisFans") })}</Link>
       </p>
       <div className="catalog-detail-title">
         <h1>{fan.name}</h1>
@@ -53,13 +54,13 @@ export function ChassisFanDetailPage() {
         )}
         {isAdmin && (
           <Button type="button" onClick={() => setEditing(true)}>
-            Edit
+            {ui.action("edit")}
           </Button>
         )}
       </div>
       {editing ? (
         <CatalogEditDialog
-          title="Edit chassis fan"
+          title={ui.dialog("editChassisFan")}
           item={fan}
           fields={ChassisFanFields(manufacturers)}
           onClose={() => setEditing(false)}
@@ -73,31 +74,31 @@ export function ChassisFanDetailPage() {
       ) : null}
       <dl className="catalog-details">
         <div>
-          <dt>Manufacturer</dt>
+          <dt>{ui.label("manufacturer")}</dt>
           <dd>{fan.manufacturerName}</dd>
         </div>
         <div>
-          <dt>Diameter</dt>
+          <dt>{ui.label("diameter")}</dt>
           <dd>{formatFanDiameterMm(fan.diameterMm)}</dd>
         </div>
         <div>
-          <dt>Fans per pack</dt>
+          <dt>{ui.label("fansPerPack")}</dt>
           <dd>{fan.fansCountPerPack}</dd>
         </div>
         <div>
-          <dt>Thickness</dt>
-          <dd>{fan.thicknessMm} mm</dd>
+          <dt>{ui.label("thickness")}</dt>
+          <dd>{fan.thicknessMm} {ui.unit("mm")}</dd>
         </div>
         <div>
-          <dt>Header</dt>
+          <dt>{ui.label("header")}</dt>
           <dd>{formatFanHeaderType(fan.headerType)}</dd>
         </div>
         <div>
-          <dt>Daisy chain</dt>
+          <dt>{ui.label("daisyChain")}</dt>
           <dd>
             {fan.supportsDaisyChain
-              ? `Yes (max ${fan.maxFansPerDaisyChain})`
-              : "No"}
+              ? ui.message("yesMax", { count: fan.maxFansPerDaisyChain ?? 0 })
+              : ui.label("no")}
           </dd>
         </div>
       </dl>

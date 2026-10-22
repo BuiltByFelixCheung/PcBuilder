@@ -239,7 +239,7 @@ describe("BuilderPage", () => {
       initialBuild: { cpuId: "cpu-1", motherboardId: "mb-1" },
     });
     expect(await screen.findByText("Incompatible")).toBeInTheDocument();
-    expect(await screen.findByText("Socket Mismatch")).toBeInTheDocument();
+    expect(await screen.findByText("Socket mismatch")).toBeInTheDocument();
   });
 
   it("shows a saved build as read-only on /builds/:id", async () => {

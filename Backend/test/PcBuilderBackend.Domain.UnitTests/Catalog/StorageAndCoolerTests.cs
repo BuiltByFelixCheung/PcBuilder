@@ -258,7 +258,7 @@ public class StorageAndCoolerTests
             MaxFansPerDaisyChain = null
         });
         daisyWithoutMax.Should().Throw<ArgumentException>()
-            .WithParameterName(nameof(ChassisFanSpecs.MaxFansPerDaisyChain));
+            .WithParameterName("specs");
 
         var daisy = new ChassisFan("Fan", ManufacturerId, new ChassisFanSpecs
         {

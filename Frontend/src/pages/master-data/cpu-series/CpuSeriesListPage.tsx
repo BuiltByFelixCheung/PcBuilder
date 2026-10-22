@@ -33,7 +33,7 @@ import {
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MasterDataResults } from "@/components/master-data/MasterDataResults";
+import { MasterDataListResults } from "@/components/master-data/MasterDataResults";
 import {
   FilterActions,
   NameField,
@@ -41,6 +41,7 @@ import {
 } from "@/components/filters/ListFilters";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
+import { ui } from "@/i18n/translate-enum";
 import {
   BulkEditDialog,
   type BulkEditColumn,
@@ -51,19 +52,21 @@ const columnHelper = createColumnHelper<
   typeof dataTableFeatures,
   CpuSeriesOption
 >();
-const columns = columnHelper.columns([
+function listColumns() {
+  return columnHelper.columns([
   createSelectionColumn(columnHelper),
   columnHelper.accessor("name", {
-    header: "Name",
+    header: ui.header("name"),
     cell: (info) => (
       <Link to={cpuSeriesEditPath(info.row.original.id)}>
         {info.getValue()}
       </Link>
     ),
   }),
-  columnHelper.accessor("manufacturerName", { header: "Manufacturer" }),
-  columnHelper.accessor("socketName", { header: "Socket" }),
+  columnHelper.accessor("manufacturerName", { header: ui.header("manufacturer") }),
+  columnHelper.accessor("socketName", { header: ui.header("socket") }),
 ]);
+}
 
 function cpuSeriesEditColumns(
   manufacturers: { id: string; name: string }[],
@@ -71,8 +74,8 @@ function cpuSeriesEditColumns(
 ): BulkEditColumn<CpuSeriesOption>[] {
   return [
     nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    idSelectBulkColumn("Socket", "socketId", sockets),
+    idSelectBulkColumn(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    idSelectBulkColumn(ui.label("socket"), "socketId", sockets),
   ];
 }
 
@@ -101,6 +104,7 @@ export function CpuSeriesListPage() {
   const [applied, setApplied] = useState<CpuSeriesFilter>(emptyCpuSeriesFilter);
   const filtering = isCpuSeriesFilterActive(applied);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const columns = useMemo(() => listColumns(), []);
   const [editRows, setEditRows] = useState<CpuSeriesOption[] | null>(null);
   const manufacturers = useIdNameChoices(
     items,
@@ -118,8 +122,8 @@ export function CpuSeriesListPage() {
     rowSelection,
     setRowSelection,
     queryKey: masterDataKeys.cpuSeries,
-    singular: "CPU series",
-    plural: "CPU series",
+    singular: ui.label("nCpuSeries"),
+    plural: ui.label("nCpuSeries"),
     deleteByIds: (ids) => deleteMultipleCpuSeries({ ids }),
   });
   const excelImport = useExcelImport({
@@ -141,10 +145,8 @@ export function CpuSeriesListPage() {
 
   return (
     <section className="catalog-page">
-      <h1>CPU Series</h1>
-      <p className="catalog-lead">
-        Browse the master data, then apply filters when you need a narrower set.
-      </p>
+      <h1>{ui.nav("master.cpuSeries")}</h1>
+      <p className="catalog-lead">{ui.message("browseMasterDataLead")}</p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <FieldGroup className="catalog-filter-grid">
@@ -155,7 +157,7 @@ export function CpuSeriesListPage() {
             />
             <IdSelectField
               id="cpu-series-manufacturer"
-              label="Manufacturer"
+              label={ui.label("manufacturer")}
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
@@ -164,7 +166,7 @@ export function CpuSeriesListPage() {
             />
             <IdSelectField
               id="cpu-series-socket"
-              label="Socket"
+              label={ui.label("socket")}
               value={draft.socketId}
               options={socketOptions}
               onChange={(value) =>
@@ -174,32 +176,25 @@ export function CpuSeriesListPage() {
           </FieldGroup>
           <FilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <MasterDataResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={visibleItems}
-            filtering={filtering}
-            loadingMessage="Loading CPU Series…"
-            emptyFilteredMessage="No CPU Series match these filters."
-            emptyMessage="No CPU Series yet."
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onEditSelected={startEditing}
-            onImport={excelImport.openImport}
-            newItemTo={cpuSeriesEditPath(newMasterDataEditValue)}
-            newItemLabel="New CPU Series"
-          />
-        </div>
+        <MasterDataListResults
+          entity="cpuSeries"
+          empty="noneYet"
+          query={query}
+          items={visibleItems}
+          filtering={filtering}
+          columns={columns}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onEditSelected={startEditing}
+          onImport={excelImport.openImport}
+          newItemTo={cpuSeriesEditPath(newMasterDataEditValue)}
+          newItemLabel={ui.action("newCpuSeries")}
+        />
       </div>
       {editRows ? (
         <BulkEditDialog
-          title="Edit CPU Series"
+          title={ui.dialog("editCpuSeries")}
           rows={editRows}
           columns={cpuSeriesEditColumns(manufacturers, sockets)}
           onClose={() => setEditRows(null)}

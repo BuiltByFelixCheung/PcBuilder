@@ -10,6 +10,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { formSelectClassName, SelectField } from "@/components/filters/ListFilters";
+import { ui } from "@/i18n/translate-enum";
 
 export {
   FilterActions as CatalogFilterActions,
@@ -32,9 +33,7 @@ export function CatalogCompatibleCheckbox({
         checked={checked}
         onCheckedChange={(value) => onCheckedChange(value === true)}
       />
-      <FieldLabel htmlFor="show-only-compatible">
-        Show only compatible
-      </FieldLabel>
+      <FieldLabel htmlFor="show-only-compatible">{ui.label("showOnlyCompatible")}</FieldLabel>
     </Field>
   );
 }
@@ -58,7 +57,7 @@ export function CatalogRangeField({
       <div className="flex gap-2">
         <DecimalInput
           id={`${id}-min`}
-          placeholder="Min"
+          placeholder={ui.label("min")}
           value={range?.min}
           onValue={(min) =>
             onChange({
@@ -69,7 +68,7 @@ export function CatalogRangeField({
         />
         <DecimalInput
           label={maxAriaLabel}
-          placeholder="Max"
+          placeholder={ui.label("max")}
           value={range?.max}
           onValue={(max) =>
             onChange({
@@ -107,9 +106,9 @@ export function CatalogOptionalBooleanField({
           else onChange(undefined);
         }}
       >
-        <option value="">Any</option>
-        <option value="true">Yes</option>
-        <option value="false">No</option>
+        <option value="">{ui.label("any")}</option>
+        <option value="true">{ui.label("yes")}</option>
+        <option value="false">{ui.label("no")}</option>
       </select>
     </Field>
   );
@@ -120,7 +119,7 @@ export function CatalogEnumField<T extends string>({
   label,
   value,
   options,
-  emptyLabel = "Any",
+  emptyLabel,
   formatOption = (option) => option,
   onChange,
 }: Readonly<{
@@ -168,7 +167,7 @@ export function CatalogFilterGroup({
             <FieldGroup className="catalog-filter-grid">{extra}</FieldGroup>
           </CollapsibleContent>
           <CollapsibleTrigger className="catalog-filter-more">
-            {open ? "Fewer filters" : "More filters"}
+            {open ? ui.action("fewerFilters") : ui.action("moreFilters")}
             <ChevronsUpDown />
           </CollapsibleTrigger>
         </Collapsible>

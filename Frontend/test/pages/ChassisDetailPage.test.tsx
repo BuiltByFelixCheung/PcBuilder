@@ -120,12 +120,12 @@ describe("ChassisDetailPage", () => {
     const motherboardFormFactors = screen
       .getByRole("heading", { name: "Motherboard form factors" })
       .closest("div")!.parentElement!;
-    expect(within(motherboardFormFactors).getByText("Atx")).toBeInTheDocument();
-    expect(within(motherboardFormFactors).getByText("Matx")).toBeInTheDocument();
+    expect(within(motherboardFormFactors).getByText("ATX")).toBeInTheDocument();
+    expect(within(motherboardFormFactors).getByText("mATX")).toBeInTheDocument();
     const psuFormFactors = screen
       .getByRole("heading", { name: "PSU form factors" })
       .closest("div")!.parentElement!;
-    expect(within(psuFormFactors).getByText("Atx")).toBeInTheDocument();
+    expect(within(psuFormFactors).getByText("ATX")).toBeInTheDocument();
     expect(within(psuFormFactors).queryByText("Matx")).not.toBeInTheDocument();
     expect(
       screen.getByRole("rowheader", { name: "Front" }),
@@ -136,7 +136,7 @@ describe("ChassisDetailPage", () => {
     expect(
       screen.getByRole("cell", { name: "120 mm x 2 or 140 mm x 2" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Inch35")).toBeInTheDocument();
+    expect(screen.getByRole("rowheader", { name: "3.5" })).toBeInTheDocument();
     expect(screen.getByText("Horizontal")).toBeInTheDocument();
     expect(
       screen.getByRole("cell", { name: "240 mm x 1 or 360 mm x 1" }),

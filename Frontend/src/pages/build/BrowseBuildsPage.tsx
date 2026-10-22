@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { usePublicBuilds } from "@/hooks/use-public-builds";
+import { ui } from "@/i18n/translate-enum";
 
 const EMPTY_ITEMS: never[] = [];
 
@@ -39,13 +40,11 @@ export function BrowseBuildPage() {
 
   return (
     <section className="catalog-page">
-      <h1>Browse Builds</h1>
-      <p className="catalog-lead">
-        Public PC builds shared by members. Open one to inspect the parts list.
-      </p>
+      <h1>{ui.page("browseBuilds")}</h1>
+      <p className="catalog-lead">{ui.message("browseBuildsLead")}</p>
 
       {isInitialLoading ? (
-        <PageStatus>Loading builds…</PageStatus>
+        <PageStatus>{ui.empty("loading", { entity: ui.entity("builds") })}</PageStatus>
       ) : null}
 
       {query.isError ? (
@@ -54,8 +53,8 @@ export function BrowseBuildPage() {
 
       {!isInitialLoading && !query.isError && items.length === 0 ? (
         <PageStatus>
-          No public builds yet.{" "}
-          <Link to="/builds/current">Start a build</Link>
+          {ui.empty("noPublicBuildsStart")}{" "}
+          <Link to="/builds/current">{ui.action("startABuild")}</Link>
         </PageStatus>
       ) : null}
 
@@ -70,12 +69,12 @@ export function BrowseBuildPage() {
                   </CardTitle>
                   <CardDescription>
                     {build.userName ? `${build.userName} · ` : null}
-                    {build.description?.trim() || "No description."}
+                    {build.description?.trim() || ui.label("noDescription")}
                   </CardDescription>
                 </CardHeader>
                 <CardFooter>
                   <Button asChild variant="outline" size="sm">
-                    <Link to={builderViewHref(build.id)}>View build</Link>
+                    <Link to={builderViewHref(build.id)}>{ui.action("viewBuild")}</Link>
                   </Button>
                 </CardFooter>
               </Card>

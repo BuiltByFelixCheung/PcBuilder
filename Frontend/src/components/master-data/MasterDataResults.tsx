@@ -7,6 +7,7 @@ import { parseApiError } from "@/api/errors.ts";
 import { ManagementActions } from "@/components/ManagementActions";
 import { PageStatus } from "@/components/PageStatus";
 import { DataTable, type DataTableColumns } from "@/components/ui/data-table";
+import { ui } from "@/i18n/translate-enum";
 
 type MasterDataResultsProps<TData extends RowData> = {
   isInitialLoading: boolean;
@@ -108,5 +109,78 @@ export function MasterDataResults<TData extends RowData>({
         ))
       )}
     </>
+  );
+}
+
+type MasterDataListQuery = {
+  isPending: boolean;
+  data?: unknown;
+  isError: boolean;
+  error: unknown;
+};
+
+type MasterDataBulkDelete = {
+  onDeleteSelected: () => void | Promise<void>;
+  isDeleting: boolean;
+  deleteError: string | null;
+};
+
+export function MasterDataListResults<TData extends RowData>({
+  entity,
+  empty = "noneFound",
+  query,
+  items,
+  filtering,
+  columns,
+  rowSelection,
+  onRowSelectionChange,
+  bulkDelete,
+  onEditSelected,
+  onImport,
+  newItemTo,
+  newItemLabel,
+  keepTableWhenEmpty = false,
+}: Readonly<{
+  entity: string;
+  empty?: "noneFound" | "noneYet";
+  query: MasterDataListQuery;
+  items: TData[];
+  filtering: boolean;
+  columns: DataTableColumns<TData>;
+  rowSelection: RowSelectionState;
+  onRowSelectionChange: OnChangeFn<RowSelectionState>;
+  bulkDelete: MasterDataBulkDelete;
+  onEditSelected?: () => void;
+  onImport: () => void;
+  newItemTo: string;
+  newItemLabel: string;
+  keepTableWhenEmpty?: boolean;
+}>) {
+  return (
+    <div className="catalog-results">
+      <MasterDataResults
+        isInitialLoading={query.isPending && !query.data}
+        isError={query.isError}
+        error={query.error}
+        items={items}
+        filtering={filtering}
+        loadingMessage={ui.empty("loading", { entity: ui.entity(entity) })}
+        emptyFilteredMessage={ui.empty("noMatchFilters", {
+          entity: ui.entity(entity),
+        })}
+        emptyMessage={ui.empty(empty, { entity: ui.entity(entity) })}
+        columns={columns}
+        rowSelection={rowSelection}
+        onRowSelectionChange={onRowSelectionChange}
+        onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
+        deleting={bulkDelete.isDeleting}
+        deleteError={bulkDelete.deleteError}
+        onEditSelected={onEditSelected}
+        onImport={onImport}
+        newItemTo={newItemTo}
+        newItemLabel={newItemLabel}
+        keepTableWhenEmpty={keepTableWhenEmpty}
+      />
+    </div>
   );
 }

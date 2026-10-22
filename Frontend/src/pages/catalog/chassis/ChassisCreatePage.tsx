@@ -29,6 +29,7 @@ import {
   radiatorColumns,
 } from "@/pages/catalog/chassis/ChassisChildColumns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ui } from "@/i18n/translate-enum";
 
 const emptyChassis: ChassisListItem = {
   id: "",
@@ -70,9 +71,9 @@ export function ChassisCreatePage() {
 
   return (
     <CatalogCreateForm
-      title="New chassis"
+      title={ui.dialog("newChassis")}
       backTo="/catalog/chassis"
-      backLabel="Back to chassis"
+      backLabel={ui.empty("backTo", { entity: ui.nav("products.chassis") })}
       saving={saving}
       error={error}
       onSubmit={() =>
@@ -95,7 +96,7 @@ export function ChassisCreatePage() {
       <div className="catalog-create-columns">
         <Card>
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
+            <CardTitle>{ui.section("basicInformation")}</CardTitle>
           </CardHeader>
           <CardContent>
             <CatalogScalarFields
@@ -107,7 +108,7 @@ export function ChassisCreatePage() {
         </Card>
         <div className="catalog-create-column">
           <CatalogCollectionEditor
-            title="Motherboard form factors"
+            title={ui.section("motherboardFormFactors")}
             columns={mbFormFactorColumns}
             rows={mbFormFactors}
             onChange={setMbFormFactors}
@@ -115,7 +116,7 @@ export function ChassisCreatePage() {
             createRow={(): { value: MbFormFactor } => ({ value: "Atx" })}
           />
           <CatalogCollectionEditor
-            title="PCIe slots"
+            title={ui.section("pcieSlots")}
             columns={pcieSlotColumns}
             rows={pcieSlots}
             onChange={setPcieSlots}
@@ -129,7 +130,7 @@ export function ChassisCreatePage() {
             })}
           />
           <CatalogCollectionEditor
-            title="Radiators"
+            title={ui.section("radiators")}
             columns={radiatorColumns}
             rows={radiators}
             onChange={setRadiators}
@@ -141,7 +142,7 @@ export function ChassisCreatePage() {
         </div>
         <div className="catalog-create-column">
           <CatalogCollectionEditor
-            title="PSU form factors"
+            title={ui.section("psuFormFactors")}
             columns={psuFormFactorColumns}
             rows={psuFormFactors}
             onChange={setPsuFormFactors}
@@ -149,7 +150,7 @@ export function ChassisCreatePage() {
             createRow={(): { value: PsuFormFactor } => ({ value: "Atx" })}
           />
           <CatalogCollectionEditor
-            title="Fan mounts"
+            title={ui.section("fanMounts")}
             columns={fanMountColumns}
             rows={fanMounts}
             onChange={setFanMounts}
@@ -163,7 +164,7 @@ export function ChassisCreatePage() {
             })}
           />
           <CatalogCollectionEditor
-            title="Drive bays"
+            title={ui.section("driveBays")}
             columns={driveBayColumns}
             rows={driveBays}
             onChange={setDriveBays}

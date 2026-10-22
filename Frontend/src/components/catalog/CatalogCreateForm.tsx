@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { ui } from "@/i18n/translate-enum";
 
 type Identified = { id: string };
 
@@ -51,7 +52,7 @@ export function CatalogCreateForm({
         {children}
         <div>
           <Button type="submit" disabled={saving}>
-            {saving ? "Saving…" : "Create"}
+            {saving ? ui.action("saving") : ui.action("create")}
           </Button>
         </div>
       </form>
@@ -189,7 +190,7 @@ export function CatalogCollectionEditor<T>({
           rows={rows}
           columns={columns}
           disabled={disabled}
-          addLabel={`Add ${title}`}
+          addLabel={ui.message("addTitle", { title })}
           createRow={createRow}
           onChange={onChange}
         />

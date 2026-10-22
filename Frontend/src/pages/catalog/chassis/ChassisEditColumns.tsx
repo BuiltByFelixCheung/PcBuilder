@@ -11,27 +11,28 @@ import {
   type CatalogField,
 } from "@/components/catalog/CatalogFields";
 import type { ChassisListItem } from "@/api/catalog/chassis";
+import { ui } from "@/i18n/translate-enum";
 
 export function ChassisEditColumns(
   manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<ChassisListItem>[] {
   return [
     nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    optionalNumberColumn("Length (mm)", "lengthMm"),
-    optionalNumberColumn("Width (mm)", "widthMm"),
-    optionalNumberColumn("Height (mm)", "heightMm"),
-    optionalNumberColumn("Motherboard Max Width (mm)", "motherboardMaxWidthMm"),
+    idSelectBulkColumn(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    optionalNumberColumn(ui.label("lengthMm"), "lengthMm"),
+    optionalNumberColumn(ui.label("widthMm"), "widthMm"),
+    optionalNumberColumn(ui.label("heightMm"), "heightMm"),
+    optionalNumberColumn(ui.label("motherboardMaxWidthMm"), "motherboardMaxWidthMm"),
     optionalNumberColumn(
-      "Motherboard Max Height (mm)",
+      ui.label("motherboardMaxHeightMm"),
       "motherboardMaxHeightMm",
     ),
-    optionalNumberColumn("Max CPU Cooler Height (mm)", "maxCpuCoolerHeightMm"),
+    optionalNumberColumn(ui.label("maxCpuCoolerHeightMm"), "maxCpuCoolerHeightMm"),
     optionalNumberColumn(
-      "Max Graphics Card Length (mm)",
+      ui.label("maxGraphicsCardLengthMm"),
       "maxGraphicsCardLengthMm",
     ),
-    optionalNumberColumn("Max PSU Length (mm)", "maxPsuLengthMm"),
+    optionalNumberColumn(ui.label("maxPsuLengthMm"), "maxPsuLengthMm"),
   ];
 }
 
@@ -40,20 +41,20 @@ export function ChassisFields(
 ): CatalogField<ChassisListItem>[] {
   return [
     nameField(),
-    idSelectField("Manufacturer", "manufacturerId", manufacturers),
-    optionalNumberField("Length (mm)", "lengthMm"),
-    optionalNumberField("Width (mm)", "widthMm"),
-    optionalNumberField("Height (mm)", "heightMm"),
-    optionalNumberField("Motherboard Max Width (mm)", "motherboardMaxWidthMm"),
+    idSelectField(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    optionalNumberField(ui.label("lengthMm"), "lengthMm"),
+    optionalNumberField(ui.label("widthMm"), "widthMm"),
+    optionalNumberField(ui.label("heightMm"), "heightMm"),
+    optionalNumberField(ui.label("motherboardMaxWidthMm"), "motherboardMaxWidthMm"),
     optionalNumberField(
-      "Motherboard Max Height (mm)",
+      ui.label("motherboardMaxHeightMm"),
       "motherboardMaxHeightMm",
     ),
-    optionalNumberField("Max CPU Cooler Height (mm)", "maxCpuCoolerHeightMm"),
+    optionalNumberField(ui.label("maxCpuCoolerHeightMm"), "maxCpuCoolerHeightMm"),
     optionalNumberField(
-      "Max Graphics Card Length (mm)",
+      ui.label("maxGraphicsCardLengthMm"),
       "maxGraphicsCardLengthMm",
     ),
-    optionalNumberField("Max PSU Length (mm)", "maxPsuLengthMm"),
+    optionalNumberField(ui.label("maxPsuLengthMm"), "maxPsuLengthMm"),
   ];
 }

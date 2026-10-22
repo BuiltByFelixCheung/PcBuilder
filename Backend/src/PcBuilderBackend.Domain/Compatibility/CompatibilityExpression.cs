@@ -22,45 +22,15 @@ public static class CompatibilityExpression
         return Expression.Lambda<Func<T, bool>>(body, expression.Parameters[0]);
     }
 
-    public static Expression<Func<T, bool>> Bind<T, T1, T2, T3>(
-        Expression<Func<T, T1, T2, T3, bool>> expression,
-        T1 arg1,
-        T2 arg2,
-        T3 arg3)
+    public static Expression<Func<T, bool>> Bind<T>(LambdaExpression expression, params object?[] arguments)
     {
-        var body = Replace(expression.Body, expression.Parameters[1], Constant(arg1));
-        body = Replace(body, expression.Parameters[2], Constant(arg2));
-        body = Replace(body, expression.Parameters[3], Constant(arg3));
-        return Expression.Lambda<Func<T, bool>>(body, expression.Parameters[0]);
-    }
+        var body = expression.Body;
+        for (var index = 0; index < arguments.Length; index++)
+        {
+            var parameter = expression.Parameters[index + 1];
+            body = Replace(body, parameter, Expression.Constant(arguments[index], parameter.Type));
+        }
 
-    public static Expression<Func<T, bool>> Bind<T, T1, T2, T3, T4>(
-        Expression<Func<T, T1, T2, T3, T4, bool>> expression,
-        T1 arg1,
-        T2 arg2,
-        T3 arg3,
-        T4 arg4)
-    {
-        var body = Replace(expression.Body, expression.Parameters[1], Constant(arg1));
-        body = Replace(body, expression.Parameters[2], Constant(arg2));
-        body = Replace(body, expression.Parameters[3], Constant(arg3));
-        body = Replace(body, expression.Parameters[4], Constant(arg4));
-        return Expression.Lambda<Func<T, bool>>(body, expression.Parameters[0]);
-    }
-
-    public static Expression<Func<T, bool>> Bind<T, T1, T2, T3, T4, T5>(
-        Expression<Func<T, T1, T2, T3, T4, T5, bool>> expression,
-        T1 arg1,
-        T2 arg2,
-        T3 arg3,
-        T4 arg4,
-        T5 arg5)
-    {
-        var body = Replace(expression.Body, expression.Parameters[1], Constant(arg1));
-        body = Replace(body, expression.Parameters[2], Constant(arg2));
-        body = Replace(body, expression.Parameters[3], Constant(arg3));
-        body = Replace(body, expression.Parameters[4], Constant(arg4));
-        body = Replace(body, expression.Parameters[5], Constant(arg5));
         return Expression.Lambda<Func<T, bool>>(body, expression.Parameters[0]);
     }
 
@@ -125,7 +95,7 @@ public static class CompatibilityExpression
     }
 
     private static Expression Replace(Expression body, ParameterExpression parameter, Expression argument) =>
-        new ParameterReplacer(parameter, argument).Visit(body)!;
+        new ParameterReplacer(parameter, argument).Visit(body);
 
     private static ConstantExpression Constant<T>(T value) => Expression.Constant(value, typeof(T));
 

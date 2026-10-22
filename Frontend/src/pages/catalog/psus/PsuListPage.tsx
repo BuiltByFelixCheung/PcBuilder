@@ -30,13 +30,14 @@ import {
   type PsuFormFactor,
   type PsuModularity,
 } from "@/api/enums";
+import {enumText, ui} from "@/i18n/translate-enum";
 import { formSelectClassName } from "@/components/filters/ListFilters";
 import {
   CatalogCompatibleCheckbox,
   CatalogRangeField,
 } from "@/components/catalog/CatalogFilterFields.tsx";
 import { usePcBuild } from "@/builds/use-pc-build";
-import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { CatalogListResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importPsus } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
@@ -79,11 +80,17 @@ export function PsuListPage() {
           (id) => `/catalog/psus/${id}`,
         ),
         columnHelper.accessor("wattage", {
-          header: "Wattage",
-          cell: (info) => `${info.getValue()} W`,
+          header: ui.header("wattage"),
+          cell: (info) => `${info.getValue()} ${ui.unit("watts")}`,
         }),
-        columnHelper.accessor("modularity", { header: "Modularity" }),
-        columnHelper.accessor("formFactor", { header: "Form factor" }),
+        columnHelper.accessor("modularity", {
+          header: ui.header("modularity"),
+          cell: (info) => enumText.psuModularity(info.getValue()),
+        }),
+        columnHelper.accessor("formFactor", {
+          header: ui.header("formFactor"),
+          cell: (info) => enumText.psuFormFactor(info.getValue()),
+        }),
       ]),
     [isAdmin],
   );
@@ -93,8 +100,8 @@ export function PsuListPage() {
     rowSelection,
     setRowSelection,
     queryKey: psuKeys.all,
-    singular: "PSU",
-    plural: "PSUs",
+    singular: ui.label("nPsu"),
+    plural: ui.label("nPsus"),
     deleteByIds: (ids) => deletePsus({ ids }),
   });
   const excelImport = useExcelImport({
@@ -169,10 +176,8 @@ export function PsuListPage() {
 
   return (
     <section className="catalog-page">
-      <h1>PSUs</h1>
-      <p className="catalog-lead">
-        Browse the catalog, then apply filters when you need a narrower set.
-      </p>
+      <h1>{ui.nav("products.psus")}</h1>
+      <p className="catalog-lead">{ui.message("browseCatalogLead")}</p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <CatalogFilterGroup>
@@ -187,7 +192,7 @@ export function PsuListPage() {
             />
             <CatalogIdSelectField
               id="psu-manufacturer"
-              label="Manufacturer"
+              label={ui.label("manufacturer")}
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
@@ -198,7 +203,7 @@ export function PsuListPage() {
               }
             />
             <Field>
-              <FieldLabel htmlFor="psu-modularity">Modularity</FieldLabel>
+              <FieldLabel htmlFor="psu-modularity">{ui.label("modularity")}</FieldLabel>
               <select
                 id="psu-modularity"
                 className={formSelectClassName}
@@ -211,16 +216,16 @@ export function PsuListPage() {
                   }))
                 }
               >
-                <option value="">Any</option>
+                <option value="">{ui.label("any")}</option>
                 {PSU_MODULARITIES.map((modularity) => (
                   <option key={modularity} value={modularity}>
-                    {modularity}
+                    {enumText.psuModularity(modularity)}
                   </option>
                 ))}
               </select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="psu-form-factor">Form factor</FieldLabel>
+              <FieldLabel htmlFor="psu-form-factor">{ui.label("formFactor")}</FieldLabel>
               <select
                 id="psu-form-factor"
                 className={formSelectClassName}
@@ -233,18 +238,18 @@ export function PsuListPage() {
                   }))
                 }
               >
-                <option value="">Any</option>
+                <option value="">{ui.label("any")}</option>
                 {PSU_FORM_FACTORS.map((formFactor) => (
                   <option key={formFactor} value={formFactor}>
-                    {formFactor}
+                    {enumText.psuFormFactor(formFactor)}
                   </option>
                 ))}
               </select>
             </Field>
             <CatalogRangeField
               id="psu-wattage"
-              label="Wattage"
-              maxAriaLabel="Wattage max"
+              label={ui.label("wattage")}
+              maxAriaLabel={ui.label("wattageMax")}
               range={draft.wattage}
               onChange={(wattage) =>
                 setDraft((current) => ({ ...current, wattage }))
@@ -252,8 +257,8 @@ export function PsuListPage() {
             />
             <CatalogRangeField
               id="psu-length"
-              label="Length (mm)"
-              maxAriaLabel="Length max"
+              label={ui.label("lengthMm")}
+              maxAriaLabel={ui.label("lengthMax")}
               range={draft.lengthMm}
               onChange={(lengthMm) =>
                 setDraft((current) => ({ ...current, lengthMm }))
@@ -261,8 +266,8 @@ export function PsuListPage() {
             />
             <CatalogRangeField
               id="psu-width"
-              label="Width (mm)"
-              maxAriaLabel="Width max"
+              label={ui.label("widthMm")}
+              maxAriaLabel={ui.label("widthMax")}
               range={draft.widthMm}
               onChange={(widthMm) =>
                 setDraft((current) => ({ ...current, widthMm }))
@@ -270,8 +275,8 @@ export function PsuListPage() {
             />
             <CatalogRangeField
               id="psu-height"
-              label="Height (mm)"
-              maxAriaLabel="Height max"
+              label={ui.label("heightMm")}
+              maxAriaLabel={ui.label("heightMax")}
               range={draft.heightMm}
               onChange={(heightMm) =>
                 setDraft((current) => ({ ...current, heightMm }))
@@ -280,36 +285,28 @@ export function PsuListPage() {
           </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <CatalogPagedResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={items}
-            filtering={filtering}
-            loadingMessage="Loading PSUs…"
-            emptyFilteredMessage="No PSUs match these filters."
-            emptyMessage="No PSUs in the catalog yet."
-            isAdmin={isAdmin}
-            newItemLabel="New PSU"
-            newItemTo="/catalog/psus/new"
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onEditSelected={startEditing}
-            onImport={excelImport.openImport}
-            pageIndex={pageIndex}
-            pageCount={pageCount}
-            onPageChange={goToPage}
-          />
-        </div>
+        <CatalogListResults
+          entity="psus"
+          query={query}
+          items={items}
+          filtering={filtering}
+          columns={columns}
+          isAdmin={isAdmin}
+          newItemLabel={ui.action("newPsu")}
+          newItemTo="/catalog/psus/new"
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onImport={excelImport.openImport}
+          onEditSelected={startEditing}
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          onPageChange={goToPage}
+        />
       </div>
       {editRows ? (
         <BulkEditDialog
-          title="Edit PSUs"
+          title={ui.dialog("editPsus")}
           rows={editRows}
           columns={PsuEditColumns(manufacturers)}
           onClose={() => setEditRows(null)}
