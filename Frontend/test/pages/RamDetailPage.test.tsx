@@ -55,7 +55,7 @@ describe("RamDetailPage", () => {
       await screen.findByRole("heading", { name: "Trident Z5" }),
     ).toBeInTheDocument();
     expect(screen.getByText("G.Skill")).toBeInTheDocument();
-    expect(screen.getByText("Ddr5")).toBeInTheDocument();
+    expect(screen.getByText("DDR5")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to RAM" })).toHaveAttribute(
       "href",
       "/catalog/memories",

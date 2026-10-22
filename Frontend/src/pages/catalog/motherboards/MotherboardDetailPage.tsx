@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { useMotherboard } from "@/hooks/use-motherboards.ts";
 import { formatM2FormFactor, type M2FormFactor } from "@/api/enums";
+import { enumText, ui } from "@/i18n/translate-enum";
 import { Button } from "@/components/ui/button";
 import { builderHref, usePcBuild } from "@/builds";
 import { useAuth } from "@/auth/use-auth";
@@ -38,7 +39,7 @@ import {
 } from "@/pages/catalog/motherboards/MotherboardChildColumns";
 
 function getFormattedM2FormFactor(formFactors: M2FormFactor[]) {
-  if (formFactors.length === 0) return "None";
+  if (formFactors.length === 0) return ui.label("none");
   const result: string[] = [];
   for (const formFactor of formFactors) {
     result.push(formatM2FormFactor(formFactor));
@@ -61,19 +62,19 @@ export function MotherboardDetailPage() {
   const { manufacturers, sockets, chipsets } = useMotherboardFilterOptions();
 
   if (query.isPending) {
-    return <PageStatus>Loading motherboard…</PageStatus>;
+    return <PageStatus>{ui.empty("loading", { entity: ui.entity("motherboard") })}</PageStatus>;
   }
 
   if (query.isError || !motherboard) {
     return (
       <section className="catalog-page">
         <p>
-          <Link to="/catalog/motherboards">Back to Motherboards</Link>
+          <Link to="/catalog/motherboards">{ui.empty("backTo", { entity: ui.nav("products.motherboards") })}</Link>
         </p>
         <PageStatus>
           {query.isError
             ? parseApiError(query.error).message
-            : "Motherboard not found."}
+            : ui.empty("motherboardNotFound")}
         </PageStatus>
       </section>
     );
@@ -82,7 +83,7 @@ export function MotherboardDetailPage() {
   return (
     <section className="catalog-page">
       <p>
-        <Link to="/catalog/motherboards">Back to Motherboards</Link>
+        <Link to="/catalog/motherboards">{ui.empty("backTo", { entity: ui.nav("products.motherboards") })}</Link>
       </p>
       <div className="catalog-detail-title">
         <h1>{motherboard.name}</h1>
@@ -97,18 +98,18 @@ export function MotherboardDetailPage() {
               void navigate(builderHref(currentBuild.sourceId));
             }}
           >
-            Add to Build
+            {ui.action("addToBuild")}
           </Button>
         )}
         {isAdmin && (
           <Button type="button" onClick={() => setIsEditing(true)}>
-            Edit
+            {ui.action("edit")}
           </Button>
         )}
       </div>
       {isEditing ? (
         <CatalogEditDialog
-          title="Edit motherboard"
+          title={ui.dialog("editMotherboard")}
           item={motherboardListItem(motherboard)}
           fields={MotherboardFields(manufacturers, sockets, chipsets)}
           onClose={() => setIsEditing(false)}
@@ -122,7 +123,7 @@ export function MotherboardDetailPage() {
       ) : null}
       {editingPcie ? (
         <ChildCollectionDialog<{ value: MotherboardPcieSlot }>
-          title="Edit PCIe slots"
+          title={ui.dialog("editPcieSlots")}
           rows={motherboard.pcieSlots.map((value) => ({ value }))}
           columns={pcieSlotColumns}
           createRow={() => ({
@@ -147,7 +148,7 @@ export function MotherboardDetailPage() {
       ) : null}
       {editingM2 ? (
         <ChildCollectionDialog<{ value: MotherboardM2Slot }>
-          title="Edit M.2 slots"
+          title={ui.dialog("editM2Slots")}
           rows={motherboard.m2Slots.map((value) => ({ value }))}
           columns={m2SlotColumns}
           createRow={() => ({
@@ -173,7 +174,7 @@ export function MotherboardDetailPage() {
       ) : null}
       {editingUsb ? (
         <ChildCollectionDialog<{ value: MotherboardUsbPort }>
-          title="Edit USB ports"
+          title={ui.dialog("editUsbPorts")}
           rows={motherboard.usbPorts.map((value) => ({ value }))}
           columns={usbPortColumns}
           createRow={() => ({
@@ -194,54 +195,44 @@ export function MotherboardDetailPage() {
       <div className="catalog-table-pair">
         <div>
           <div className="catalog-detail-subtitle">
-            <h2>Basic Information</h2>
+            <h2>{ui.section("basicInformation")}</h2>
           </div>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Manufacturer
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("manufacturer")}</TableHead>
                 <TableCell>{motherboard.manufacturerName}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Socket
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("socket")}</TableHead>
                 <TableCell>{motherboard.socketName}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Chipset
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("chipset")}</TableHead>
                 <TableCell>{motherboard.chipsetName}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Form factor
-                </TableHead>
-                <TableCell>{motherboard.formFactor}</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("formFactor")}</TableHead>
+                <TableCell>
+                  {enumText.mbFormFactor(motherboard.formFactor)}
+                </TableCell>
               </TableRow>
             </TableHeader>
           </Table>
         </div>
         <div>
           <div className="catalog-detail-subtitle">
-            <h2>Dimensions</h2>
+            <h2>{ui.section("dimensions")}</h2>
           </div>
           <Table>
             <TableBody>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Width
-                </TableHead>
-                <TableCell>{motherboard.widthMm} mm</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("width")}</TableHead>
+                <TableCell>{motherboard.widthMm} {ui.unit("mm")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Height
-                </TableHead>
-                <TableCell>{motherboard.heightMm} mm</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("height")}</TableHead>
+                <TableCell>{motherboard.heightMm} {ui.unit("mm")}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -250,58 +241,50 @@ export function MotherboardDetailPage() {
       <div className="catalog-table-pair">
         <div>
           <div className="catalog-detail-subtitle">
-            <h2>RAM</h2>
+            <h2>{ui.section("ram")}</h2>
           </div>
           <Table>
             <TableBody>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  DDR Generation
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("ddrGeneration")}</TableHead>
                 <TableCell>
-                  {motherboard.ddrGeneration.replace("Ddr", "DDR")}
+                  {enumText.ddrGeneration(motherboard.ddrGeneration)}
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  RAM form factor
-                </TableHead>
-                <TableCell>{motherboard.ramFormFactor}</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("ramFormFactor")}</TableHead>
+                <TableCell>
+                  {enumText.ramFormFactor(motherboard.ramFormFactor)}
+                </TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  RAM slots
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("ramSlots")}</TableHead>
                 <TableCell>{motherboard.ramSlots}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Total RAM Supported
-                </TableHead>
-                <TableCell>{motherboard.maxMemoryGb} GB</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("totalRamSupported")}</TableHead>
+                <TableCell>{motherboard.maxMemoryGb} {ui.unit("gb")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Max RAM per DIMM
-                </TableHead>
-                <TableCell>{motherboard.maxDimmSizeGb} GB</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("maxRamPerDimm")}</TableHead>
+                <TableCell>{motherboard.maxDimmSizeGb} {ui.unit("gb")}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
         </div>
         <div>
           <div className="catalog-detail-subtitle">
-            <h2>Connectivities</h2>
+            <h2>{ui.section("connectivities")}</h2>
             {isAdmin && (
               <div className="flex gap-2">
                 <Button type="button" onClick={() => setEditingUsb(true)}>
-                  Edit USB
+                  {ui.action("editUsb")}
                 </Button>
                 <Button type="button" onClick={() => setEditingM2(true)}>
-                  Edit M.2
+                  {ui.action("editM2")}
                 </Button>
                 <Button type="button" onClick={() => setEditingPcie(true)}>
-                  Edit PCIe
+                  {ui.action("editPcie")}
                 </Button>
               </div>
             )}
@@ -309,24 +292,21 @@ export function MotherboardDetailPage() {
           <Table>
             <TableBody>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  SATA ports
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("sataPorts")}</TableHead>
                 <TableCell>{motherboard.sataPorts}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  USB ports
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.section("usbPorts")}</TableHead>
                 <TableCell>
                   {motherboard.usbPorts.length === 0 ? (
-                    <p className="catalog-empty">No USB ports.</p>
+                    <p className="catalog-empty">{ui.empty("noUsbPorts")}</p>
                   ) : (
                     <ul>
                       {motherboard.usbPorts.map((port) => (
                         <li key={port.usbVersion}>
-                          <span>{port.usbVersion}</span>{" "}
-                          <span>{port.usbType}</span> x {port.portCount}
+                          <span>{enumText.usbVersion(port.usbVersion)}</span>{" "}
+                          <span>{enumText.usbType(port.usbType)}</span> x{" "}
+                          {port.portCount}
                         </li>
                       ))}
                     </ul>
@@ -334,19 +314,17 @@ export function MotherboardDetailPage() {
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  M.2 slots
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.section("m2Slots")}</TableHead>
                 <TableCell>
                   {motherboard.m2Slots.length === 0 ? (
-                    <p className="catalog-empty">No M.2 slots.</p>
+                    <p className="catalog-empty">{ui.empty("noM2Slots")}</p>
                   ) : (
                     <ul>
                       {motherboard.m2Slots.map((slot) => (
                         <li key={`${slot.key}-${slot.pcieGeneration}`}>
-                          {slot.key} Key{" "}
+                          {enumText.m2Key(slot.key)} {ui.label("key")}{" "}
                           <span>
-                            {slot.pcieGeneration.replace("Gen", "PCIe ")}
+                            {enumText.pcieGeneration(slot.pcieGeneration)}
                           </span>{" "}
                           (
                           <span>
@@ -360,20 +338,18 @@ export function MotherboardDetailPage() {
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  PCIe slots
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.section("pcieSlots")}</TableHead>
                 <TableCell>
                   {motherboard.pcieSlots.length === 0 ? (
-                    <p className="catalog-empty">No PCIe slots.</p>
+                    <p className="catalog-empty">{ui.empty("noPcieSlots")}</p>
                   ) : (
                     <ul>
                       {motherboard.pcieSlots.map((slot) => (
                         <li
                           key={`${slot.slotType}-${slot.generation}-${slot.slotLanes}`}
                         >
-                          <span>{slot.generation.replace("Gen", "PCIe ")}</span>{" "}
-                          {slot.slotType} ({slot.slotLanes}) x {slot.slotCount}
+                          <span>{enumText.pcieGeneration(slot.generation)}</span>{" "}
+                          {enumText.pcieSlotType(slot.slotType)} ({enumText.pcieSlotLane(slot.slotLanes)}) x {slot.slotCount}
                         </li>
                       ))}
                     </ul>
@@ -381,29 +357,21 @@ export function MotherboardDetailPage() {
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  PWM / DC fan headers
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("pwmDcFanHeaders")}</TableHead>
                 <TableCell>{motherboard.pwmFanHeaders} / {motherboard.dcFanHeaders}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  EPS connectors
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("epsConnectors")}</TableHead>
                 <TableCell>{motherboard.epsConnectors}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Wi-Fi
-                </TableHead>
-                <TableCell>{motherboard.wifiEnabled ? "Yes" : "No"}</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("wifi")}</TableHead>
+                <TableCell>{motherboard.wifiEnabled ? ui.label("yes") : ui.label("no")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Bluetooth
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("bluetooth")}</TableHead>
                 <TableCell>
-                  {motherboard.bluetoothEnabled ? "Yes" : "No"}
+                  {motherboard.bluetoothEnabled ? ui.label("yes") : ui.label("no")}
                 </TableCell>
               </TableRow>
             </TableBody>

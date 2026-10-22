@@ -39,6 +39,7 @@ import {
 import { BulkEditDialog } from "@/components/BulkEditDialog";
 import { CpuEditColumns } from "@/pages/catalog/cpus/CpuEditColumns";
 import { useQueryClient } from "@tanstack/react-query";
+import { ui } from "@/i18n/translate-enum";
 
 const EMPTY_ITEMS: CpuListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -69,23 +70,23 @@ export function CpuListPage() {
           isAdmin,
           (id) => `/catalog/cpus/${id}`,
         ),
-        columnHelper.accessor("seriesName", { header: "Series" }),
-        columnHelper.accessor("socketName", { header: "Socket" }),
+        columnHelper.accessor("seriesName", { header: ui.header("series") }),
+        columnHelper.accessor("socketName", { header: ui.header("socket") }),
         columnHelper.accessor("thermalDesignPower", {
-          header: "TDP",
-          cell: (info) => `${info.getValue()} W`,
+          header: ui.header("tdp"),
+          cell: (info) => `${info.getValue()} ${ui.unit("watts")}`,
         }),
         columnHelper.accessor("powerConsumptionWatts", {
-          header: "Power",
-          cell: (info) => `${info.getValue()} W`,
+          header: ui.header("power"),
+          cell: (info) => `${info.getValue()} ${ui.unit("watts")}`,
         }),
         columnHelper.accessor("maxMemoryGb", {
-          header: "Max RAM",
-          cell: (info) => `${info.getValue()} GB`,
+          header: ui.header("maxRam"),
+          cell: (info) => `${info.getValue()} ${ui.unit("gb")}`,
         }),
         columnHelper.accessor("integratedGraphics", {
-          header: "iGPU",
-          cell: (info) => (info.getValue() ? "Yes" : "No"),
+          header: ui.header("igpu"),
+          cell: (info) => (info.getValue() ? ui.label("yes") : ui.label("no")),
         }),
       ]),
     [isAdmin],
@@ -96,8 +97,8 @@ export function CpuListPage() {
     rowSelection,
     setRowSelection,
     queryKey: cpuKeys.all,
-    singular: "CPU",
-    plural: "CPUs",
+    singular: ui.label("nCpu"),
+    plural: ui.label("nCpus"),
     deleteByIds: (ids) => deleteCpus({ ids }),
   });
   const excelImport = useExcelImport({
@@ -167,10 +168,8 @@ export function CpuListPage() {
 
   return (
     <section className="catalog-page">
-      <h1>CPUs</h1>
-      <p className="catalog-lead">
-        Browse the catalog, then apply filters when you need a narrower set.
-      </p>
+      <h1>{ui.nav("products.cpus")}</h1>
+      <p className="catalog-lead">{ui.message("browseCatalogLead")}</p>
 
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
@@ -186,7 +185,7 @@ export function CpuListPage() {
             />
             <CatalogIdSelectField
               id="cpu-manufacturer"
-              label="Manufacturer"
+              label={ui.label("manufacturer")}
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
@@ -200,7 +199,7 @@ export function CpuListPage() {
             />
             <CatalogIdSelectField
               id="cpu-socket"
-              label="Socket"
+              label={ui.label("socket")}
               value={draft.socketId}
               options={socketOptions}
               onChange={(value) =>
@@ -213,7 +212,7 @@ export function CpuListPage() {
             />
             <CatalogIdSelectField
               id="cpu-series"
-              label="Series"
+              label={ui.label("series")}
               value={draft.seriesId}
               options={seriesOptions}
               onChange={(value) =>
@@ -225,8 +224,8 @@ export function CpuListPage() {
             />
             <CatalogRangeField
               id="cpu-tdp"
-              label="TDP (W)"
-              maxAriaLabel="TDP max"
+              label={ui.label("tdpW")}
+              maxAriaLabel={ui.label("tdpMax")}
               range={draft.thermalDesignPower}
               onChange={(thermalDesignPower) =>
                 setDraft((current) => ({ ...current, thermalDesignPower }))
@@ -234,8 +233,8 @@ export function CpuListPage() {
             />
             <CatalogRangeField
               id="cpu-power"
-              label="Power (W)"
-              maxAriaLabel="Power max"
+              label={ui.label("powerW")}
+              maxAriaLabel={ui.label("powerMax")}
               range={draft.powerConsumptionWatts}
               onChange={(powerConsumptionWatts) =>
                 setDraft((current) => ({ ...current, powerConsumptionWatts }))
@@ -252,11 +251,11 @@ export function CpuListPage() {
             error={query.error}
             items={items}
             filtering={filtering}
-            loadingMessage="Loading CPUs…"
-            emptyFilteredMessage="No CPUs match these filters."
-            emptyMessage="No CPUs in the catalog yet."
+            loadingMessage={ui.empty("loading", { entity: ui.entity("cpus") })}
+            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("cpus") })}
+            emptyMessage={ui.empty("noneInCatalog", { entity: ui.entity("cpus") })}
             isAdmin={isAdmin}
-            newItemLabel="New CPU"
+            newItemLabel={ui.action("newCpu")}
             newItemTo="/catalog/cpus/new"
             columns={columns}
             rowSelection={rowSelection}
@@ -274,7 +273,7 @@ export function CpuListPage() {
       </div>
       {editRows ? (
         <BulkEditDialog
-          title="Edit CPUs"
+          title={ui.dialog("editCpus")}
           rows={editRows}
           columns={CpuEditColumns(manufacturers, series, sockets)}
           onClose={() => setEditRows(null)}

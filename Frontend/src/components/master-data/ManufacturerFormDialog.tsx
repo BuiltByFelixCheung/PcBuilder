@@ -25,6 +25,7 @@ import {
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
 import { useState } from "react";
+import { ui } from "@/i18n/translate-enum";
 
 const manufacturerProductTypeSchema = z.enum(
   MANUFACTURER_PRODUCT_TYPES.map((type) => type.value) as [
@@ -33,16 +34,18 @@ const manufacturerProductTypeSchema = z.enum(
   ],
 );
 
-const manufacturerFormSchema = z.object({
+function manufacturerFormSchema() {
+  return z.object({
   name: z
     .string()
     .trim()
-    .min(1, "Name is required.")
-    .max(100, "Name must not exceed 100 characters."),
+    .min(1, ui.message("nameRequired"))
+    .max(100, ui.message("nameTooLong")),
   productTypes: z.array(manufacturerProductTypeSchema),
 });
+}
 
-type ManufacturerFormValues = z.infer<typeof manufacturerFormSchema>;
+type ManufacturerFormValues = z.infer<ReturnType<typeof manufacturerFormSchema>>;
 
 type ManufacturerFormDialogProps = {
   editingId: string;
@@ -63,12 +66,12 @@ export function ManufacturerFormDialog({
       items={manufacturers}
       settled={manufacturersSettled}
       onClose={onClose}
-      editTitle="Edit Manufacturer"
-      loadingMessage="Loading Manufacturer…"
+      editTitle={ui.dialog("editManufacturerItem")}
+      loadingMessage={ui.empty("loading", { entity: ui.entity("manufacturer") })}
       missing={
         <MasterDataMissing
-          title="Manufacturer not found"
-          description="This manufacturer is not in the current list."
+          title={ui.empty("notFoundEntity", { entity: ui.entity("manufacturer") })}
+          description={ui.message("notInListManufacturer")}
           onClose={onClose}
         />
       }
@@ -89,7 +92,7 @@ function ManufacturerFields({
 }>) {
   const queryClient = useQueryClient();
   const form = useForm<ManufacturerFormValues>({
-    resolver: zodResolver(manufacturerFormSchema),
+    resolver: zodResolver(manufacturerFormSchema()),
     defaultValues: {
       name: manufacturer?.name ?? "",
       productTypes: manufacturer?.productTypes ?? [],
@@ -124,7 +127,7 @@ function ManufacturerFields({
   }
 
   async function onDelete() {
-    if (!manufacturer || !window.confirm(`Delete ${manufacturer.name}?`))
+    if (!manufacturer || !window.confirm(ui.message("deleteNamed", { name: manufacturer.name })))
       return;
     setIsDeleting(true);
     try {
@@ -141,27 +144,27 @@ function ManufacturerFields({
 
   return (
     <MasterDataFormShell
-      title={manufacturer ? "Edit Manufacturer" : "New Manufacturer"}
+      title={manufacturer ? ui.dialog("editManufacturerItem") : ui.dialog("newManufacturerItem")}
       error={errors.root?.message}
       onSubmit={handleSubmit(onSubmit)}
       onClose={onClose}
       onDelete={manufacturer ? () => void onDelete() : undefined}
       deleteDisabled={isDeleting}
       deleting={isDeleting}
-      submitLabel={isSubmitting ? "Saving…" : "Save"}
+      submitLabel={isSubmitting ? ui.action("saving") : ui.action("save")}
       submitDisabled={isSubmitting}
     >
       <FormTextField
         id="manufacturer-edit-name"
-        label="Name"
+        label={ui.label("name")}
         required
         error={errors.name}
         registration={register("name")}
       />
       <FieldSet>
-        <FieldLegend variant="label">Product lines</FieldLegend>
+        <FieldLegend variant="label">{ui.label("productLines")}</FieldLegend>
         <FieldDescription>
-          Create forms offer this manufacturer only for the lines selected here.
+          {ui.message("manufacturerLinesHint")}
         </FieldDescription>
         <div className="grid gap-2 sm:grid-cols-2">
           {MANUFACTURER_PRODUCT_TYPES.map((type) => {

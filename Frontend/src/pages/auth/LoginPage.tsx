@@ -12,13 +12,14 @@ import {
   applyApiFieldErrors,
   applyApiFormError,
 } from "../../lib/rhf-api-errors.ts";
+import { ui } from "@/i18n/translate-enum";
 
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const form = useForm<LoginValues>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(loginSchema()),
     defaultValues: { email: "", password: "" },
   });
   const {
@@ -42,10 +43,8 @@ export function LoginPage() {
   return (
     <section className="auth-page">
       <form className="auth-card" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <h1 style={{ textAlign: "center" }}>Sign in</h1>
-        <p className="auth-lead">
-          Use your PC Builder account to save and manage builds.
-        </p>
+        <h1 style={{ textAlign: "center" }}>{ui.page("signIn")}</h1>
+        <p className="auth-lead">{ui.message("loginLead")}</p>
         {errors.root?.message ? (
           <p className="form-error" role="alert">
             {errors.root.message}
@@ -54,7 +53,7 @@ export function LoginPage() {
         <FieldGroup>
           <FormTextField
             id="email"
-            label="Email"
+            label={ui.label("email")}
             type="email"
             autoComplete="username"
             required
@@ -63,13 +62,13 @@ export function LoginPage() {
           />
           <FormTextField
             id="password"
-            label="Password"
+            label={ui.label("password")}
             type="password"
             autoComplete="current-password"
             required
             error={errors.password}
             registration={register("password")}
-            labelAction={<Link to="/forgot-password">Reset password</Link>}
+            labelAction={<Link to="/forgot-password">{ui.action("resetPassword")}</Link>}
           />
         </FieldGroup>
         <Button
@@ -78,10 +77,10 @@ export function LoginPage() {
           className="mt-6 h-10 w-full"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Signing in…" : "Sign in"}
+          {isSubmitting ? ui.label("signingIn") : ui.action("signIn")}
         </Button>
         <p className="auth-switch" style={{ textAlign: "center" }}>
-          New here? <Link to="/register">Create an account</Link>
+          {ui.message("newHere")} <Link to="/register">{ui.action("createAccount")}</Link>
         </p>
       </form>
     </section>

@@ -1,3 +1,4 @@
+import { ui } from "@/i18n/translate-enum";
 import { useEffect, useState } from "react";
 import { useQueryClient, type QueryKey } from "@tanstack/react-query";
 import type { RowSelectionState } from "@tanstack/react-table";
@@ -59,7 +60,7 @@ export function useBulkDelete({
     const ids = selectedVisibleIds(rowSelection, items);
     if (ids.length === 0 || isDeleting) return;
     const label = ids.length === 1 ? singular : plural;
-    if (!window.confirm(`Delete ${ids.length} ${label}?`)) return;
+    if (!window.confirm(ui.message("deleteCount", { count: ids.length, label }))) return;
 
     setIsDeleting(true);
     setDeleteError(null);

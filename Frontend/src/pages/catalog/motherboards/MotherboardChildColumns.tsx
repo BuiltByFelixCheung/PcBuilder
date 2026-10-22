@@ -11,6 +11,7 @@ import {
   USB_VERSIONS,
   formatM2FormFactor,
 } from "@/api/enums";
+import {enumText, ui} from "@/i18n/translate-enum";
 import {
   type MotherboardM2Slot,
   type MotherboardPcieSlot,
@@ -43,41 +44,43 @@ function enumField<T extends string>(
 export const pcieSlotColumns: ChildCollectionColumn<{ value: MotherboardPcieSlot }>[] =
   [
     {
-      header: "Type",
+      header: () => ui.header("type"),
       cell: (row, update) =>
         enumField(
-          "PCIe type",
+          ui.label("pcieType"),
           row.value.slotType,
           PCIE_SLOT_TYPES,
           (slotType) => update({ value: { ...row.value, slotType } }),
+          enumText.pcieSlotType,
         ),
     },
     {
-      header: "Lanes",
+      header: () => ui.header("lanes"),
       cell: (row, update) =>
         enumField(
-          "PCIe lanes",
+          ui.label("pcieLanes"),
           row.value.slotLanes,
           PCIE_SLOT_LANES,
           (slotLanes) => update({ value: { ...row.value, slotLanes } }),
+          enumText.pcieSlotLane,
         ),
     },
     {
-      header: "Generation",
+      header: () => ui.header("generation"),
       cell: (row, update) =>
         enumField(
-          "PCIe generation",
+          ui.label("pcieGeneration"),
           row.value.generation,
           PCIE_GENERATIONS,
           (generation) => update({ value: { ...row.value, generation } }),
-          (generation) => generation.replace("Gen", "PCIe "),
+          enumText.pcieGeneration,
         ),
     },
     {
-      header: "Slots",
+      header: () => ui.header("slots"),
       cell: (row, update) => (
         <Input
-          aria-label="PCIe slot count"
+          aria-label={ui.label("pcieSlotCount")}
           className="w-20"
           type="number"
           min={1}
@@ -94,28 +97,32 @@ export const pcieSlotColumns: ChildCollectionColumn<{ value: MotherboardPcieSlot
 
 export const m2SlotColumns: ChildCollectionColumn<{ value: MotherboardM2Slot }>[] = [
   {
-    header: "Key",
+    header: () => ui.header("key"),
     cell: (row, update) =>
-      enumField("M.2 key", row.value.key, M2_KEYS, (key) =>
-        update({ value: { ...row.value, key } }),
+      enumField(
+        ui.label("m2Key"),
+        row.value.key,
+        M2_KEYS,
+        (key) => update({ value: { ...row.value, key } }),
+        enumText.m2Key,
       ),
   },
   {
-    header: "Generation",
+    header: () => ui.header("generation"),
     cell: (row, update) =>
       enumField(
-        "M.2 generation",
+        ui.label("m2Generation"),
         row.value.pcieGeneration,
         PCIE_GENERATIONS,
         (pcieGeneration) => update({ value: { ...row.value, pcieGeneration } }),
-        (generation) => generation.replace("Gen", "PCIe "),
+        enumText.pcieGeneration,
       ),
   },
   {
-    header: "Slots",
+    header: () => ui.header("slots"),
     cell: (row, update) => (
       <Input
-        aria-label="M.2 slot count"
+        aria-label={ui.label("m2SlotCount")}
         className="w-20"
         type="number"
         min={1}
@@ -129,18 +136,19 @@ export const m2SlotColumns: ChildCollectionColumn<{ value: MotherboardM2Slot }>[
     ),
   },
   {
-    header: "SATA",
+    header: () => ui.header("sata"),
     cell: (row, update) =>
       enumField(
-        "M.2 SATA",
+        ui.label("m2Sata"),
         row.value.supportsSata ? "yes" : "no",
         ["yes", "no"],
         (value) =>
           update({ value: { ...row.value, supportsSata: value === "yes" } }),
+        (value) => (value === "yes" ? ui.label("yes") : ui.label("no")),
       ),
   },
   {
-    header: "Form factors",
+    header: () => ui.header("formFactors"),
     cell: (row, update) => (
       <div className="flex flex-col gap-1">
         {M2_FORM_FACTORS.map((formFactor) => (
@@ -166,27 +174,32 @@ export const m2SlotColumns: ChildCollectionColumn<{ value: MotherboardM2Slot }>[
 
 export const usbPortColumns: ChildCollectionColumn<{ value: MotherboardUsbPort }>[] = [
   {
-    header: "Version",
+    header: () => ui.header("version"),
     cell: (row, update) =>
       enumField(
-        "USB version",
+        ui.label("usbVersion"),
         row.value.usbVersion,
         USB_VERSIONS,
         (usbVersion) => update({ value: { ...row.value, usbVersion } }),
+        enumText.usbVersion,
       ),
   },
   {
-    header: "Type",
+    header: () => ui.header("type"),
     cell: (row, update) =>
-      enumField("USB type", row.value.usbType, USB_TYPES, (usbType) =>
-        update({ value: { ...row.value, usbType } }),
+      enumField(
+        ui.label("usbType"),
+        row.value.usbType,
+        USB_TYPES,
+        (usbType) => update({ value: { ...row.value, usbType } }),
+        enumText.usbType,
       ),
   },
   {
-    header: "Ports",
+    header: () => ui.header("ports"),
     cell: (row, update) => (
       <Input
-        aria-label="USB port count"
+        aria-label={ui.label("usbPortCount")}
         className="w-20"
         type="number"
         min={1}

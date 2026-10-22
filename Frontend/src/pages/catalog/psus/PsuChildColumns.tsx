@@ -3,28 +3,30 @@ import { type ChildCollectionColumn } from "@/components/catalog/ChildCollection
 import { PSU_CABLE_TYPES, type PsuCableType } from "@/api/enums";
 import { type PsuCable } from "@/api/catalog/psus";
 import { enumSelectField } from "@/components/catalog/CatalogFields";
+import {enumText, ui} from "@/i18n/translate-enum";
 
 type NamedCable = PsuCable & { id: string; name: string };
 
 const cableTypeField = enumSelectField<NamedCable, PsuCableType>(
-  "Type",
+  ui.label("type"),
   "type",
   PSU_CABLE_TYPES,
+  { label: enumText.psuCableType },
 );
 
 export const cableColumns: ChildCollectionColumn<PsuCable>[] = [
   {
-    header: "Type",
+    header: () => ui.header("type"),
     cell: (row, update) => 
       cableTypeField.control({ ...row, id: "", name: "" }, (next) => {
         update({ ...row, type: next.type });
       }),
   },
   {
-    header: "Cables",
+    header: () => ui.header("cables"),
     cell: (row, update) => (
       <Input
-        aria-label="Cable count"
+        aria-label={ui.label("cableCount")}
         className="w-20"
         type="number"
         min={1}
@@ -36,10 +38,10 @@ export const cableColumns: ChildCollectionColumn<PsuCable>[] = [
     ),
   },
   {
-    header: "Connectors",
+    header: () => ui.header("connectors"),
     cell: (row, update) => (
       <Input
-        aria-label="Connector count"
+        aria-label={ui.label("connectorCount")}
         className="w-20"
         type="number"
         min={1}

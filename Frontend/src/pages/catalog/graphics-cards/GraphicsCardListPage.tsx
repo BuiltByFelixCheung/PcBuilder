@@ -32,6 +32,7 @@ import {
   VIDEO_MEMORY_GB,
   type PcieGeneration,
 } from "@/api/enums";
+import {enumText, ui} from "@/i18n/translate-enum";
 import {
   CatalogCompatibleCheckbox,
   CatalogOptionalBooleanField,
@@ -112,38 +113,41 @@ export function GraphicsCardListPage() {
           isAdmin,
           (id) => `/catalog/graphics-cards/${id}`,
         ),
-        columnHelper.accessor("gpuName", { header: "GPU" }),
+        columnHelper.accessor("gpuName", { header: ui.header("gpu") }),
         columnHelper.accessor("videoMemoryGb", {
-          header: "Video Memory",
-          cell: (info) => `${info.getValue()} GB`,
+          header: ui.header("videoMemory"),
+          cell: (info) => `${info.getValue()} ${ui.unit("gb")}`,
         }),
-        columnHelper.accessor("pcieSlotsUsed", { header: "Pcie Slots Used" }),
-        columnHelper.accessor("pcieGeneration", { header: "Pcie Generation" }),
+        columnHelper.accessor("pcieSlotsUsed", { header: ui.header("pcieSlotsUsed") }),
+        columnHelper.accessor("pcieGeneration", {
+          header: ui.header("pcieGeneration"),
+          cell: (info) => enumText.pcieGeneration(info.getValue()),
+        }),
         columnHelper.accessor("isLowProfile", {
-          header: "Is Low Profile",
-          cell: (info) => (info.getValue() ? "Yes" : "No"),
+          header: ui.header("isLowProfile"),
+          cell: (info) => (info.getValue() ? ui.label("yes") : ui.label("no")),
         }),
         columnHelper.accessor("lengthMm", {
-          header: "Length",
-          cell: (info) => `${info.getValue()} mm`,
+          header: ui.header("length"),
+          cell: (info) => `${info.getValue()} ${ui.unit("mm")}`,
         }),
         columnHelper.accessor("widthMm", {
-          header: "Width",
-          cell: (info) => `${info.getValue()} mm`,
+          header: ui.header("width"),
+          cell: (info) => `${info.getValue()} ${ui.unit("mm")}`,
         }),
         columnHelper.accessor("heightMm", {
-          header: "Height",
-          cell: (info) => `${info.getValue()} mm`,
+          header: ui.header("height"),
+          cell: (info) => `${info.getValue()} ${ui.unit("mm")}`,
         }),
         columnHelper.accessor("powerConsumptionWatts", {
-          header: "Power Consumption",
-          cell: (info) => `${info.getValue()} W`,
+          header: ui.header("powerConsumption"),
+          cell: (info) => `${info.getValue()} ${ui.unit("watts")}`,
         }),
         columnHelper.accessor("powerConnectorType", {
-          header: "Power Connector Type",
+          header: ui.header("powerConnectorType"),
         }),
         columnHelper.accessor("powerConnectorCount", {
-          header: "Power Connector Count",
+          header: ui.header("powerConnectorCount"),
         }),
       ]),
     [isAdmin],
@@ -154,8 +158,8 @@ export function GraphicsCardListPage() {
     rowSelection,
     setRowSelection,
     queryKey: graphicsCardKeys.all,
-    singular: "graphics card",
-    plural: "graphics cards",
+    singular: ui.label("nGraphicsCard"),
+    plural: ui.label("nGraphicsCards"),
     deleteByIds: (ids) => deleteGraphicsCards({ ids }),
   });
   const excelImport = useExcelImport({
@@ -234,10 +238,8 @@ export function GraphicsCardListPage() {
 
   return (
     <section className="catalog-page">
-      <h1>Graphics Cards</h1>
-      <p className="catalog-lead">
-        Browse the catalog, then apply filters when you need a narrower set.
-      </p>
+      <h1>{ui.nav("products.graphicsCards")}</h1>
+      <p className="catalog-lead">{ui.message("browseCatalogLead")}</p>
 
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
@@ -253,7 +255,7 @@ export function GraphicsCardListPage() {
             />
             <CatalogIdSelectField
               id="graphics-card-manufacturer"
-              label="Manufacturer"
+              label={ui.label("manufacturer")}
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
@@ -264,9 +266,7 @@ export function GraphicsCardListPage() {
               }
             />
             <Field>
-              <FieldLabel htmlFor="graphics-card-gpu-manufacturer">
-                GPU Manufacturer
-              </FieldLabel>
+              <FieldLabel htmlFor="graphics-card-gpu-manufacturer">{ui.label("gpuManufacturer")}</FieldLabel>
               <select
                 id="graphics-card-gpu-manufacturer"
                 className={selectClassName}
@@ -277,7 +277,7 @@ export function GraphicsCardListPage() {
                   setDraft((current) => ({ ...current, gpuId: undefined }));
                 }}
               >
-                <option value="">Any</option>
+                <option value="">{ui.label("any")}</option>
                 {gpuManufacturers.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.name}
@@ -286,9 +286,7 @@ export function GraphicsCardListPage() {
               </select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="graphics-card-gpu-series">
-                GPU Series
-              </FieldLabel>
+              <FieldLabel htmlFor="graphics-card-gpu-series">{ui.label("gpuSeries")}</FieldLabel>
               <select
                 id="graphics-card-gpu-series"
                 className={selectClassName}
@@ -298,7 +296,7 @@ export function GraphicsCardListPage() {
                   setDraft((current) => ({ ...current, gpuId: undefined }));
                 }}
               >
-                <option value="">Any</option>
+                <option value="">{ui.label("any")}</option>
                 {gpuSeriesOptions.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.name}
@@ -308,7 +306,7 @@ export function GraphicsCardListPage() {
             </Field>
             <CatalogIdSelectField
               id="graphics-card-gpu-id"
-              label="GPU"
+              label={ui.label("gpu")}
               value={draft.gpuId}
               options={gpuOptions}
               onChange={(value) =>
@@ -319,9 +317,7 @@ export function GraphicsCardListPage() {
               }
             />
             <Field>
-              <FieldLabel htmlFor="graphics-card-video-memory">
-                Video Memory
-              </FieldLabel>
+              <FieldLabel htmlFor="graphics-card-video-memory">{ui.label("videoMemory")}</FieldLabel>
               <select
                 id="graphics-card-video-memory"
                 className={selectClassName}
@@ -333,18 +329,16 @@ export function GraphicsCardListPage() {
                   }))
                 }
               >
-                <option value="">Any</option>
+                <option value="">{ui.label("any")}</option>
                 {VIDEO_MEMORY_GB.map((memory) => (
                   <option key={memory} value={memory}>
-                    {memory} GB
+                    {memory} {ui.unit("gb")}
                   </option>
                 ))}
               </select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="graphics-card-pcie-slots-used">
-                Pcie Slots Used
-              </FieldLabel>
+              <FieldLabel htmlFor="graphics-card-pcie-slots-used">{ui.label("pcieSlotsUsed")}</FieldLabel>
               <select
                 id="graphics-card-pcie-slots-used"
                 className={selectClassName}
@@ -356,7 +350,7 @@ export function GraphicsCardListPage() {
                   }))
                 }
               >
-                <option value="">Any</option>
+                <option value="">{ui.label("any")}</option>
                 {PCIE_SLOTS_USED.map((slots) => (
                   <option key={slots} value={slots}>
                     {slots}
@@ -365,9 +359,7 @@ export function GraphicsCardListPage() {
               </select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="graphics-card-pcie-generation">
-                PCIe Generation
-              </FieldLabel>
+              <FieldLabel htmlFor="graphics-card-pcie-generation">{ui.label("pcieGeneration")}</FieldLabel>
               <select
                 id="graphics-card-pcie-generation"
                 className={selectClassName}
@@ -380,17 +372,17 @@ export function GraphicsCardListPage() {
                   }))
                 }
               >
-                <option value="">Any</option>
+                <option value="">{ui.label("any")}</option>
                 {PCIE_GENERATIONS.map((generation) => (
                   <option key={generation} value={generation}>
-                    {generation.replace("Gen", "PCIe ")}
+                    {enumText.pcieGeneration(generation)}
                   </option>
                 ))}
               </select>
             </Field>
             <CatalogOptionalBooleanField
               id="graphics-card-low-profile"
-              label="Low profile"
+              label={ui.label("lowProfile")}
               value={draft.isLowProfile}
               onChange={(isLowProfile) =>
                 setDraft((current) => ({ ...current, isLowProfile }))
@@ -398,8 +390,8 @@ export function GraphicsCardListPage() {
             />
             <CatalogRangeField
               id="graphics-card-length"
-              label="Length (mm)"
-              maxAriaLabel="Length max"
+              label={ui.label("lengthMm")}
+              maxAriaLabel={ui.label("lengthMax")}
               range={draft.lengthMm}
               onChange={(lengthMm) =>
                 setDraft((current) => ({ ...current, lengthMm }))
@@ -407,8 +399,8 @@ export function GraphicsCardListPage() {
             />
             <CatalogRangeField
               id="graphics-card-width"
-              label="Width (mm)"
-              maxAriaLabel="Width max"
+              label={ui.label("widthMm")}
+              maxAriaLabel={ui.label("widthMax")}
               range={draft.widthMm}
               onChange={(widthMm) =>
                 setDraft((current) => ({ ...current, widthMm }))
@@ -416,8 +408,8 @@ export function GraphicsCardListPage() {
             />
             <CatalogRangeField
               id="graphics-card-height"
-              label="Height (mm)"
-              maxAriaLabel="Height max"
+              label={ui.label("heightMm")}
+              maxAriaLabel={ui.label("heightMax")}
               range={draft.heightMm}
               onChange={(heightMm) =>
                 setDraft((current) => ({ ...current, heightMm }))
@@ -425,8 +417,8 @@ export function GraphicsCardListPage() {
             />
             <CatalogRangeField
               id="graphics-card-power"
-              label="Power consumption (W)"
-              maxAriaLabel="Power consumption max"
+              label={ui.label("powerConsumptionW")}
+              maxAriaLabel={ui.label("powerConsumptionMax")}
               range={draft.powerConsumptionWatts}
               onChange={(powerConsumptionWatts) =>
                 setDraft((current) => ({
@@ -446,11 +438,11 @@ export function GraphicsCardListPage() {
             error={query.error}
             items={items}
             filtering={filtering}
-            loadingMessage="Loading graphics cards…"
-            emptyFilteredMessage="No graphics cards match these filters."
-            emptyMessage="No graphics cards in the catalog yet."
+            loadingMessage={ui.empty("loading", { entity: ui.entity("graphicsCards") })}
+            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("graphicsCards") })}
+            emptyMessage={ui.empty("noneInCatalog", { entity: ui.entity("graphicsCards") })}
             isAdmin={isAdmin}
-            newItemLabel="New Graphics Card"
+            newItemLabel={ui.action("newGraphicsCard")}
             onNewItem={() => setCreating(true)}
             columns={columns}
             rowSelection={rowSelection}
@@ -468,7 +460,7 @@ export function GraphicsCardListPage() {
       </div>
       {creating ? (
         <CatalogCreateDialog
-          title="New graphics card"
+          title={ui.dialog("newGraphicsCard")}
           item={emptyCard}
           fields={GraphicsCardFields(manufacturers, gpus)}
           queryKey={graphicsCardKeys.all}
@@ -479,7 +471,7 @@ export function GraphicsCardListPage() {
       ) : null}
       {editRows ? (
         <BulkEditDialog
-          title="Edit Graphics Cards"
+          title={ui.dialog("editGraphicsCards")}
           rows={editRows}
           columns={GraphicsCardEditColumns(manufacturers, gpus)}
           onClose={() => setEditRows(null)}

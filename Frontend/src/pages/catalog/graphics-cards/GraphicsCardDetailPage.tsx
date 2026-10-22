@@ -14,6 +14,7 @@ import {
   graphicsCardListItem,
   updateGraphicsCard,
 } from "@/api/catalog/graphics-cards";
+import { enumText, ui } from "@/i18n/translate-enum";
 import { GraphicsCardFields } from "@/pages/catalog/graphics-cards/GraphicsCardEditColumns";
 import {
   Table,
@@ -35,19 +36,19 @@ export function GraphicsCardDetailPage() {
   const { manufacturers, gpus } = useGraphicsCardFilterOptions();
 
   if (query.isPending) {
-    return <PageStatus>Loading Graphics Card…</PageStatus>;
+    return <PageStatus>{ui.empty("loading", { entity: ui.entity("graphicsCard") })}</PageStatus>;
   }
 
   if (query.isError || !graphicsCard) {
     return (
       <section className="catalog-page">
         <p>
-          <Link to="/catalog/graphics-cards">Back to Graphics Cards</Link>
+          <Link to="/catalog/graphics-cards">{ui.empty("backTo", { entity: ui.nav("products.graphicsCards") })}</Link>
         </p>
         <PageStatus>
           {query.isError
             ? parseApiError(query.error).message
-            : "Graphics Card not found."}
+            : ui.empty("graphicsCardNotFound")}
         </PageStatus>
       </section>
     );
@@ -56,7 +57,7 @@ export function GraphicsCardDetailPage() {
   return (
     <section className="catalog-page">
       <p>
-        <Link to="/catalog/graphics-cards">Back to Graphics Cards</Link>
+        <Link to="/catalog/graphics-cards">{ui.empty("backTo", { entity: ui.nav("products.graphicsCards") })}</Link>
       </p>
       <div className="catalog-detail-title">
         <h1>{graphicsCard.name}</h1>
@@ -71,18 +72,18 @@ export function GraphicsCardDetailPage() {
               navigate(builderHref(currentBuild.sourceId));
             }}
           >
-            Add to Build
+            {ui.action("addToBuild")}
           </Button>
         )}
         {isAdmin && (
           <Button type="button" onClick={() => setEditing(true)}>
-            Edit
+            {ui.action("edit")}
           </Button>
         )}
       </div>
       {editing ? (
         <CatalogEditDialog
-          title="Edit graphics card"
+          title={ui.dialog("editGraphicsCard")}
           item={graphicsCardListItem(graphicsCard)}
           fields={GraphicsCardFields(manufacturers, gpus)}
           onClose={() => setEditing(false)}
@@ -98,40 +99,32 @@ export function GraphicsCardDetailPage() {
         <div className="catalog-detail-stack">
           <div>
             <div className="catalog-detail-subtitle">
-              <h2>Basic information</h2>
+              <h2>{ui.section("basicInformation")}</h2>
             </div>
             <Table>
               <TableBody>
                 <TableRow>
-                  <TableHead className="table-stub" scope="row">
-                    Manufacturer
-                  </TableHead>
+                  <TableHead className="table-stub" scope="row">{ui.label("manufacturer")}</TableHead>
                   <TableCell>{graphicsCard.manufacturerName}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableHead className="table-stub" scope="row">
-                    Video memory
-                  </TableHead>
-                  <TableCell>{graphicsCard.videoMemoryGb} GB</TableCell>
+                  <TableHead className="table-stub" scope="row">{ui.label("videoMemory")}</TableHead>
+                  <TableCell>{graphicsCard.videoMemoryGb} {ui.unit("gb")}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableHead className="table-stub" scope="row">
-                    Slot width
-                  </TableHead>
+                  <TableHead className="table-stub" scope="row">{ui.label("slotWidth")}</TableHead>
                   <TableCell>{graphicsCard.pcieSlotsUsed}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableHead className="table-stub" scope="row">
-                    PCIe generation
-                  </TableHead>
-                  <TableCell>{graphicsCard.pcieGeneration}</TableCell>
+                  <TableHead className="table-stub" scope="row">{ui.label("pcieGeneration")}</TableHead>
+                  <TableCell>
+                    {enumText.pcieGeneration(graphicsCard.pcieGeneration)}
+                  </TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableHead className="table-stub" scope="row">
-                    Low profile
-                  </TableHead>
+                  <TableHead className="table-stub" scope="row">{ui.label("lowProfile")}</TableHead>
                   <TableCell>
-                    {graphicsCard.isLowProfile ? "Yes" : "No"}
+                    {graphicsCard.isLowProfile ? ui.label("yes") : ui.label("no")}
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -144,15 +137,11 @@ export function GraphicsCardDetailPage() {
             <Table>
               <TableBody>
                 <TableRow>
-                  <TableHead className="table-stub" scope="row">
-                    Manufacturer
-                  </TableHead>
+                  <TableHead className="table-stub" scope="row">{ui.label("manufacturer")}</TableHead>
                   <TableCell>{graphicsCard.gpuManufacturerName}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableHead className="table-stub" scope="row">
-                    Series
-                  </TableHead>
+                  <TableHead className="table-stub" scope="row">{ui.label("series")}</TableHead>
                   <TableCell>{graphicsCard.gpuSeriesName}</TableCell>
                 </TableRow>
               </TableBody>
@@ -161,40 +150,30 @@ export function GraphicsCardDetailPage() {
         </div>
         <div>
           <div className="catalog-detail-subtitle">
-            <h2>Dimensions and power</h2>
+            <h2>{ui.section("dimensionsAndPower")}</h2>
           </div>
           <Table>
             <TableBody>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Length
-                </TableHead>
-                <TableCell>{graphicsCard.lengthMm} mm</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("length")}</TableHead>
+                <TableCell>{graphicsCard.lengthMm} {ui.unit("mm")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Width
-                </TableHead>
-                <TableCell>{graphicsCard.widthMm} mm</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("width")}</TableHead>
+                <TableCell>{graphicsCard.widthMm} {ui.unit("mm")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Height
-                </TableHead>
-                <TableCell>{graphicsCard.heightMm} mm</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("height")}</TableHead>
+                <TableCell>{graphicsCard.heightMm} {ui.unit("mm")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Power consumption
-                </TableHead>
-                <TableCell>{graphicsCard.powerConsumptionWatts} W</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("powerConsumption")}</TableHead>
+                <TableCell>{graphicsCard.powerConsumptionWatts} {ui.unit("watts")}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Power connectors
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("powerConnectors")}</TableHead>
                 <TableCell>
-                  {graphicsCard.powerConnectorType} x{" "}
+                  {enumText.psuCableType(graphicsCard.powerConnectorType)} x{" "}
                   {graphicsCard.powerConnectorCount}
                 </TableCell>
               </TableRow>

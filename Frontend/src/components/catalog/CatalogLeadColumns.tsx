@@ -2,6 +2,7 @@ import type { ColumnHelper, RowData } from "@tanstack/react-table";
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { catalogNameCell } from "./CatalogNameCell";
+import { ui } from "@/i18n/translate-enum";
 
 type CatalogRow = { id: string; name: string; manufacturerName: string };
 
@@ -14,13 +15,13 @@ export function catalogLeadColumns<T extends CatalogRow & RowData>(
     ...(isAdmin ? [createSelectionColumn(columnHelper)] : []),
     columnHelper.accessor((row) => row.name, {
       id: "name",
-      header: "Name",
+      header: ui.header("name"),
       cell: (info) =>
         catalogNameCell(detailPath(info.row.original.id), info.getValue()),
     }),
     columnHelper.accessor((row) => row.manufacturerName, {
       id: "manufacturerName",
-      header: "Manufacturer",
+      header: ui.header("manufacturer"),
     }),
   ];
 }

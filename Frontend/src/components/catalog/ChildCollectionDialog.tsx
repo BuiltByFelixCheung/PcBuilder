@@ -18,11 +18,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ui } from "@/i18n/translate-enum";
 
 export type ChildCollectionColumn<T> = {
-  header: string;
+  header: string | (() => string);
   cell: (row: T, update: (next: T) => void) => ReactNode;
 };
+
+function columnLabel(header: string | (() => string)) {
+  return typeof header === "function" ? header() : header;
+}
 
 type ChildCollectionDialogProps<T> = {
   title: string;
@@ -44,7 +49,7 @@ export function EditableCollectionTable<T>({
   rows,
   columns,
   disabled = false,
-  addLabel = "Add row",
+  addLabel = ui.label("addRow"),
   scrollable = false,
   createRow,
   onChange,
@@ -80,9 +85,10 @@ export function EditableCollectionTable<T>({
       <Table className={scrollable ? "w-max min-w-full" : undefined}>
         <TableHeader>
           <TableRow>
-            {columns.map((column) => (
-              <TableHead key={column.header}>{column.header}</TableHead>
-            ))}
+            {columns.map((column) => {
+              const label = columnLabel(column.header);
+              return <TableHead key={label}>{label}</TableHead>;
+            })}
             <TableHead />
           </TableRow>
         </TableHeader>
@@ -90,7 +96,10 @@ export function EditableCollectionTable<T>({
           {rows.map((row, index) => (
             <TableRow key={row.key}>
               {columns.map((column) => (
-                <TableCell key={column.header} data-label={column.header}>
+                <TableCell
+                  key={columnLabel(column.header)}
+                  data-label={columnLabel(column.header)}
+                >
                   {column.cell(row.value, (next) => updateRow(row.key, next))}
                 </TableCell>
               ))}
@@ -99,10 +108,10 @@ export function EditableCollectionTable<T>({
                   type="button"
                   variant="outline"
                   disabled={disabled}
-                  aria-label={`Remove row ${index + 1}`}
+                  aria-label={ui.message("removeRow", { index: index + 1 })}
                   onClick={() => removeRow(row.key)}
                 >
-                  Remove
+                  {ui.action("remove")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -175,11 +184,9 @@ export function ChildCollectionDialog<T>({
             variant="outline"
             disabled={saving}
             onClick={onClose}
-          >
-            Cancel
-          </Button>
+          >{ui.action("cancel")}</Button>
           <Button type="button" disabled={saving} onClick={() => void save()}>
-            {saving ? "Saving…" : "Save"}
+            {saving ? ui.action("saving") : ui.action("save")}
           </Button>
         </DialogFooter>
       </DialogContent>

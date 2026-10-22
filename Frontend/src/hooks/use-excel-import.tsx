@@ -3,6 +3,7 @@ import { useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { isExcelFile } from "@/api/excel-file";
 import { parseApiError } from "@/api/errors.ts";
 import { ImportExcelDialog } from "@/components/ImportExcelDialog";
+import { ui } from "@/i18n/translate-enum";
 
 type UseExcelImportOptions = {
   queryKey: QueryKey;
@@ -30,14 +31,14 @@ export function useExcelImport({
   function onFileChange(next: File | null) {
     setFile(next);
     setError(
-      next && !isExcelFile(next) ? "Choose an .xls or .xlsx file." : null,
+      next && !isExcelFile(next) ? ui.message("chooseExcel") : null,
     );
   }
 
   async function onImport() {
     if (!file || importing) return;
     if (!isExcelFile(file)) {
-      setError("Choose an .xls or .xlsx file.");
+      setError(ui.message("chooseExcel"));
       return;
     }
 

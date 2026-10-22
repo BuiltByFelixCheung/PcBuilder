@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FieldGroup } from "@/components/ui/field";
+import { ui } from "@/i18n/translate-enum";
 
 type Identified = { id: string };
 
@@ -80,11 +81,9 @@ export function CatalogCreateDialog<T extends Identified>({
             variant="outline"
             disabled={saving}
             onClick={onClose}
-          >
-            Cancel
-          </Button>
+          >{ui.action("cancel")}</Button>
           <Button type="button" disabled={saving} onClick={() => void submit()}>
-            {saving ? "Saving…" : "Create"}
+            {saving ? ui.action("saving") : ui.action("create")}
           </Button>
         </DialogFooter>
       </DialogContent>

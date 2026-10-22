@@ -15,6 +15,7 @@ import { DecimalInput } from "@/components/catalog/DecimalInput";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { Field } from "./ui/field";
+import { ui } from "@/i18n/translate-enum";
 
 type Named = { id: string; name: string };
 type IdOption = { id: string; name: string };
@@ -22,10 +23,10 @@ type FieldKey<T> = keyof T & string;
 
 export function nameBulkColumn<T extends Named>(): BulkEditColumn<T> {
   return {
-    header: "Name",
+    header: ui.header("name"),
     cell: (row, update) => (
       <Input
-        aria-label={`Name for ${row.name}`}
+        aria-label={ui.message("fieldFor", { field: ui.label("name"), name: row.name })}
         value={row.name}
         onChange={(event) => update({ ...row, name: event.target.value })}
       />
@@ -60,7 +61,7 @@ export function idSelectBulkColumn<T extends Named>(
           }
         >
           <SelectTrigger
-            aria-label={`${header} for ${row.name}`}
+            aria-label={ui.message("fieldFor", { field: header, name: row.name })}
             className="w-full"
           >
             <SelectValue placeholder={blankLabel ?? ""} />
@@ -124,7 +125,7 @@ export function enumSelectBulkColumn<
           }}
         >
           <SelectTrigger
-            aria-label={`${header} for ${row.name}`}
+            aria-label={ui.message("fieldFor", { field: header, name: row.name })}
             className="w-full"
           >
             <SelectValue placeholder={options?.emptyLabel ?? ""} />
@@ -172,7 +173,7 @@ export function numberBulkColumn<T extends Named>(
       const current = row[field] as number | null | undefined;
       return (
         <Input
-          aria-label={`${label} for ${row.name}`}
+          aria-label={ui.message("fieldFor", { field: label, name: row.name })}
           type={options.type}
           min={options.min}
           value={current == null ? "" : String(current)}
@@ -197,7 +198,7 @@ export function optionalNumberColumn<T extends Named>(
     numeric: true,
     cell: (row, update) => (
       <DecimalInput
-        label={`${header} for ${row.name}`}
+        label={ui.message("fieldFor", { field: header, name: row.name })}
         value={row[field] as number | null | undefined}
         onValue={(next) => update({ ...row, [field]: next } as T)}
       />
@@ -220,7 +221,7 @@ export function checkboxBulkColumn<T extends Named>(
     header,
     cell: (row, update) => (
       <Checkbox
-        aria-label={`${header} for ${row.name}`}
+        aria-label={ui.message("fieldFor", { field: header, name: row.name })}
         checked={row[field] === true}
         onCheckedChange={(checked) =>
           update({ ...row, [field]: checked === true } as T)
@@ -241,7 +242,7 @@ export function switchBulkColumn<T extends Named>(
     cell: (row, update) => (
       <Field orientation="horizontal">
         <Switch
-          aria-label={`${header} for ${row.name}`}
+          aria-label={ui.message("fieldFor", { field: header, name: row.name })}
           checked={row[field] === true}
           onCheckedChange={(checked) =>
             update({ ...row, [field]: checked === true } as T)

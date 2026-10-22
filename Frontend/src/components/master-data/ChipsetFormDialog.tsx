@@ -28,18 +28,21 @@ import {
 import { formSelectClassName } from "@/components/filters/ListFilters";
 import { clearSocketFromAnotherManufacturer } from "@/lib/master-data-edit";
 import { useState } from "react";
+import { ui } from "@/i18n/translate-enum";
 
-const chipsetFormSchema = z.object({
+function chipsetFormSchema() {
+  return z.object({
   name: z
     .string()
     .trim()
-    .min(1, "Name is required.")
-    .max(100, "Name must not exceed 100 characters."),
-  manufacturerId: z.string().min(1, "Manufacturer is required."),
-  socketId: z.string().min(1, "Socket is required."),
+    .min(1, ui.message("nameRequired"))
+    .max(100, ui.message("nameTooLong")),
+  manufacturerId: z.string().min(1, ui.message("manufacturerRequired")),
+  socketId: z.string().min(1, ui.message("socketRequired")),
 });
+}
 
-type ChipsetFormValues = z.infer<typeof chipsetFormSchema>;
+type ChipsetFormValues = z.infer<ReturnType<typeof chipsetFormSchema>>;
 
 type ChipsetFormDialogProps = {
   editingId: string;
@@ -60,12 +63,12 @@ export function ChipsetFormDialog({
       items={chipsets}
       settled={chipsetsSettled}
       onClose={onClose}
-      editTitle="Edit chipset"
-      loadingMessage="Loading chipset…"
+      editTitle={ui.dialog("editChipset")}
+      loadingMessage={ui.empty("loading", { entity: ui.entity("chipset") })}
       missing={
         <MasterDataMissing
-          title="Chipset not found"
-          description="This chipset is not in the current list."
+          title={ui.empty("notFoundEntity", { entity: ui.entity("chipset") })}
+          description={ui.message("notInListChipset")}
           onClose={onClose}
         />
       }
@@ -89,8 +92,8 @@ function ChipsetForm({
   });
   return (
     <MasterDataOptions
-      title={chipset ? "Edit chipset" : "New chipset"}
-      loadingMessage="Loading chipset…"
+      title={chipset ? ui.dialog("editChipset") : ui.dialog("newChipset")}
+      loadingMessage={ui.empty("loading", { entity: ui.entity("chipset") })}
       onClose={onClose}
       queries={[manufacturers, sockets]}
     >
@@ -119,7 +122,7 @@ function ChipsetFields({
 }>) {
   const queryClient = useQueryClient();
   const form = useForm<ChipsetFormValues>({
-    resolver: zodResolver(chipsetFormSchema),
+    resolver: zodResolver(chipsetFormSchema()),
     defaultValues: {
       name: chipset?.name ?? "",
       manufacturerId: chipset?.manufacturerId ?? "",
@@ -143,7 +146,7 @@ function ChipsetFields({
   const manufacturerRegistration = register("manufacturerId");
 
   async function onDelete() {
-    if (!chipset || !window.confirm(`Delete ${chipset.name}?`)) return;
+    if (!chipset || !window.confirm(ui.message("deleteNamed", { name: chipset.name }))) return;
     setIsDeleting(true);
     try {
       await deleteChipset(chipset.id);
@@ -181,11 +184,11 @@ function ChipsetFields({
 
   return (
     <MasterDataFormShell
-      title={chipset ? "Edit chipset" : "New chipset"}
+      title={chipset ? ui.dialog("editChipset") : ui.dialog("newChipset")}
       description={
         chipset
-          ? "Update the name, manufacturer, and socket."
-          : "Add a chipset to master data."
+          ? ui.message("updateNameManufacturerSocket")
+          : ui.message("addChipset")
       }
       error={errors.root?.message}
       onSubmit={handleSubmit(onSubmit)}
@@ -194,20 +197,18 @@ function ChipsetFields({
       deleteDisabled={isDeleting}
       deleting={isDeleting}
       cancelDisabled={isSubmitting}
-      submitLabel={isSubmitting ? "Saving…" : "Save"}
+      submitLabel={isSubmitting ? ui.action("saving") : ui.action("save")}
       submitDisabled={isSubmitting}
     >
       <FormTextField
         id="chipset-edit-name"
-        label="Name"
+        label={ui.label("name")}
         required
         error={errors.name}
         registration={register("name")}
       />
       <Field data-invalid={errors.manufacturerId ? true : undefined}>
-        <FieldLabel htmlFor="chipset-edit-manufacturer">
-          Manufacturer
-        </FieldLabel>
+        <FieldLabel htmlFor="chipset-edit-manufacturer">{ui.label("manufacturer")}</FieldLabel>
         <select
           id="chipset-edit-manufacturer"
           className={formSelectClassName}
@@ -223,7 +224,7 @@ function ChipsetFields({
             );
           }}
         >
-          <option value="">Select a manufacturer</option>
+          <option value="">{ui.label("selectManufacturer")}</option>
           {manufacturers.map((item) => (
             <option key={item.id} value={item.id}>
               {item.name}
@@ -233,14 +234,14 @@ function ChipsetFields({
         <FieldError errors={[errors.manufacturerId]} />
       </Field>
       <Field data-invalid={errors.socketId ? true : undefined}>
-        <FieldLabel htmlFor="chipset-edit-socket">Socket</FieldLabel>
+        <FieldLabel htmlFor="chipset-edit-socket">{ui.label("socket")}</FieldLabel>
         <select
           id="chipset-edit-socket"
           className={formSelectClassName}
           aria-invalid={errors.socketId ? true : undefined}
           {...register("socketId")}
         >
-          <option value="">Select a socket</option>
+          <option value="">{ui.label("selectSocket")}</option>
           {socketOptions.map((item) => (
             <option key={item.id} value={item.id}>
               {item.name}

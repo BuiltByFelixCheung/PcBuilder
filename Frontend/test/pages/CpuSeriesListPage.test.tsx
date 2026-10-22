@@ -252,11 +252,10 @@ describe("CpuSeriesListPage", () => {
     await user.click(screen.getByRole("button", { name: "Edit Selected" }));
     const dialog = await screen.findByRole("dialog", { name: "Edit CPU Series" });
     const name = within(dialog).getByRole("textbox");
-    const [manufacturer, socket] = within(dialog).getAllByRole("combobox");
     await user.clear(name);
     await user.type(name, "Ryzen 7000X");
-    await user.selectOptions(manufacturer, "intel");
-    await user.selectOptions(socket, "lga1851");
+    await chooseOption(user, "Manufacturer for Ryzen 7000X", "Intel");
+    await chooseOption(user, "Socket for Ryzen 7000X", "LGA1851");
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
     await waitFor(() => {
       expect(updateMultipleCpuSeries).toHaveBeenCalledWith([

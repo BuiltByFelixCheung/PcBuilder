@@ -35,6 +35,7 @@ vi.mock("@/api/master-data", async () => {
 });
 
 import { GpuSeriesListPage } from "@/pages/master-data/gpu-series/GpuSeriesListPage.tsx";
+import { chooseOption } from "../helpers/choose-option.ts";
 import { renderWithQuery } from "../helpers/query.tsx";
 
 const rtx: GpuSeriesOption = {
@@ -219,7 +220,7 @@ describe("GpuSeriesListPage", () => {
     await user.click(checkboxes[2]);
     await user.click(screen.getByRole("button", { name: "Edit Selected" }));
     const dialog = await screen.findByRole("dialog", { name: "Edit GPU Series" });
-    await user.selectOptions(within(dialog).getAllByRole("combobox")[0], "nvidia");
+    await chooseOption(user, "Manufacturer for RX 7000", "NVIDIA");
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
     await waitFor(() => {
       expect(updateMultipleGpuSeries).toHaveBeenCalledWith([

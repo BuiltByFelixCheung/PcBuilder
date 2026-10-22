@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/use-auth.ts";
+import { ui } from "@/i18n/translate-enum";
 
 export function AccountPage() {
   const { user, isAdmin, isMember, logout } = useAuth();
@@ -15,23 +16,23 @@ export function AccountPage() {
   return (
     <section className="account-page">
       <div className="account-card">
-        <h1>Account</h1>
-        <p className="auth-lead">You are signed in.</p>
+        <h1>{ui.page("account")}</h1>
+        <p className="auth-lead">{ui.message("youAreSignedIn")}</p>
         <dl className="account-details">
           <div>
-            <dt>Username</dt>
+            <dt>{ui.label("username")}</dt>
             <dd>{user.userName}</dd>
           </div>
           <div>
-            <dt>Email</dt>
+            <dt>{ui.label("email")}</dt>
             <dd>{user.email}</dd>
           </div>
           <div>
-            <dt>Roles</dt>
+            <dt>{ui.label("roles")}</dt>
             <dd>
-              {isAdmin ? <span className="role-pill">Admin</span> : null}
-              {isMember ? <span className="role-pill">Member</span> : null}
-              {user.roles.length === 0 ? "None" : null}
+              {isAdmin ? <span className="role-pill">{ui.label("admin")}</span> : null}
+              {isMember ? <span className="role-pill">{ui.label("member")}</span> : null}
+              {user.roles.length === 0 ? ui.label("none") : null}
             </dd>
           </div>
         </dl>
@@ -41,7 +42,7 @@ export function AccountPage() {
             className="auth-submit"
             onClick={() => void navigate("/builds/me")}
           >
-            Manage My Builds
+            {ui.action("manageMyBuilds")}
           </button>
         )}
         <button
@@ -49,7 +50,7 @@ export function AccountPage() {
           className="auth-submit"
           onClick={() => void handleLogout()}
         >
-          Sign out
+          {ui.action("signOut")}
         </button>
         {isMember && (
           <button
@@ -57,7 +58,7 @@ export function AccountPage() {
             className="auth-submit"
             onClick={() => void navigate("/change-password")}
           >
-            Change Password
+            {ui.action("changePassword")}
           </button>
         )}
       </div>

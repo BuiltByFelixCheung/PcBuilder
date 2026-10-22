@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ui } from "@/i18n/translate-enum";
 
 type Named = { id: string; name: string };
 type IdOption = { id: string; name: string };
@@ -26,10 +27,10 @@ export type CatalogField<T> = {
 
 export function nameField<T extends Named>(): CatalogField<T> {
   return {
-    label: "Name",
+    label: ui.label("name"),
     control: (item, update) => (
       <Input
-        aria-label={`Name for ${item.name}`}
+        aria-label={ui.message("fieldFor", { field: ui.label("name"), name: item.name })}
         value={item.name}
         onChange={(event) => update({ ...item, name: event.target.value })}
       />
@@ -65,7 +66,7 @@ export function idSelectField<T extends Named>(
           }
         >
           <SelectTrigger
-            aria-label={item.name ? `${label} for ${item.name}` : label}
+            aria-label={item.name ? ui.message("fieldFor", { field: label, name: item.name }) : label}
             className="w-full"
           >
             <SelectValue placeholder={blankLabel ?? ""} />
@@ -127,7 +128,7 @@ export function enumSelectField<T extends Named, V extends string | number>(
           }}
         >
           <SelectTrigger
-            aria-label={item.name ? `${label} for ${item.name}` : label}
+            aria-label={item.name ? ui.message("fieldFor", { field: label, name: item.name }) : label}
             className="w-full"
           >
             <SelectValue placeholder={options?.emptyLabel ?? ""} />
@@ -172,7 +173,7 @@ export function numberField<T extends Named>(
       const current = item[field] as number | null | undefined;
       return (
         <Input
-          aria-label={`${label} for ${item.name}`}
+          aria-label={ui.message("fieldFor", { field: label, name: item.name })}
           type={options.type}
           min={options.min}
           value={current == null ? "" : String(current)}
@@ -216,7 +217,7 @@ export function optionalNumberField<T extends Named>(
     half: true,
     control: (item, update) => (
       <DecimalInput
-        label={item.name ? `${label} for ${item.name}` : label}
+        label={item.name ? ui.message("fieldFor", { field: label, name: item.name }) : label}
         value={item[field] as number | null | undefined}
         onValue={(next) => update({ ...item, [field]: next } as T)}
       />

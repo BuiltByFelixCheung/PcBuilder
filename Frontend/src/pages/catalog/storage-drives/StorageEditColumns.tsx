@@ -19,27 +19,34 @@ import {
   STORAGE_INTERFACES,
   STORAGE_MEDIAS,
 } from "@/api/enums";
+import { enumText, ui } from "@/i18n/translate-enum";
 
 export function StorageEditColumns(
   manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<StorageDrive>[] {
   return [
     nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    enumSelectBulkColumn("Media", "media", STORAGE_MEDIAS),
-    enumSelectBulkColumn("Interface", "interface", STORAGE_INTERFACES),
-    enumSelectBulkColumn("Form factor", "formFactor", STORAGE_FORM_FACTORS),
-    integerColumn("Capacity (GB)", "capacityGb", { type: "number", min: 0 }),
+    idSelectBulkColumn(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    enumSelectBulkColumn(ui.label("media"), "media", STORAGE_MEDIAS, {
+      label: enumText.storageMedia,
+    }),
+    enumSelectBulkColumn(ui.label("interface"), "interface", STORAGE_INTERFACES, {
+      label: enumText.storageInterface,
+    }),
+    enumSelectBulkColumn(ui.label("formFactor"), "formFactor", STORAGE_FORM_FACTORS, {
+      label: enumText.storageFormFactor,
+    }),
+    integerColumn(ui.label("capacityGb"), "capacityGb", { type: "number", min: 0 }),
     enumSelectBulkColumn(
-      "PCIe generation",
+      ui.label("pcieGeneration"),
       "pcieGeneration",
       PCIE_GENERATIONS,
       {
         empty: "null",
-        label: (generation) => generation.replace("Gen", "PCIe "),
+        label: enumText.pcieGeneration,
       },
     ),
-    integerColumn("RPM", "rpm", { type: "number", fallback: undefined }),
+    integerColumn(ui.label("rpm"), "rpm", { type: "number", fallback: undefined }),
   ];
 }
 
@@ -48,15 +55,21 @@ export function StorageFields(
 ): CatalogField<StorageDrive>[] {
   return [
     nameField(),
-    idSelectField("Manufacturer", "manufacturerId", manufacturers),
-    enumSelectField("Media", "media", STORAGE_MEDIAS),
-    enumSelectField("Interface", "interface", STORAGE_INTERFACES),
-    enumSelectField("Form factor", "formFactor", STORAGE_FORM_FACTORS),
-    integerField("Capacity (GB)", "capacityGb", { type: "number", min: 0 }),
-    enumSelectField("PCIe generation", "pcieGeneration", PCIE_GENERATIONS, {
-      empty: "null",
-      label: (generation) => generation.replace("Gen", "PCIe "),
+    idSelectField(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    enumSelectField(ui.label("media"), "media", STORAGE_MEDIAS, {
+      label: enumText.storageMedia,
     }),
-    integerField("RPM", "rpm", { type: "number", fallback: undefined }),
+    enumSelectField(ui.label("interface"), "interface", STORAGE_INTERFACES, {
+      label: enumText.storageInterface,
+    }),
+    enumSelectField(ui.label("formFactor"), "formFactor", STORAGE_FORM_FACTORS, {
+      label: enumText.storageFormFactor,
+    }),
+    integerField(ui.label("capacityGb"), "capacityGb", { type: "number", min: 0 }),
+    enumSelectField(ui.label("pcieGeneration"), "pcieGeneration", PCIE_GENERATIONS, {
+      empty: "null",
+      label: enumText.pcieGeneration,
+    }),
+    integerField(ui.label("rpm"), "rpm", { type: "number", fallback: undefined }),
   ];
 }

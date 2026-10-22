@@ -34,6 +34,7 @@ import { MasterDataResults } from "@/components/master-data/MasterDataResults";
 import { FilterActions } from "@/components/filters/ListFilters";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
+import { ui } from "@/i18n/translate-enum";
 import {
   BulkEditDialog,
   type BulkEditColumn,
@@ -44,10 +45,11 @@ const columnHelper = createColumnHelper<
   typeof dataTableFeatures,
   Manufacturer
 >();
-const columns = columnHelper.columns([
+function listColumns() {
+  return columnHelper.columns([
   createSelectionColumn(columnHelper),
   columnHelper.accessor("name", {
-    header: "Name",
+    header: ui.header("name"),
     cell: (info) => (
       <Link to={manufacturerEditPath(info.row.original.id)}>
         {info.getValue()}
@@ -55,13 +57,14 @@ const columns = columnHelper.columns([
     ),
   }),
   columnHelper.accessor("productTypes", {
-    header: "Product lines",
+    header: ui.header("productLines"),
     cell: (info) => {
       const labels = (info.getValue() ?? []).map(manufacturerProductTypeLabel);
       return labels.length > 0 ? labels.join(", ") : "—";
     },
   }),
 ]);
+}
 
 function manufacturerEditColumns(): BulkEditColumn<Manufacturer>[] {
   return [nameBulkColumn(), productLinesBulkColumn()];
@@ -69,7 +72,7 @@ function manufacturerEditColumns(): BulkEditColumn<Manufacturer>[] {
 
 function productLinesBulkColumn(): BulkEditColumn<Manufacturer> {
   return {
-    header: "Product lines",
+    header: ui.header("productLines"),
     className: "min-w-80 whitespace-normal",
     cell: (row, update) => {
       const selected = row.productTypes ?? [];
@@ -81,7 +84,10 @@ function productLinesBulkColumn(): BulkEditColumn<Manufacturer> {
               className="flex items-center gap-2 text-sm"
             >
               <Checkbox
-                aria-label={`${type.label} for ${row.name}`}
+                aria-label={ui.message("fieldFor", {
+                  field: manufacturerProductTypeLabel(type.value),
+                  name: row.name,
+                })}
                 checked={selected.includes(type.value)}
                 onCheckedChange={(next) =>
                   update({
@@ -90,7 +96,7 @@ function productLinesBulkColumn(): BulkEditColumn<Manufacturer> {
                   })
                 }
               />
-              {type.label}
+              {manufacturerProductTypeLabel(type.value)}
             </label>
           ))}
         </div>
@@ -135,6 +141,7 @@ export function ManufacturerListPage() {
   );
   const filtering = isManufacturerFilterActive(applied);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const columns = useMemo(() => listColumns(), []);
   const [editRows, setEditRows] = useState<Manufacturer[] | null>(null);
   const visibleItems = useMemo(
     () => filterByNameAndFields(items, applied, []),
@@ -145,8 +152,8 @@ export function ManufacturerListPage() {
     rowSelection,
     setRowSelection,
     queryKey: masterDataKeys.manufacturers,
-    singular: "manufacturer",
-    plural: "manufacturers",
+    singular: ui.label("nManufacturer"),
+    plural: ui.label("nManufacturers"),
     deleteByIds: (ids) => deleteManufacturers({ ids }),
   });
   const excelImport = useExcelImport({
@@ -169,15 +176,13 @@ export function ManufacturerListPage() {
 
   return (
     <section className="catalog-page">
-      <h1>Manufacturers</h1>
-      <p className="catalog-lead">
-        Browse the master data, then apply filters when you need a narrower set.
-      </p>
+      <h1>{ui.nav("master.manufacturers")}</h1>
+      <p className="catalog-lead">{ui.message("browseMasterDataLead")}</p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <FieldGroup className="catalog-filter-grid">
             <Field>
-              <FieldLabel>Name</FieldLabel>
+              <FieldLabel>{ui.label("name")}</FieldLabel>
               <Input
                 id="manufacturer-name"
                 name="name"
@@ -197,9 +202,9 @@ export function ManufacturerListPage() {
             error={query.error}
             items={visibleItems}
             filtering={filtering}
-            loadingMessage="Loading Manufacturers…"
-            emptyFilteredMessage="No Manufacturers match these filters."
-            emptyMessage="No Manufacturers found."
+            loadingMessage={ui.empty("loading", { entity: ui.entity("manufacturers") })}
+            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("manufacturers") })}
+            emptyMessage={ui.empty("noneFound", { entity: ui.entity("manufacturers") })}
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
@@ -209,13 +214,13 @@ export function ManufacturerListPage() {
             onEditSelected={startEditing}
             onImport={excelImport.openImport}
             newItemTo={manufacturerEditPath(newMasterDataEditValue)}
-            newItemLabel="New Manufacturer"
+            newItemLabel={ui.action("newManufacturer")}
             keepTableWhenEmpty
           />
         </div>
         {editRows ? (
           <BulkEditDialog
-            title="Edit manufacturers"
+            title={ui.dialog("editManufacturers")}
             rows={editRows}
             columns={manufacturerEditColumns()}
             onClose={() => setEditRows(null)}

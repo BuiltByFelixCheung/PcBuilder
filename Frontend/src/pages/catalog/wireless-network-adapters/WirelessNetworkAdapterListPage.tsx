@@ -38,6 +38,7 @@ import {
   formatM2FormFactor,
   formatWifiStandard,
 } from "@/api/enums";
+import {enumText, ui} from "@/i18n/translate-enum";
 import {
   CatalogCompatibleCheckbox,
   CatalogRangeField,
@@ -113,13 +114,16 @@ export function WirelessNetworkAdapterListPage() {
           (id) => `/catalog/wireless-network-adapters/${id}`,
         ),
         columnHelper.accessor("wifiStandard", {
-          header: "Wi-Fi",
+          header: ui.header("wifi"),
           cell: (info) => formatWifiStandard(info.getValue()),
         }),
-        columnHelper.accessor("hostInterface", { header: "Interface" }),
+        columnHelper.accessor("hostInterface", {
+          header: ui.header("interface"),
+          cell: (info) => enumText.wifiInterface(info.getValue()),
+        }),
         columnHelper.accessor("maxSpeedMbps", {
-          header: "Max speed",
-          cell: (info) => `${info.getValue()} Mbps`,
+          header: ui.header("maxSpeed"),
+          cell: (info) => `${info.getValue()} ${ui.unit("mbps")}`,
         }),
       ]),
     [isAdmin],
@@ -130,8 +134,8 @@ export function WirelessNetworkAdapterListPage() {
     rowSelection,
     setRowSelection,
     queryKey: wirelessNetworkAdapterKeys.all,
-    singular: "wireless network adapter",
-    plural: "wireless network adapters",
+    singular: ui.label("nWireless"),
+    plural: ui.label("nWirelesss"),
     deleteByIds: (ids) => deleteWirelessNetworkAdapters({ ids }),
   });
   const excelImport = useExcelImport({
@@ -197,10 +201,8 @@ export function WirelessNetworkAdapterListPage() {
 
   return (
     <section className="catalog-page">
-      <h1>Wireless Network Adapters</h1>
-      <p className="catalog-lead">
-        Browse the catalog, then apply filters when you need a narrower set.
-      </p>
+      <h1>{ui.nav("products.wirelessNetworkAdapters")}</h1>
+      <p className="catalog-lead">{ui.message("browseCatalogLead")}</p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <CatalogFilterGroup>
@@ -215,7 +217,7 @@ export function WirelessNetworkAdapterListPage() {
             />
             <CatalogIdSelectField
               id="wireless-manufacturer"
-              label="Manufacturer"
+              label={ui.label("manufacturer")}
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
@@ -227,7 +229,7 @@ export function WirelessNetworkAdapterListPage() {
             />
             <CatalogEnumField
               id="wireless-wifi"
-              label="Wi-Fi"
+              label={ui.label("wifi")}
               value={draft.wifiStandard}
               options={WIFI_STANDARDS}
               formatOption={formatWifiStandard}
@@ -237,16 +239,17 @@ export function WirelessNetworkAdapterListPage() {
             />
             <CatalogEnumField
               id="wireless-interface"
-              label="Host interface"
+              label={ui.label("hostInterface")}
               value={draft.hostInterface}
               options={WIRELESS_HOST_INTERFACES}
+              formatOption={enumText.wifiInterface}
               onChange={(hostInterface) =>
                 setDraft((current) => ({ ...current, hostInterface }))
               }
             />
             <CatalogEnumField
               id="wireless-bluetooth"
-              label="Bluetooth"
+              label={ui.label("bluetooth")}
               value={draft.bluetoothVersion}
               options={BLUETOOTH_VERSIONS}
               formatOption={formatBluetoothVersion}
@@ -256,8 +259,8 @@ export function WirelessNetworkAdapterListPage() {
             />
             <CatalogRangeField
               id="wireless-speed"
-              label="Max speed (Mbps)"
-              maxAriaLabel="Max speed max"
+              label={ui.label("maxSpeedMbps")}
+              maxAriaLabel={ui.label("maxSpeedMax")}
               range={draft.maxSpeedMbps}
               onChange={(maxSpeedMbps) =>
                 setDraft((current) => ({ ...current, maxSpeedMbps }))
@@ -265,8 +268,8 @@ export function WirelessNetworkAdapterListPage() {
             />
             <CatalogRangeField
               id="wireless-speed-5g"
-              label="5 GHz max speed (Mbps)"
-              maxAriaLabel="5 GHz max speed max"
+              label={ui.label("maxSpeed5GhzMbps")}
+              maxAriaLabel={ui.label("maxSpeed5Ghz")}
               range={draft.maxSpeedMbps5G}
               onChange={(maxSpeedMbps5G) =>
                 setDraft((current) => ({ ...current, maxSpeedMbps5G }))
@@ -274,8 +277,8 @@ export function WirelessNetworkAdapterListPage() {
             />
             <CatalogRangeField
               id="wireless-speed-6g"
-              label="6 GHz max speed (Mbps)"
-              maxAriaLabel="6 GHz max speed max"
+              label={ui.label("maxSpeed6GhzMbps")}
+              maxAriaLabel={ui.label("maxSpeed6Ghz")}
               range={draft.maxSpeedMbps6G}
               onChange={(maxSpeedMbps6G) =>
                 setDraft((current) => ({ ...current, maxSpeedMbps6G }))
@@ -283,23 +286,25 @@ export function WirelessNetworkAdapterListPage() {
             />
             <CatalogEnumField
               id="wireless-pcie-slot"
-              label="PCIe slot"
+              label={ui.label("pcieSlot")}
               value={draft.pcieSlotType}
               options={PCIE_SLOT_TYPES}
+              formatOption={enumText.pcieSlotType}
               onChange={(pcieSlotType) =>
                 setDraft((current) => ({ ...current, pcieSlotType }))
               }
             />
             <CatalogEnumField
               id="wireless-m2-key"
-              label="M.2 key"
+              label={ui.label("m2Key")}
               value={draft.key}
               options={M2_KEYS}
+              formatOption={enumText.m2Key}
               onChange={(key) => setDraft((current) => ({ ...current, key }))}
             />
             <CatalogEnumField
               id="wireless-m2-form"
-              label="M.2 form factor"
+              label={ui.label("m2FormFactor")}
               value={draft.m2FormFactor}
               options={M2_FORM_FACTORS}
               formatOption={formatM2FormFactor}
@@ -309,18 +314,20 @@ export function WirelessNetworkAdapterListPage() {
             />
             <CatalogEnumField
               id="wireless-usb-version"
-              label="USB version"
+              label={ui.label("usbVersion")}
               value={draft.usbVersion}
               options={USB_VERSIONS}
+              formatOption={enumText.usbVersion}
               onChange={(usbVersion) =>
                 setDraft((current) => ({ ...current, usbVersion }))
               }
             />
             <CatalogEnumField
               id="wireless-usb-type"
-              label="USB type"
+              label={ui.label("usbType")}
               value={draft.usbType}
               options={USB_TYPES}
+              formatOption={enumText.usbType}
               onChange={(usbType) =>
                 setDraft((current) => ({ ...current, usbType }))
               }
@@ -335,11 +342,11 @@ export function WirelessNetworkAdapterListPage() {
             error={query.error}
             items={items}
             filtering={filtering}
-            loadingMessage="Loading wireless network adapters…"
-            emptyFilteredMessage="No wireless network adapters match these filters."
-            emptyMessage="No wireless network adapters in the catalog yet."
+            loadingMessage={ui.empty("loading", { entity: ui.entity("wirelessNetworkAdapters") })}
+            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("wirelessNetworkAdapters") })}
+            emptyMessage={ui.empty("noneInCatalog", { entity: ui.entity("wirelessNetworkAdapters") })}
             isAdmin={isAdmin}
-            newItemLabel="New Wireless Network Adapter"
+            newItemLabel={ui.action("newWirelessNetworkAdapter")}
             onNewItem={() => setCreating(true)}
             columns={columns}
             rowSelection={rowSelection}
@@ -357,7 +364,7 @@ export function WirelessNetworkAdapterListPage() {
       </div>
       {creating ? (
         <CatalogCreateDialog
-          title="New wireless network adapter"
+          title={ui.dialog("newWirelessNetworkAdapter")}
           item={emptyAdapter}
           fields={WirelessNetworkAdapterFields(manufacturers)}
           queryKey={wirelessNetworkAdapterKeys.all}
@@ -368,7 +375,7 @@ export function WirelessNetworkAdapterListPage() {
       ) : null}
       {editRows ? (
         <BulkEditDialog
-          title="Edit Wireless Network Adapters"
+          title={ui.dialog("editWirelessNetworkAdapters")}
           rows={editRows}
           columns={WirelessNetworkAdapterEditColumns(manufacturers)}
           onClose={() => setEditRows(null)}

@@ -39,6 +39,7 @@ import {
 import { MasterDataResults } from "@/components/master-data/MasterDataResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
+import { ui } from "@/i18n/translate-enum";
 import {
   BulkEditDialog,
   type BulkEditColumn,
@@ -46,23 +47,25 @@ import {
 
 const EMPTY_ITEMS: GpuOption[] = [];
 const columnHelper = createColumnHelper<typeof dataTableFeatures, GpuOption>();
-const columns = columnHelper.columns([
+function listColumns() {
+  return columnHelper.columns([
   createSelectionColumn(columnHelper),
   columnHelper.accessor("name", {
-    header: "Name",
+    header: ui.header("name"),
     cell: (info) => (
       <Link to={gpuEditPath(info.row.original.id)}>{info.getValue()}</Link>
     ),
   }),
   columnHelper.accessor("manufacturerName", {
-    header: "Manufacturer",
+    header: ui.header("manufacturer"),
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("gpuSeriesName", {
-    header: "Series",
+    header: ui.header("series"),
     cell: (info) => info.getValue(),
   }),
 ]);
+}
 
 function gpuEditColumns(
   manufacturers: { id: string; name: string }[],
@@ -70,8 +73,8 @@ function gpuEditColumns(
 ): BulkEditColumn<GpuOption>[] {
   return [
     nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    idSelectBulkColumn("Series", "gpuSeriesId", series),
+    idSelectBulkColumn(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    idSelectBulkColumn(ui.label("series"), "gpuSeriesId", series),
   ];
 }
 
@@ -100,6 +103,7 @@ export function GpuListPage() {
   const [applied, setApplied] = useState<GpuFilter>(emptyGpuFilter);
   const filtering = isGpuFilterActive(applied);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const columns = useMemo(() => listColumns(), []);
   const [editRows, setEditRows] = useState<GpuOption[] | null>(null);
   const manufacturers = useIdNameChoices(
     items,
@@ -117,8 +121,8 @@ export function GpuListPage() {
     rowSelection,
     setRowSelection,
     queryKey: masterDataKeys.gpus,
-    singular: "GPU",
-    plural: "GPUs",
+    singular: ui.label("nGpu"),
+    plural: ui.label("nGpus"),
     deleteByIds: (ids) => deleteGpus({ ids }),
   });
   const excelImport = useExcelImport({
@@ -140,10 +144,8 @@ export function GpuListPage() {
 
   return (
     <section className="catalog-page">
-      <h1>GPUs</h1>
-      <p className="catalog-lead">
-        Browse the master data, then apply filters when you need a narrower set.
-      </p>
+      <h1>{ui.nav("master.gpus")}</h1>
+      <p className="catalog-lead">{ui.message("browseMasterDataLead")}</p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <FieldGroup className="catalog-filter-grid">
@@ -154,7 +156,7 @@ export function GpuListPage() {
               onChange={(name) => setDraft({ ...draft, name })}
             />
             <Field>
-              <FieldLabel htmlFor="gpu-manufacturer">Manufacturer</FieldLabel>
+              <FieldLabel htmlFor="gpu-manufacturer">{ui.label("manufacturer")}</FieldLabel>
               <select
                 id="gpu-manufacturer"
                 name="manufacturerId"
@@ -164,7 +166,7 @@ export function GpuListPage() {
                   setDraft({ ...draft, manufacturerId: event.target.value })
                 }
               >
-                <option value="">Any</option>
+                <option value="">{ui.label("any")}</option>
                 {manufacturers.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.name}
@@ -173,7 +175,7 @@ export function GpuListPage() {
               </select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="gpu-series">Series</FieldLabel>
+              <FieldLabel htmlFor="gpu-series">{ui.label("series")}</FieldLabel>
               <select
                 id="gpu-series"
                 name="gpuSeriesId"
@@ -183,7 +185,7 @@ export function GpuListPage() {
                   setDraft({ ...draft, gpuSeriesId: event.target.value })
                 }
               >
-                <option value="">Any</option>
+                <option value="">{ui.label("any")}</option>
                 {series.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.name}
@@ -201,9 +203,9 @@ export function GpuListPage() {
             error={query.error}
             items={visibleItems}
             filtering={filtering}
-            loadingMessage="Loading GPUs…"
-            emptyFilteredMessage="No GPUs match these filters."
-            emptyMessage="No GPUs found."
+            loadingMessage={ui.empty("loading", { entity: ui.entity("gpus") })}
+            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("gpus") })}
+            emptyMessage={ui.empty("noneFound", { entity: ui.entity("gpus") })}
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
@@ -213,13 +215,13 @@ export function GpuListPage() {
             onEditSelected={startEditing}
             onImport={excelImport.openImport}
             newItemTo={gpuEditPath(newMasterDataEditValue)}
-            newItemLabel="New GPU"
+            newItemLabel={ui.action("newGpu")}
             keepTableWhenEmpty
           />
         </div>
         {editRows ? (
           <BulkEditDialog
-            title="Edit GPUs"
+            title={ui.dialog("editGpus")}
             rows={editRows}
             columns={gpuEditColumns(manufacturers, series)}
             onClose={() => setEditRows(null)}

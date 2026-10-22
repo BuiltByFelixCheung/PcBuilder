@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FieldGroup } from "@/components/ui/field";
+import { ui } from "@/i18n/translate-enum";
 
 type SettledQuery<T> = {
   isPending: boolean;
@@ -34,9 +35,7 @@ export function MasterDataMissing({
         <DialogDescription>{description}</DialogDescription>
       </DialogHeader>
       <DialogFooter>
-        <Button type="button" variant="outline" onClick={onClose}>
-          Close
-        </Button>
+        <Button type="button" variant="outline" onClick={onClose}>{ui.action("close")}</Button>
       </DialogFooter>
     </>
   );
@@ -79,9 +78,7 @@ export function MasterDataOptions<T extends readonly unknown[]>({
           {parseApiError(failed.error).message}
         </p>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Close
-          </Button>
+          <Button type="button" variant="outline" onClick={onClose}>{ui.action("close")}</Button>
         </DialogFooter>
       </>
     );
@@ -113,7 +110,7 @@ export function MasterDataFormShell({
   onSubmit,
   onClose,
   children,
-  cancelLabel = "Cancel",
+  cancelLabel = ui.action("cancel"),
   cancelDisabled = false,
   submitLabel,
   submitDisabled = false,
@@ -144,7 +141,7 @@ export function MasterDataFormShell({
             onClick={onDelete}
             disabled={deleteDisabled}
           >
-            {deleting ? "Deleting…" : "Delete"}
+            {deleting ? ui.action("deleting") : ui.action("delete")}
           </Button>
         ) : null}
         <Button

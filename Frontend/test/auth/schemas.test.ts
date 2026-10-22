@@ -10,14 +10,14 @@ import {
 describe("auth schemas", () => {
   it("accepts valid login values and rejects blanks", () => {
     expect(
-      loginSchema.safeParse({ email: " ann@example.com ", password: "secret" })
+      loginSchema().safeParse({ email: " ann@example.com ", password: "secret" })
         .success,
     ).toBe(true);
-    expect(loginSchema.safeParse({ email: "", password: "" }).success).toBe(
+    expect(loginSchema().safeParse({ email: "", password: "" }).success).toBe(
       false,
     );
     expect(
-      loginSchema.safeParse({ email: "nope", password: "x" }).success,
+      loginSchema().safeParse({ email: "nope", password: "x" }).success,
     ).toBe(false);
   });
 
@@ -28,33 +28,33 @@ describe("auth schemas", () => {
       password: "Password1!",
       confirmPassword: "Password1!",
     };
-    expect(registerSchema.safeParse(valid).success).toBe(true);
+    expect(registerSchema().safeParse(valid).success).toBe(true);
     expect(
-      registerSchema.safeParse({
+      registerSchema().safeParse({
         ...valid,
         password: "short",
         confirmPassword: "short",
       }).success,
     ).toBe(false);
     expect(
-      registerSchema.safeParse({ ...valid, confirmPassword: "Password2!" })
+      registerSchema().safeParse({ ...valid, confirmPassword: "Password2!" })
         .success,
     ).toBe(false);
   });
 
   it("validates forgot and reset password payloads", () => {
     expect(
-      forgotPasswordSchema.safeParse({ email: "ann@example.com" }).success,
+      forgotPasswordSchema().safeParse({ email: "ann@example.com" }).success,
     ).toBe(true);
-    expect(forgotPasswordSchema.safeParse({ email: "" }).success).toBe(false);
+    expect(forgotPasswordSchema().safeParse({ email: "" }).success).toBe(false);
     expect(
-      resetPasswordSchema.safeParse({
+      resetPasswordSchema().safeParse({
         password: "Password1!",
         confirmPassword: "Password1!",
       }).success,
     ).toBe(true);
     expect(
-      resetPasswordSchema.safeParse({
+      resetPasswordSchema().safeParse({
         password: "Password1!",
         confirmPassword: "other",
       }).success,
@@ -67,16 +67,16 @@ describe("auth schemas", () => {
       newPassword: "Password1!",
       confirmNewPassword: "Password1!",
     };
-    expect(changePasswordSchema.safeParse(valid).success).toBe(true);
+    expect(changePasswordSchema().safeParse(valid).success).toBe(true);
     expect(
-      changePasswordSchema.safeParse({
+      changePasswordSchema().safeParse({
         ...valid,
         newPassword: "short",
         confirmNewPassword: "short",
       }).success,
     ).toBe(false);
     expect(
-      changePasswordSchema.safeParse({
+      changePasswordSchema().safeParse({
         ...valid,
         confirmNewPassword: "Password2!",
       }).success,

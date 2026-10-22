@@ -12,8 +12,9 @@ import { FormTextField } from "@/components/FormTextField.tsx";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { applyApiFieldErrors } from "../../lib/rhf-api-errors.ts";
+import { ui } from "@/i18n/translate-enum";
 
-const PAGE_TITLE = "Change Password";
+const PAGE_TITLE = () => ui.action("changePassword");
 
 export function ChangePasswordPage() {
   const { changePassword, logout } = useAuth();
@@ -21,7 +22,7 @@ export function ChangePasswordPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const form = useForm<ChangePasswordValues>({
-    resolver: zodResolver(changePasswordSchema),
+    resolver: zodResolver(changePasswordSchema()),
     defaultValues: {
       currentPassword: "",
       newPassword: "",
@@ -91,20 +92,20 @@ export function ChangePasswordPage() {
         aria-labelledby="change-success-title"
       >
         <div className="auth-dialog-card">
-          <h2 id="change-success-title">Password changed</h2>
-          <p>Your password has been updated. You have to sign in again.</p>
+          <h2 id="change-success-title">{ui.message("passwordChanged")}</h2>
+          <p>{ui.message("passwordUpdatedSignInAgain")}</p>
           <button
             type="button"
             className="auth-submit"
             onClick={() => void handleLogout()}
           >
-            Close
+            {ui.action("close")}
           </button>
         </div>
       </dialog>
       <form className="auth-card" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <h1>{PAGE_TITLE}</h1>
-        <p className="auth-lead">Choose a new password for your account.</p>
+        <h1>{PAGE_TITLE()}</h1>
+        <p className="auth-lead">{ui.message("chooseNewPassword")}</p>
         {errors.root?.message ? (
           <p className="form-error" role="alert">
             {errors.root.message}
@@ -113,7 +114,7 @@ export function ChangePasswordPage() {
         <FieldGroup>
           <FormTextField
             id="currentPassword"
-            label="Current Password"
+            label={ui.label("currentPassword")}
             type="password"
             autoComplete="current-password"
             required
@@ -122,17 +123,17 @@ export function ChangePasswordPage() {
           />
           <FormTextField
             id="newPassword"
-            label="New Password"
+            label={ui.label("newPassword")}
             type="password"
             autoComplete="new-password"
             required
-            hint="At least 10 characters, with upper and lower case, a number, and a symbol."
+            hint={ui.message("passwordHint")}
             error={errors.newPassword}
             registration={register("newPassword")}
           />
           <FormTextField
             id="confirmNewPassword"
-            label="Confirm New Password"
+            label={ui.label("confirmNewPassword")}
             type="password"
             autoComplete="new-password"
             required
@@ -146,7 +147,7 @@ export function ChangePasswordPage() {
           className="mt-6 h-10 w-full"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Changing Password…" : PAGE_TITLE}
+          {isSubmitting ? ui.label("changingPassword") : PAGE_TITLE()}
         </Button>
       </form>
     </section>

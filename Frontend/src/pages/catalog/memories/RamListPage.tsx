@@ -27,6 +27,7 @@ import {
   emptyMemoryFilter,
 } from "@/api/catalog/params/memory-list-params";
 import { toInteger } from "@/api/helper";
+import {enumText, ui} from "@/i18n/translate-enum";
 import {
   DDR4_MODULE_SIZE_GB,
   DDR5_MODULE_SIZE_GB,
@@ -108,25 +109,34 @@ export function RamListPage() {
           isAdmin,
           (id) => `/catalog/memories/${id}`,
         ),
-        columnHelper.accessor("ddrGeneration", { header: "DDR Generation" }),
-        columnHelper.accessor("ramFormFactor", { header: "RAM Form Factor" }),
-        columnHelper.accessor("ramRank", { header: "RAM Rank" }),
+        columnHelper.accessor("ddrGeneration", {
+          header: ui.header("ddrGeneration"),
+          cell: (info) => enumText.ddrGeneration(info.getValue()),
+        }),
+        columnHelper.accessor("ramFormFactor", {
+          header: ui.header("ramFormFactor"),
+          cell: (info) => enumText.ramFormFactor(info.getValue()),
+        }),
+        columnHelper.accessor("ramRank", {
+          header: ui.header("ramRank"),
+          cell: (info) => enumText.ramRank(info.getValue()),
+        }),
         columnHelper.accessor("memorySizePerStickGb", {
-          header: "Module Size",
-          cell: (info) => `${info.getValue()} GB`,
+          header: ui.header("moduleSize"),
+          cell: (info) => `${info.getValue()} ${ui.unit("gb")}`,
         }),
         columnHelper.accessor("totalMemorySizeGb", {
-          header: "Kit Size",
-          cell: (info) => `${info.getValue()} GB`,
+          header: ui.header("kitSize"),
+          cell: (info) => `${info.getValue()} ${ui.unit("gb")}`,
         }),
         columnHelper.accessor("maxMemorySpeedMts", {
-          header: "Speed",
-          cell: (info) => `${info.getValue()} MT/s`,
+          header: ui.header("speed"),
+          cell: (info) => `${info.getValue()} ${ui.unit("mtS")}`,
         }),
-        columnHelper.accessor("modulesCount", { header: "Modules Count" }),
+        columnHelper.accessor("modulesCount", { header: ui.header("modulesCount") }),
         columnHelper.accessor("heightMm", {
-          header: "Height",
-          cell: (info) => `${info.getValue()} mm`,
+          header: ui.header("height"),
+          cell: (info) => `${info.getValue()} ${ui.unit("mm")}`,
         }),
       ]),
     [isAdmin],
@@ -137,8 +147,8 @@ export function RamListPage() {
     rowSelection,
     setRowSelection,
     queryKey: memoryKeys.all,
-    singular: "RAM module",
-    plural: "RAM modules",
+    singular: ui.label("nRamModule"),
+    plural: ui.label("nRamModules"),
     deleteByIds: (ids) => deleteMemories({ ids }),
   });
   const excelImport = useExcelImport({
@@ -232,10 +242,8 @@ export function RamListPage() {
 
   return (
     <section className="catalog-page">
-      <h1>Memory</h1>
-      <p className="catalog-lead">
-        Browse the catalog, then apply filters when you need a narrower set.
-      </p>
+      <h1>{ui.page("memory")}</h1>
+      <p className="catalog-lead">{ui.message("browseCatalogLead")}</p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <CatalogFilterGroup>
@@ -249,9 +257,7 @@ export function RamListPage() {
               onChange={(name) => setDraft((current) => ({ ...current, name }))}
             />
             <Field>
-              <FieldLabel htmlFor="memory-manufacturer">
-                Manufacturer
-              </FieldLabel>
+              <FieldLabel htmlFor="memory-manufacturer">{ui.label("manufacturer")}</FieldLabel>
               <select
                 id="memory-manufacturer"
                 className={selectClassName}
@@ -263,7 +269,7 @@ export function RamListPage() {
                   }))
                 }
               >
-                <option value="">All</option>
+                <option value="">{ui.label("all")}</option>
                 {manufacturerOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -272,9 +278,7 @@ export function RamListPage() {
               </select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="memory-ddr-generation">
-                DDR Generation
-              </FieldLabel>
+              <FieldLabel htmlFor="memory-ddr-generation">{ui.label("ddrGeneration")}</FieldLabel>
               <select
                 id="memory-ddr-generation"
                 className={selectClassName}
@@ -286,18 +290,16 @@ export function RamListPage() {
                   }))
                 }
               >
-                <option value="">All</option>
+                <option value="">{ui.label("all")}</option>
                 {DDR_GENERATIONS.map((generation) => (
                   <option key={generation} value={generation}>
-                    {generation}
+                    {enumText.ddrGeneration(generation)}
                   </option>
                 ))}
               </select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="memory-ram-form-factor">
-                RAM Form Factor
-              </FieldLabel>
+              <FieldLabel htmlFor="memory-ram-form-factor">{ui.label("ramFormFactor")}</FieldLabel>
               <select
                 id="memory-ram-form-factor"
                 className={selectClassName}
@@ -309,16 +311,16 @@ export function RamListPage() {
                   }))
                 }
               >
-                <option value="">All</option>
+                <option value="">{ui.label("all")}</option>
                 {RAM_FORM_FACTORS.map((factor) => (
                   <option key={factor} value={factor}>
-                    {factor}
+                    {enumText.ramFormFactor(factor)}
                   </option>
                 ))}
               </select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="memory-ram-rank">RAM Rank</FieldLabel>
+              <FieldLabel htmlFor="memory-ram-rank">{ui.label("ramRank")}</FieldLabel>
               <select
                 id="memory-ram-rank"
                 className={selectClassName}
@@ -330,16 +332,16 @@ export function RamListPage() {
                   }))
                 }
               >
-                <option value="">All</option>
+                <option value="">{ui.label("all")}</option>
                 {RAM_RANKS.map((rank) => (
                   <option key={rank} value={rank}>
-                    {rank}
+                    {enumText.ramRank(rank)}
                   </option>
                 ))}
               </select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="memory-module-size">Module Size</FieldLabel>
+              <FieldLabel htmlFor="memory-module-size">{ui.label("moduleSize")}</FieldLabel>
               <select
                 id="memory-module-size"
                 className={selectClassName}
@@ -352,16 +354,16 @@ export function RamListPage() {
                   }))
                 }
               >
-                <option value="">All</option>
+                <option value="">{ui.label("all")}</option>
                 {moduleSizeOptions.map((size) => (
                   <option key={size} value={size}>
-                    {size} GB
+                    {size} {ui.unit("gb")}
                   </option>
                 ))}
               </select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="memory-kit-size">Kit Size</FieldLabel>
+              <FieldLabel htmlFor="memory-kit-size">{ui.label("kitSize")}</FieldLabel>
               <select
                 id="memory-kit-size"
                 className={selectClassName}
@@ -374,16 +376,16 @@ export function RamListPage() {
                   }))
                 }
               >
-                <option value="">All</option>
+                <option value="">{ui.label("all")}</option>
                 {kitSizeOptions.map((size) => (
                   <option key={size} value={size}>
-                    {size} GB
+                    {size} {ui.unit("gb")}
                   </option>
                 ))}
               </select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="memory-speed">Speed</FieldLabel>
+              <FieldLabel htmlFor="memory-speed">{ui.label("speed")}</FieldLabel>
               <select
                 id="memory-speed"
                 className={selectClassName}
@@ -396,18 +398,16 @@ export function RamListPage() {
                   }))
                 }
               >
-                <option value="">All</option>
+                <option value="">{ui.label("all")}</option>
                 {speedOptions.map((speed) => (
                   <option key={speed} value={speed}>
-                    {speed} MT/s
+                    {speed} {ui.unit("mtS")}
                   </option>
                 ))}
               </select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="memory-modules-count">
-                Modules Count
-              </FieldLabel>
+              <FieldLabel htmlFor="memory-modules-count">{ui.label("modulesCountLong")}</FieldLabel>
               <select
                 id="memory-modules-count"
                 className={selectClassName}
@@ -419,7 +419,7 @@ export function RamListPage() {
                   }))
                 }
               >
-                <option value="">All</option>
+                <option value="">{ui.label("all")}</option>
                 {MODULES_COUNT.map((count) => (
                   <option key={count} value={count}>
                     {count}
@@ -428,12 +428,12 @@ export function RamListPage() {
               </select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="memory-height-min">Height</FieldLabel>
+              <FieldLabel htmlFor="memory-height-min">{ui.label("height")}</FieldLabel>
               <div className="flex gap-2">
                 <DecimalInput
                   id="memory-height-min"
-                  label="Height min"
-                  placeholder="Min"
+                  label={ui.label("heightMin")}
+                  placeholder={ui.label("min")}
                   value={draft.heightMm?.min}
                   onValue={(min) =>
                     setDraft((current) => ({
@@ -447,8 +447,8 @@ export function RamListPage() {
                 />
                 <DecimalInput
                   id="memory-height-max"
-                  label="Height max"
-                  placeholder="Max"
+                  label={ui.label("heightMax")}
+                  placeholder={ui.label("max")}
                   value={draft.heightMm?.max}
                   onValue={(max) =>
                     setDraft((current) => ({
@@ -473,11 +473,11 @@ export function RamListPage() {
             error={query.error}
             items={items}
             filtering={filtering}
-            loadingMessage="Loading memories…"
-            emptyFilteredMessage="No memories match these filters."
-            emptyMessage="No memories in the catalog yet."
+            loadingMessage={ui.empty("loading", { entity: ui.entity("memories") })}
+            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("memories") })}
+            emptyMessage={ui.empty("noneInCatalog", { entity: ui.entity("memories") })}
             isAdmin={isAdmin}
-            newItemLabel="New Memory"
+            newItemLabel={ui.action("newMemory")}
             onNewItem={() => setCreating(true)}
             columns={columns}
             rowSelection={rowSelection}
@@ -495,7 +495,7 @@ export function RamListPage() {
       </div>
       {creating ? (
         <CatalogCreateDialog
-          title="New memory"
+          title={ui.dialog("newMemory")}
           item={emptyMemory}
           fields={MemoryFields(manufacturers, true)}
           queryKey={memoryKeys.all}
@@ -506,7 +506,7 @@ export function RamListPage() {
       ) : null}
       {editRows ? (
         <BulkEditDialog
-          title="Edit Memories"
+          title={ui.dialog("editMemories")}
           rows={editRows}
           columns={MemoryEditColumns(manufacturers)}
           onClose={() => setEditRows(null)}

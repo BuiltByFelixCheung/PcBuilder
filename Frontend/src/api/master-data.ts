@@ -1,3 +1,4 @@
+import { ui } from "@/i18n/translate-enum";
 import { api } from "./client";
 import { excelFormData } from "./excel-file";
 import type { BulkDeleteWrite } from "./types";
@@ -82,11 +83,27 @@ export type Manufacturer = NamedMasterData & {
   productTypes?: ManufacturerProductType[];
 };
 
+const PRODUCT_TYPE_LABELS: Record<string, () => string> = {
+  Chassis: () => ui.nav("products.chassis"),
+  ChassisFan: () => ui.nav("products.chassisFans"),
+  Chipset: () => ui.nav("master.chipsets"),
+  Cpu: () => ui.nav("products.cpus"),
+  CpuCooler: () => ui.nav("products.cpuCoolers"),
+  CpuSeries: () => ui.nav("master.cpuSeries"),
+  Gpu: () => ui.nav("master.gpus"),
+  GpuSeries: () => ui.nav("master.gpuSeries"),
+  GraphicsCard: () => ui.nav("products.graphicsCards"),
+  Motherboard: () => ui.nav("products.motherboards"),
+  Psu: () => ui.nav("products.psus"),
+  Ram: () => ui.nav("products.ram"),
+  Socket: () => ui.nav("master.sockets"),
+  StorageDrive: () => ui.nav("products.storage"),
+  WiredNetworkAdapter: () => ui.nav("products.wiredNetworkAdapters"),
+  WirelessNetworkAdapter: () => ui.nav("products.wirelessNetworkAdapters"),
+};
+
 export function manufacturerProductTypeLabel(value: string) {
-  return (
-    MANUFACTURER_PRODUCT_TYPES.find((type) => type.value === value)?.label ??
-    value
-  );
+  return PRODUCT_TYPE_LABELS[value]?.() ?? value;
 }
 
 export const masterDataKeys = {

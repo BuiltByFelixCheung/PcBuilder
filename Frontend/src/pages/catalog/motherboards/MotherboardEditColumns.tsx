@@ -22,6 +22,7 @@ import {
   MB_FORM_FACTORS,
   RAM_FORM_FACTORS,
 } from "@/api/enums";
+import { enumText, ui } from "@/i18n/translate-enum";
 
 export function MotherboardEditColumns(
   manufacturers: { id: string; name: string }[],
@@ -46,25 +47,35 @@ export function MotherboardEditColumns(
 
   return [
     nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    idSelectBulkColumn("Socket", "socketId", sockets),
-    idSelectBulkColumn("Chipset", "chipsetId", chipsets),
-    counted("RAM slots", "ramSlots"),
-    counted("Max memory (GB)", "maxMemoryGb"),
-    counted("Max memory per slot (GB)", "maxDimmSizeGb"),
-    counted("SATA ports", "sataPorts"),
-    counted("PWM fan headers", "pwmFanHeaders"),
-    counted("DC fan headers", "dcFanHeaders"),
-    counted("EPS connectors", "epsConnectors"),
-    optionalNumberColumn("Width (mm)", "widthMm"),
-    optionalNumberColumn("Height (mm)", "heightMm"),
-    enumSelectBulkColumn("DDR Generation", "ddrGeneration", DDR_GENERATIONS, {
-      label: (generation) => generation.replace("Ddr", "DDR"),
+    idSelectBulkColumn(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    idSelectBulkColumn(ui.label("socket"), "socketId", sockets),
+    idSelectBulkColumn(ui.label("chipset"), "chipsetId", chipsets),
+    counted(ui.label("ramSlots"), "ramSlots"),
+    counted(ui.label("maxMemoryGb"), "maxMemoryGb"),
+    counted(ui.label("maxMemoryPerSlotGb"), "maxDimmSizeGb"),
+    counted(ui.label("sataPorts"), "sataPorts"),
+    counted(ui.label("pwmFanHeaders"), "pwmFanHeaders"),
+    counted(ui.label("dcFanHeaders"), "dcFanHeaders"),
+    counted(ui.label("epsConnectors"), "epsConnectors"),
+    optionalNumberColumn(ui.label("widthMm"), "widthMm"),
+    optionalNumberColumn(ui.label("heightMm"), "heightMm"),
+    enumSelectBulkColumn(
+      ui.label("ddrGeneration"),
+      "ddrGeneration",
+      DDR_GENERATIONS,
+      { label: enumText.ddrGeneration },
+    ),
+    enumSelectBulkColumn(
+      ui.label("ramFormFactor"),
+      "ramFormFactor",
+      RAM_FORM_FACTORS,
+      { label: enumText.ramFormFactor },
+    ),
+    enumSelectBulkColumn(ui.label("formFactor"), "formFactor", MB_FORM_FACTORS, {
+      label: enumText.mbFormFactor,
     }),
-    enumSelectBulkColumn("RAM form factor", "ramFormFactor", RAM_FORM_FACTORS),
-    enumSelectBulkColumn("Form factor", "formFactor", MB_FORM_FACTORS),
-    switchBulkColumn("Wi-Fi Enabled?", "wifiEnabled", "Yes", "No"),
-    switchBulkColumn("Bluetooth Enabled?", "bluetoothEnabled", "Yes", "No"),
+    switchBulkColumn(ui.label("wifiEnabled"), "wifiEnabled", ui.label("yes"), ui.label("no")),
+    switchBulkColumn(ui.label("bluetoothEnabled"), "bluetoothEnabled", ui.label("yes"), ui.label("no")),
   ];
 }
 
@@ -91,24 +102,34 @@ export function MotherboardFields(
 
   return [
     nameField(),
-    idSelectField("Manufacturer", "manufacturerId", manufacturers),
-    idSelectField("Socket", "socketId", sockets),
-    idSelectField("Chipset", "chipsetId", chipsets),
-    counted("RAM slots", "ramSlots"),
-    counted("Max memory (GB)", "maxMemoryGb"),
-    counted("Max memory per slot (GB)", "maxDimmSizeGb"),
-    counted("SATA ports", "sataPorts"),
-    counted("PWM fan headers", "pwmFanHeaders"),
-    counted("DC fan headers", "dcFanHeaders"),
-    counted("EPS connectors", "epsConnectors"),
-    optionalNumberField("Width (mm)", "widthMm"),
-    optionalNumberField("Height (mm)", "heightMm"),
-    enumSelectField("DDR Generation", "ddrGeneration", DDR_GENERATIONS, {
-      label: (generation) => generation.replace("Ddr", "DDR"),
+    idSelectField(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    idSelectField(ui.label("socket"), "socketId", sockets),
+    idSelectField(ui.label("chipset"), "chipsetId", chipsets),
+    counted(ui.label("ramSlots"), "ramSlots"),
+    counted(ui.label("maxMemoryGb"), "maxMemoryGb"),
+    counted(ui.label("maxMemoryPerSlotGb"), "maxDimmSizeGb"),
+    counted(ui.label("sataPorts"), "sataPorts"),
+    counted(ui.label("pwmFanHeaders"), "pwmFanHeaders"),
+    counted(ui.label("dcFanHeaders"), "dcFanHeaders"),
+    counted(ui.label("epsConnectors"), "epsConnectors"),
+    optionalNumberField(ui.label("widthMm"), "widthMm"),
+    optionalNumberField(ui.label("heightMm"), "heightMm"),
+    enumSelectField(
+      ui.label("ddrGeneration"),
+      "ddrGeneration",
+      DDR_GENERATIONS,
+      { label: enumText.ddrGeneration },
+    ),
+    enumSelectField(
+      ui.label("ramFormFactor"),
+      "ramFormFactor",
+      RAM_FORM_FACTORS,
+      { label: enumText.ramFormFactor },
+    ),
+    enumSelectField(ui.label("formFactor"), "formFactor", MB_FORM_FACTORS, {
+      label: enumText.mbFormFactor,
     }),
-    enumSelectField("RAM form factor", "ramFormFactor", RAM_FORM_FACTORS),
-    enumSelectField("Form factor", "formFactor", MB_FORM_FACTORS),
-    checkboxField("Wi-Fi Enabled?", "wifiEnabled"),
-    checkboxField("Bluetooth Enabled?", "bluetoothEnabled"),
+    checkboxField(ui.label("wifi"), "wifiEnabled"),
+    checkboxField(ui.label("bluetooth"), "bluetoothEnabled"),
   ];
 }

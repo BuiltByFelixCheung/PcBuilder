@@ -11,12 +11,13 @@ import {
   applyApiFieldErrors,
   applyApiFormError,
 } from "../../lib/rhf-api-errors.ts";
+import { ui } from "@/i18n/translate-enum";
 
 export function RegisterPage() {
   const { register: registerAccount } = useAuth();
   const navigate = useNavigate();
   const form = useForm<RegisterValues>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(registerSchema()),
     defaultValues: {
       userName: "",
       email: "",
@@ -54,9 +55,9 @@ export function RegisterPage() {
   return (
     <section className="auth-page">
       <form className="auth-card" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <h1 style={{ textAlign: "center" }}>Create account</h1>
+        <h1 style={{ textAlign: "center" }}>{ui.page("createAccount")}</h1>
         <p className="auth-lead">
-          Register as a Member to save your PC builds.
+          {ui.message("registerLead")}
         </p>
         {errors.root?.message ? (
           <p className="form-error" role="alert">
@@ -66,7 +67,7 @@ export function RegisterPage() {
         <FieldGroup>
           <FormTextField
             id="userName"
-            label="Username"
+            label={ui.label("username")}
             autoComplete="username"
             required
             error={errors.userName}
@@ -74,7 +75,7 @@ export function RegisterPage() {
           />
           <FormTextField
             id="email"
-            label="Email"
+            label={ui.label("email")}
             type="email"
             autoComplete="email"
             required
@@ -83,17 +84,17 @@ export function RegisterPage() {
           />
           <FormTextField
             id="password"
-            label="Password"
+            label={ui.label("password")}
             type="password"
             autoComplete="new-password"
             required
-            hint="At least 10 characters, with upper and lower case, a number, and a symbol."
+            hint={ui.message("passwordHint")}
             error={errors.password}
             registration={register("password")}
           />
           <FormTextField
             id="confirmPassword"
-            label="Confirm password"
+            label={ui.label("confirmPassword")}
             type="password"
             autoComplete="new-password"
             required
@@ -107,10 +108,10 @@ export function RegisterPage() {
           className="mt-6 h-10 w-full"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Creating account…" : "Create account"}
+          {isSubmitting ? ui.label("creatingAccount") : ui.page("createAccount")}
         </Button>
         <p className="auth-switch" style={{ textAlign: "center" }}>
-          Already have an account? <Link to="/login">Sign in</Link>
+          {ui.message("alreadyHaveAccount")} <Link to="/login">{ui.action("signIn")}</Link>
         </p>
       </form>
     </section>

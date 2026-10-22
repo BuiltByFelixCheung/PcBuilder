@@ -31,6 +31,7 @@ import {
   USB_VERSIONS,
   WIRED_HOST_INTERFACES,
 } from "@/api/enums";
+import {enumText, ui} from "@/i18n/translate-enum";
 import { CatalogCompatibleCheckbox } from "@/components/catalog/CatalogFilterFields.tsx";
 import { unsetCatalogItem } from "@/components/catalog/catalog-create";
 import { CatalogCreateDialog } from "@/components/catalog/CatalogCreateDialog";
@@ -96,10 +97,13 @@ export function WiredNetworkAdapterListPage() {
           isAdmin,
           (id) => `/catalog/wired-network-adapters/${id}`,
         ),
-        columnHelper.accessor("hostInterface", { header: "Interface" }),
+        columnHelper.accessor("hostInterface", {
+          header: ui.header("interface"),
+          cell: (info) => enumText.ethernetInterface(info.getValue()),
+        }),
         columnHelper.accessor("maxSpeedMbps", {
-          header: "Max speed",
-          cell: (info) => `${info.getValue()} Mbps`,
+          header: ui.header("maxSpeed"),
+          cell: (info) => `${info.getValue()} ${ui.unit("mbps")}`,
         }),
       ]),
     [isAdmin],
@@ -110,8 +114,8 @@ export function WiredNetworkAdapterListPage() {
     rowSelection,
     setRowSelection,
     queryKey: wiredNetworkAdapterKeys.all,
-    singular: "wired network adapter",
-    plural: "wired network adapters",
+    singular: ui.label("nWired"),
+    plural: ui.label("nWireds"),
     deleteByIds: (ids) => deleteWiredNetworkAdapters({ ids }),
   });
   const excelImport = useExcelImport({
@@ -177,10 +181,8 @@ export function WiredNetworkAdapterListPage() {
 
   return (
     <section className="catalog-page">
-      <h1>Wired Network Adapters</h1>
-      <p className="catalog-lead">
-        Browse the catalog, then apply filters when you need a narrower set.
-      </p>
+      <h1>{ui.nav("products.wiredNetworkAdapters")}</h1>
+      <p className="catalog-lead">{ui.message("browseCatalogLead")}</p>
       <div className="catalog-layout">
         <form className="catalog-filters" onSubmit={applyFilters}>
           <CatalogFilterGroup>
@@ -195,7 +197,7 @@ export function WiredNetworkAdapterListPage() {
             />
             <CatalogIdSelectField
               id="wired-manufacturer"
-              label="Manufacturer"
+              label={ui.label("manufacturer")}
               value={draft.manufacturerId}
               options={manufacturers}
               onChange={(value) =>
@@ -207,17 +209,18 @@ export function WiredNetworkAdapterListPage() {
             />
             <CatalogEnumField
               id="wired-interface"
-              label="Host interface"
+              label={ui.label("hostInterface")}
               value={draft.hostInterface}
               options={WIRED_HOST_INTERFACES}
+              formatOption={enumText.ethernetInterface}
               onChange={(hostInterface) =>
                 setDraft((current) => ({ ...current, hostInterface }))
               }
             />
             <CatalogRangeField
               id="wired-speed"
-              label="Max speed (Mbps)"
-              maxAriaLabel="Max speed max"
+              label={ui.label("maxSpeedMbps")}
+              maxAriaLabel={ui.label("maxSpeedMax")}
               range={draft.maxSpeedMbps}
               onChange={(maxSpeedMbps) =>
                 setDraft((current) => ({ ...current, maxSpeedMbps }))
@@ -225,27 +228,30 @@ export function WiredNetworkAdapterListPage() {
             />
             <CatalogEnumField
               id="wired-usb-version"
-              label="USB version"
+              label={ui.label("usbVersion")}
               value={draft.usbVersion}
               options={USB_VERSIONS}
+              formatOption={enumText.usbVersion}
               onChange={(usbVersion) =>
                 setDraft((current) => ({ ...current, usbVersion }))
               }
             />
             <CatalogEnumField
               id="wired-usb-type"
-              label="USB type"
+              label={ui.label("usbType")}
               value={draft.usbType}
               options={USB_TYPES}
+              formatOption={enumText.usbType}
               onChange={(usbType) =>
                 setDraft((current) => ({ ...current, usbType }))
               }
             />
             <CatalogEnumField
               id="wired-pcie-slot"
-              label="PCIe slot"
+              label={ui.label("pcieSlot")}
               value={draft.pcieSlotType}
               options={PCIE_SLOT_TYPES}
+              formatOption={enumText.pcieSlotType}
               onChange={(pcieSlotType) =>
                 setDraft((current) => ({ ...current, pcieSlotType }))
               }
@@ -260,11 +266,11 @@ export function WiredNetworkAdapterListPage() {
             error={query.error}
             items={items}
             filtering={filtering}
-            loadingMessage="Loading wired network adapters…"
-            emptyFilteredMessage="No wired network adapters match these filters."
-            emptyMessage="No wired network adapters in the catalog yet."
+            loadingMessage={ui.empty("loading", { entity: ui.entity("wiredNetworkAdapters") })}
+            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("wiredNetworkAdapters") })}
+            emptyMessage={ui.empty("noneInCatalog", { entity: ui.entity("wiredNetworkAdapters") })}
             isAdmin={isAdmin}
-            newItemLabel="New Wired Network Adapter"
+            newItemLabel={ui.action("newWiredNetworkAdapter")}
             onNewItem={() => setCreating(true)}
             columns={columns}
             rowSelection={rowSelection}
@@ -282,7 +288,7 @@ export function WiredNetworkAdapterListPage() {
       </div>
       {creating ? (
         <CatalogCreateDialog
-          title="New wired network adapter"
+          title={ui.dialog("newWiredNetworkAdapter")}
           item={emptyAdapter}
           fields={WiredNetworkAdapterFields(manufacturers)}
           queryKey={wiredNetworkAdapterKeys.all}
@@ -293,7 +299,7 @@ export function WiredNetworkAdapterListPage() {
       ) : null}
       {editRows ? (
         <BulkEditDialog
-          title="Edit Wired Network Adapters"
+          title={ui.dialog("editWiredNetworkAdapters")}
           rows={editRows}
           columns={WiredNetworkAdapterEditColumns(manufacturers)}
           onClose={() => setEditRows(null)}

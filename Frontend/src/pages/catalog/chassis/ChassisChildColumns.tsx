@@ -26,24 +26,26 @@ import {
 } from "@/api/enums";
 import { type ChildCollectionColumn } from "@/components/catalog/ChildCollectionDialog";
 import { formSelectClassName } from "@/components/filters/ListFilters";
+import {enumText, ui} from "@/i18n/translate-enum";
 
 function formFactorColumns<T extends string>(
-  label: string,
+  label: () => string,
   values: readonly T[],
+  format: (value: T) => string = (value) => value,
 ): ChildCollectionColumn<{ value: T }>[] {
   return [
     {
-      header: "Form factor",
+      header: () => ui.header("formFactor"),
       cell: (row, update) => (
         <select
-          aria-label={label}
+          aria-label={label()}
           className={formSelectClassName}
           value={row.value}
           onChange={(event) => update({ value: event.target.value as T })}
         >
           {values.map((value) => (
             <option key={value} value={value}>
-              {value}
+              {format(value)}
             </option>
           ))}
         </select>
@@ -53,20 +55,22 @@ function formFactorColumns<T extends string>(
 }
 
 export const mbFormFactorColumns = formFactorColumns(
-  "Motherboard form factor",
+  () => ui.label("motherboardFormFactor"),
   MB_FORM_FACTORS,
+  enumText.mbFormFactor,
 );
 export const psuFormFactorColumns = formFactorColumns(
-  "PSU form factor",
+  () => ui.label("psuFormFactor"),
   PSU_FORM_FACTORS,
+  enumText.psuFormFactor,
 );
 
 export const pcieSlotColumns: ChildCollectionColumn<{ value: ChassisPcieSlot }>[] = [
   {
-    header: "Orientation",
+    header: () => ui.header("orientation"),
     cell: (row, update) => (
       <select
-        aria-label="PCIe orientation"
+        aria-label={ui.label("pcieOrientation")}
         className={formSelectClassName}
         value={row.value.orientation}
         onChange={(event) =>
@@ -80,17 +84,17 @@ export const pcieSlotColumns: ChildCollectionColumn<{ value: ChassisPcieSlot }>[
       >
         {PCIE_SLOT_ORIENTATIONS.map((orientation) => (
           <option key={orientation} value={orientation}>
-            {orientation}
+            {enumText.pcieSlotOrientation(orientation)}
           </option>
         ))}
       </select>
     ),
   },
   {
-    header: "Profile",
+    header: () => ui.header("profile"),
     cell: (row, update) => (
       <select
-        aria-label="PCIe low profile"
+        aria-label={ui.label("pcieLowProfile")}
         className={formSelectClassName}
         value={row.value.lowProfileSlots ? "yes" : "no"}
         onChange={(event) =>
@@ -102,16 +106,16 @@ export const pcieSlotColumns: ChildCollectionColumn<{ value: ChassisPcieSlot }>[
           })
         }
       >
-        <option value="no">Full height</option>
-        <option value="yes">Low profile</option>
+        <option value="no">{ui.label("fullHeight")}</option>
+        <option value="yes">{ui.label("lowProfile")}</option>
       </select>
     ),
   },
   {
-    header: "Slots",
+    header: () => ui.header("slots"),
     cell: (row, update) => (
       <Input
-        aria-label="PCIe slot count"
+        aria-label={ui.label("pcieSlotCount")}
         className="w-20"
         type="number"
         min={1}
@@ -128,10 +132,10 @@ export const pcieSlotColumns: ChildCollectionColumn<{ value: ChassisPcieSlot }>[
 
 export const fanMountColumns: ChildCollectionColumn<{ value: ChassisFanMount }>[] = [
   {
-    header: "Location",
+    header: () => ui.header("location"),
     cell: (row, update) => (
       <select
-        aria-label="Fan mount location"
+        aria-label={ui.label("fanMountLocation")}
         className={formSelectClassName}
         value={row.value.location}
         onChange={(event) =>
@@ -145,17 +149,17 @@ export const fanMountColumns: ChildCollectionColumn<{ value: ChassisFanMount }>[
       >
         {FAN_MOUNT_LOCATIONS.map((location) => (
           <option key={location} value={location}>
-            {location}
+            {enumText.fanMount(location)}
           </option>
         ))}
       </select>
     ),
   },
   {
-    header: "Single diameter",
+    header: () => ui.header("singleDiameter"),
     cell: (row, update) => (
       <select
-        aria-label="Single diameter only"
+        aria-label={ui.label("singleDiameterOnly")}
         className={formSelectClassName}
         value={row.value.singleDiameterOnly ? "yes" : "no"}
         onChange={(event) =>
@@ -167,19 +171,19 @@ export const fanMountColumns: ChildCollectionColumn<{ value: ChassisFanMount }>[
           })
         }
       >
-        <option value="no">No</option>
-        <option value="yes">Yes</option>
+        <option value="no">{ui.label("no")}</option>
+        <option value="yes">{ui.label("yes")}</option>
       </select>
     ),
   },
   {
-    header: "Options",
+    header: () => ui.header("options"),
     cell: (row, update) => (
       <div className="flex flex-col gap-2">
         {row.value.options.map((option, index) => (
           <div key={`${option.diameter}-${index}`} className="flex gap-2">
             <select
-              aria-label={`Fan diameter ${index + 1}`}
+              aria-label={ui.message("fanDiameterIndex", { index: index + 1 })}
               className={formSelectClassName}
               value={option.diameter}
               onChange={(event) => {
@@ -201,7 +205,7 @@ export const fanMountColumns: ChildCollectionColumn<{ value: ChassisFanMount }>[
               ))}
             </select>
             <Input
-              aria-label={`Fan slot count ${index + 1}`}
+              aria-label={ui.message("fanSlotCountIndex", { index: index + 1 })}
               type="number"
               min={1}
               value={option.slotCount}
@@ -231,7 +235,7 @@ export const fanMountColumns: ChildCollectionColumn<{ value: ChassisFanMount }>[
             })
           }
         >
-          Add option
+          {ui.action("addOption")}
         </Button>
       </div>
     ),
@@ -240,10 +244,10 @@ export const fanMountColumns: ChildCollectionColumn<{ value: ChassisFanMount }>[
 
 export const radiatorColumns: ChildCollectionColumn<{ value: ChassisRadiator }>[] = [
   {
-    header: "Location",
+    header: () => ui.header("location"),
     cell: (row, update) => (
       <select
-        aria-label="Radiator location"
+        aria-label={ui.label("radiatorLocation")}
         className={formSelectClassName}
         value={row.value.location}
         onChange={(event) =>
@@ -257,17 +261,17 @@ export const radiatorColumns: ChildCollectionColumn<{ value: ChassisRadiator }>[
       >
         {RADIATOR_MOUNT_LOCATIONS.map((location) => (
           <option key={location} value={location}>
-            {location}
+            {enumText.radiatorMount(location)}
           </option>
         ))}
       </select>
     ),
   },
   {
-    header: "Length",
+    header: () => ui.header("length"),
     cell: (row, update) => (
       <select
-        aria-label="Radiator length"
+        aria-label={ui.label("radiatorLength")}
         className={formSelectClassName}
         value={row.value.length}
         onChange={(event) =>
@@ -288,10 +292,10 @@ export const radiatorColumns: ChildCollectionColumn<{ value: ChassisRadiator }>[
     ),
   },
   {
-    header: "Count",
+    header: () => ui.header("count"),
     cell: (row, update) => (
       <Input
-        aria-label="Radiator count"
+        aria-label={ui.label("radiatorCount")}
         type="number"
         min={1}
         value={row.value.radiatorCount}
@@ -307,7 +311,7 @@ export const radiatorColumns: ChildCollectionColumn<{ value: ChassisRadiator }>[
 
 export const driveBayColumns: ChildCollectionColumn<{ value: ChassisDriveBay }>[] = [
   {
-    header: "Form factor",
+    header: () => ui.header("formFactor"),
     cell: (row, update) => (
       <div className="flex gap-3">
         {DRIVE_BAY_FORM_FACTORS.map((formFactor) => (
@@ -330,10 +334,10 @@ export const driveBayColumns: ChildCollectionColumn<{ value: ChassisDriveBay }>[
     ),
   },
   {
-    header: "Slots",
+    header: () => ui.header("slots"),
     cell: (row, update) => (
       <Input
-        aria-label="Drive bay slot count"
+        aria-label={ui.label("driveBaySlotCount")}
         type="number"
         min={1}
         value={row.value.slotCount}

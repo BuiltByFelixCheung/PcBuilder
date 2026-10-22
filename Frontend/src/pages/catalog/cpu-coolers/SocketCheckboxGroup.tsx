@@ -15,6 +15,7 @@ import {
   socketsByManufacturer,
   type SocketChoice,
 } from "@/pages/catalog/cpu-coolers/socketGroups";
+import { ui } from "@/i18n/translate-enum";
 
 export function SocketCheckboxGroup({
   sockets,
@@ -28,12 +29,12 @@ export function SocketCheckboxGroup({
   onChange: (ids: string[]) => void;
 }>) {
   if (sockets.length === 0) {
-    return <p className="catalog-empty">No sockets.</p>;
+    return <p className="catalog-empty">{ui.empty("noSockets")}</p>;
   }
 
   return (
     <fieldset className="grid gap-4" disabled={disabled}>
-      <legend className="sr-only">Sockets</legend>
+      <legend className="sr-only">{ui.section("sockets")}</legend>
       {socketsByManufacturer(sockets).map(([manufacturer, choices]) => (
         <div key={manufacturer || "unknown"} className="grid gap-2">
           <p className="text-sm font-medium">{manufacturer || "—"}</p>
@@ -119,7 +120,7 @@ export function EditSocketsDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit sockets</DialogTitle>
+          <DialogTitle>{ui.action("editSockets")}</DialogTitle>
         </DialogHeader>
         {error ? (
           <p className="form-error" role="alert">
@@ -138,11 +139,9 @@ export function EditSocketsDialog({
             variant="outline"
             disabled={saving}
             onClick={onClose}
-          >
-            Cancel
-          </Button>
+          >{ui.action("cancel")}</Button>
           <Button type="button" disabled={saving} onClick={() => void save()}>
-            {saving ? "Saving…" : "Save"}
+            {saving ? ui.action("saving") : ui.action("save")}
           </Button>
         </DialogFooter>
       </DialogContent>

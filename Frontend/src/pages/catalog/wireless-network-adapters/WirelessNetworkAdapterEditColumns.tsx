@@ -24,45 +24,54 @@ import {
   WIFI_STANDARDS,
   WIRELESS_HOST_INTERFACES,
 } from "@/api/enums";
+import { enumText, ui } from "@/i18n/translate-enum";
 
 export function WirelessNetworkAdapterEditColumns(
   manufacturers: { id: string; name: string }[],
 ): BulkEditColumn<WirelessNetworkAdapter>[] {
   return [
     nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers),
-    enumSelectBulkColumn("Wi-Fi", "wifiStandard", WIFI_STANDARDS),
+    idSelectBulkColumn(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    enumSelectBulkColumn(ui.label("wifi"), "wifiStandard", WIFI_STANDARDS, {
+      label: enumText.wifiStandard,
+    }),
     enumSelectBulkColumn(
-      "Host interface",
+      ui.label("hostInterface"),
       "hostInterface",
       WIRELESS_HOST_INTERFACES,
+      { label: enumText.wifiInterface },
     ),
-    enumSelectBulkColumn("Bluetooth", "bluetoothVersion", BLUETOOTH_VERSIONS, {
+    enumSelectBulkColumn(ui.label("bluetooth"), "bluetoothVersion", BLUETOOTH_VERSIONS, {
       empty: "null",
     }),
-    numberBulkColumn("Max speed (Mbps)", "maxSpeedMbps", {
+    numberBulkColumn(ui.label("maxSpeedMbps"), "maxSpeedMbps", {
       parse: toInteger,
       fallback: 0,
     }),
-    numberBulkColumn("5 GHz max speed (Mbps)", "maxSpeedMbps5G", {
+    numberBulkColumn(ui.label("maxSpeed5GhzMbps"), "maxSpeedMbps5G", {
       parse: toInteger,
       fallback: null,
     }),
-    numberBulkColumn("6 GHz max speed (Mbps)", "maxSpeedMbps6G", {
+    numberBulkColumn(ui.label("maxSpeed6GhzMbps"), "maxSpeedMbps6G", {
       parse: toInteger,
       fallback: null,
     }),
-    enumSelectBulkColumn("PCIe slot", "pcieSlotType", PCIE_SLOT_TYPES, {
+    enumSelectBulkColumn(ui.label("pcieSlot"), "pcieSlotType", PCIE_SLOT_TYPES, {
       empty: "keep",
     }),
-    enumSelectBulkColumn("M.2 key", "key", M2_KEYS, { empty: "keep" }),
-    enumSelectBulkColumn("M.2 form factor", "m2FormFactor", M2_FORM_FACTORS, {
+    enumSelectBulkColumn(ui.label("m2Key"), "key", M2_KEYS, { empty: "keep" }),
+    enumSelectBulkColumn(ui.label("m2FormFactor"), "m2FormFactor", M2_FORM_FACTORS, {
       empty: "keep",
+      label: enumText.m2FormFactor,
     }),
-    enumSelectBulkColumn("USB version", "usbVersion", USB_VERSIONS, {
+    enumSelectBulkColumn(ui.label("usbVersion"), "usbVersion", USB_VERSIONS, {
       empty: "keep",
+      label: enumText.usbVersion,
     }),
-    enumSelectBulkColumn("USB type", "usbType", USB_TYPES, { empty: "keep" }),
+    enumSelectBulkColumn(ui.label("usbType"), "usbType", USB_TYPES, {
+      empty: "keep",
+      label: enumText.usbType,
+    }),
   ];
 }
 
@@ -71,38 +80,46 @@ export function WirelessNetworkAdapterFields(
 ): CatalogField<WirelessNetworkAdapter>[] {
   return [
     nameField(),
-    idSelectField("Manufacturer", "manufacturerId", manufacturers),
-    enumSelectField("Wi-Fi", "wifiStandard", WIFI_STANDARDS),
+    idSelectField(ui.label("manufacturer"), "manufacturerId", manufacturers),
+    enumSelectField(ui.label("wifi"), "wifiStandard", WIFI_STANDARDS, {
+      label: enumText.wifiStandard,
+    }),
     enumSelectField(
-      "Host interface",
+      ui.label("hostInterface"),
       "hostInterface",
       WIRELESS_HOST_INTERFACES,
+      { label: enumText.wifiInterface },
     ),
-    enumSelectField("Bluetooth", "bluetoothVersion", BLUETOOTH_VERSIONS, {
+    enumSelectField(ui.label("bluetooth"), "bluetoothVersion", BLUETOOTH_VERSIONS, {
       empty: "null",
     }),
-    numberField("Max speed (Mbps)", "maxSpeedMbps", {
+    numberField(ui.label("maxSpeedMbps"), "maxSpeedMbps", {
       parse: toInteger,
       fallback: 0,
     }),
-    numberField("5 GHz max speed (Mbps)", "maxSpeedMbps5G", {
+    numberField(ui.label("maxSpeed5GhzMbps"), "maxSpeedMbps5G", {
       parse: toInteger,
       fallback: null,
     }),
-    numberField("6 GHz max speed (Mbps)", "maxSpeedMbps6G", {
+    numberField(ui.label("maxSpeed6GhzMbps"), "maxSpeedMbps6G", {
       parse: toInteger,
       fallback: null,
     }),
-    enumSelectField("PCIe slot", "pcieSlotType", PCIE_SLOT_TYPES, {
+    enumSelectField(ui.label("pcieSlot"), "pcieSlotType", PCIE_SLOT_TYPES, {
       empty: "keep",
     }),
-    enumSelectField("M.2 key", "key", M2_KEYS, { empty: "keep" }),
-    enumSelectField("M.2 form factor", "m2FormFactor", M2_FORM_FACTORS, {
+    enumSelectField(ui.label("m2Key"), "key", M2_KEYS, { empty: "keep" }),
+    enumSelectField(ui.label("m2FormFactor"), "m2FormFactor", M2_FORM_FACTORS, {
       empty: "keep",
+      label: enumText.m2FormFactor,
     }),
-    enumSelectField("USB version", "usbVersion", USB_VERSIONS, {
+    enumSelectField(ui.label("usbVersion"), "usbVersion", USB_VERSIONS, {
       empty: "keep",
+      label: enumText.usbVersion,
     }),
-    enumSelectField("USB type", "usbType", USB_TYPES, { empty: "keep" }),
+    enumSelectField(ui.label("usbType"), "usbType", USB_TYPES, {
+      empty: "keep",
+      label: enumText.usbType,
+    }),
   ];
 }

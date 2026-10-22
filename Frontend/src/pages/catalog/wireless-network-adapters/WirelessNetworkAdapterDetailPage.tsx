@@ -11,6 +11,7 @@ import {
   formatM2FormFactor,
   formatWifiStandard,
 } from "@/api/enums";
+import { enumText, ui } from "@/i18n/translate-enum";
 import { useAuth } from "@/auth/use-auth";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,7 @@ export function WirelessNetworkAdapterDetailPage() {
   const manufacturers = useCatalogManufacturers("wirelessnetworkadapter");
 
   if (query.isPending) {
-    return <PageStatus>Loading wireless network adapter…</PageStatus>;
+    return <PageStatus>{ui.empty("loading", { entity: ui.entity("wirelessNetworkAdapter") })}</PageStatus>;
   }
 
   if (query.isError || !adapter) {
@@ -45,13 +46,13 @@ export function WirelessNetworkAdapterDetailPage() {
       <section className="catalog-page">
         <p>
           <Link to="/catalog/wireless-network-adapters">
-            Back to Wireless Network Adapters
+            {ui.empty("backTo", { entity: ui.nav("products.wirelessNetworkAdapters") })}
           </Link>
         </p>
         <PageStatus>
           {query.isError
             ? parseApiError(query.error).message
-            : "Wireless network adapter not found."}
+            : ui.empty("wirelessAdapterNotFound")}
         </PageStatus>
       </section>
     );
@@ -61,7 +62,7 @@ export function WirelessNetworkAdapterDetailPage() {
     <section className="catalog-page">
       <p>
         <Link to="/catalog/wireless-network-adapters">
-          Back to Wireless Network Adapters
+            {ui.empty("backTo", { entity: ui.nav("products.wirelessNetworkAdapters") })}
         </Link>
       </p>
       <div className="catalog-detail-title">
@@ -74,13 +75,13 @@ export function WirelessNetworkAdapterDetailPage() {
         )}
         {isAdmin && (
           <Button type="button" onClick={() => setEditing(true)}>
-            Edit
+            {ui.action("edit")}
           </Button>
         )}
       </div>
       {editing ? (
         <CatalogEditDialog
-          title="Edit wireless network adapter"
+          title={ui.dialog("editWirelessNetworkAdapter")}
           item={adapter}
           fields={WirelessNetworkAdapterFields(manufacturers)}
           onClose={() => setEditing(false)}
@@ -95,28 +96,22 @@ export function WirelessNetworkAdapterDetailPage() {
       <div className="catalog-table-pair">
         <div>
           <div className="catalog-detail-subtitle">
-            <h2>Basic information</h2>
+            <h2>{ui.section("basicInformation")}</h2>
           </div>
           <Table>
             <TableBody>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Manufacturer
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("manufacturer")}</TableHead>
                 <TableCell>{adapter.manufacturerName}</TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Wi-Fi
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("wifi")}</TableHead>
                 <TableCell>
                   {formatWifiStandard(adapter.wifiStandard)}
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Bluetooth
-                </TableHead>
+                <TableHead className="table-stub" scope="row">{ui.label("bluetooth")}</TableHead>
                 <TableCell>
                   {adapter.bluetoothVersion
                     ? formatBluetoothVersion(adapter.bluetoothVersion)
@@ -124,31 +119,25 @@ export function WirelessNetworkAdapterDetailPage() {
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Host interface
-                </TableHead>
-                <TableCell>{adapter.hostInterface}</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("hostInterface")}</TableHead>
+                <TableCell>
+                  {enumText.wifiInterface(adapter.hostInterface)}
+                </TableCell>
               </TableRow>
               <TableRow>
-                <TableHead className="table-stub" scope="row">
-                  Max speed
-                </TableHead>
-                <TableCell>{adapter.maxSpeedMbps} Mbps</TableCell>
+                <TableHead className="table-stub" scope="row">{ui.label("maxSpeed")}</TableHead>
+                <TableCell>{adapter.maxSpeedMbps} {ui.unit("mbps")}</TableCell>
               </TableRow>
               {adapter.maxSpeedMbps5G && (
                 <TableRow>
-                  <TableHead className="table-stub" scope="row">
-                    5 GHz max
-                  </TableHead>
-                  <TableCell>{adapter.maxSpeedMbps5G} Mbps</TableCell>
+                  <TableHead className="table-stub" scope="row">{ui.label("maxSpeed5Ghz")}</TableHead>
+                  <TableCell>{adapter.maxSpeedMbps5G} {ui.unit("mbps")}</TableCell>
                 </TableRow>
               )}
               {adapter.maxSpeedMbps6G && (
                 <TableRow>
-                  <TableHead className="table-stub" scope="row">
-                    6 GHz max
-                  </TableHead>
-                  <TableCell>{adapter.maxSpeedMbps6G} Mbps</TableCell>
+                  <TableHead className="table-stub" scope="row">{ui.label("maxSpeed6Ghz")}</TableHead>
+                  <TableCell>{adapter.maxSpeedMbps6G} {ui.unit("mbps")}</TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -156,30 +145,24 @@ export function WirelessNetworkAdapterDetailPage() {
         </div>
         <div>
           <div className="catalog-detail-subtitle">
-            <h2>Interface</h2>
+            <h2>{ui.label("interface")}</h2>
           </div>
           <Table>
             <TableBody>
               {adapter.hostInterface === "Pcie" && (
                 <TableRow>
-                  <TableHead className="table-stub" scope="row">
-                    PCIe slot
-                  </TableHead>
+                  <TableHead className="table-stub" scope="row">{ui.label("pcieSlot")}</TableHead>
                   <TableCell>{adapter.pcieSlotType}</TableCell>
                 </TableRow>
               )}
               {adapter.hostInterface === "M2" && (
                 <>
                   <TableRow>
-                    <TableHead className="table-stub" scope="row">
-                      M.2 key
-                    </TableHead>
+                    <TableHead className="table-stub" scope="row">{ui.label("m2Key")}</TableHead>
                     <TableCell>{adapter.key ?? "—"}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableHead className="table-stub" scope="row">
-                      M.2 form factor
-                    </TableHead>
+                    <TableHead className="table-stub" scope="row">{ui.label("m2FormFactor")}</TableHead>
                     <TableCell>
                       {adapter.m2FormFactor
                         ? formatM2FormFactor(adapter.m2FormFactor)
@@ -191,16 +174,18 @@ export function WirelessNetworkAdapterDetailPage() {
               {adapter.hostInterface === "Usb" && (
                 <>
                   <TableRow>
-                    <TableHead className="table-stub" scope="row">
-                      USB version
-                    </TableHead>
-                    <TableCell>{adapter.usbVersion}</TableCell>
+                    <TableHead className="table-stub" scope="row">{ui.label("usbVersion")}</TableHead>
+                    <TableCell>
+                      {adapter.usbVersion
+                        ? enumText.usbVersion(adapter.usbVersion)
+                        : "—"}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableHead className="table-stub" scope="row">
-                      USB type
-                    </TableHead>
-                    <TableCell>{adapter.usbType}</TableCell>
+                    <TableHead className="table-stub" scope="row">{ui.label("usbType")}</TableHead>
+                    <TableCell>
+                      {adapter.usbType ? enumText.usbType(adapter.usbType) : "—"}
+                    </TableCell>
                   </TableRow>
                 </>
               )}

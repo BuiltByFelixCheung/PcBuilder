@@ -1,3 +1,5 @@
+import { enumText } from "@/i18n/translate-enum";
+
 export const DDR_GENERATIONS = ["Ddr4", "Ddr5"] as const;
 export type DdrGeneration = (typeof DDR_GENERATIONS)[number];
 
@@ -74,24 +76,21 @@ export const FAN_DIAMETERS_MM = [
 export type FanDiameterMm = (typeof FAN_DIAMETERS_MM)[number];
 
 export function formatFanDiameterMm(diameter: FanDiameterMm): string {
-  return `${stripMmPrefix(diameter)} mm`;
+  return enumText.fanDiameterMm(diameter);
 }
 
 export const FAN_HEADER_TYPES = ["ThreePinDc", "FourPinPwm"] as const;
 export type FanHeaderType = (typeof FAN_HEADER_TYPES)[number];
 
 export function formatFanHeaderType(headerType: FanHeaderType): string {
-  if (headerType === "ThreePinDc") return "3-pin DC";
-  return "4-pin PWM";
+  return enumText.fanHeaderType(headerType);
 }
 
 export const DRIVE_BAY_FORM_FACTORS = ["Inch25", "Inch35", "Inch525"] as const;
 export type DriveBayFormFactor = (typeof DRIVE_BAY_FORM_FACTORS)[number];
 
 export function formatDriveBayFormFactor(formFactor: DriveBayFormFactor): string {
-  if (formFactor === "Inch25") return "2.5";
-  if (formFactor === "Inch35") return "3.5";
-  return "5.25";
+  return enumText.driveBayFormFactor(formFactor);
 }
 
 export const PCIE_SLOT_ORIENTATIONS = ["Vertical", "Horizontal"] as const;
@@ -108,11 +107,7 @@ export const RADIATOR_CLASSES = [
 export type RadiatorClass = (typeof RADIATOR_CLASSES)[number];
 
 export function formatRadiatorClass(length: RadiatorClass): string {
-  return `${stripMmPrefix(length)} mm`;
-}
-
-function stripMmPrefix(value: string): string {
-  return value.replace(/^Mm/, "");
+  return enumText.radiatorClass(length);
 }
 
 export const RADIATOR_MOUNT_LOCATIONS = [
@@ -152,7 +147,7 @@ export const M2_FORM_FACTORS = [
 export type M2FormFactor = (typeof M2_FORM_FACTORS)[number];
 
 export function formatM2FormFactor(formFactor: M2FormFactor): string {
-  return formFactor.replace(/^M2/, "");
+  return enumText.m2FormFactor(formFactor);
 }
 
 export const USB_VERSIONS = [
@@ -194,9 +189,7 @@ export const STORAGE_FORM_FACTORS = [
 export type StorageFormFactor = (typeof STORAGE_FORM_FACTORS)[number];
 
 export function formatStorageFormFactor(formFactor: StorageFormFactor): string {
-  if (formFactor === "Sata25") return "2.5 in";
-  if (formFactor === "Sata35") return "3.5 in";
-  return formatM2FormFactor(formFactor as M2FormFactor);
+  return enumText.storageFormFactor(formFactor);
 }
 
 export const WIRED_HOST_INTERFACES = ["Pcie", "Usb"] as const;
@@ -215,7 +208,7 @@ export const WIFI_STANDARDS = [
 export type WifiStandard = (typeof WIFI_STANDARDS)[number];
 
 export function formatWifiStandard(standard: WifiStandard): string {
-  return standard.replace(/^Wifi/, "Wi-Fi ");
+  return enumText.wifiStandard(standard);
 }
 
 export const BLUETOOTH_VERSIONS = [
@@ -228,5 +221,5 @@ export const BLUETOOTH_VERSIONS = [
 export type BluetoothVersion = (typeof BLUETOOTH_VERSIONS)[number];
 
 export function formatBluetoothVersion(version: BluetoothVersion): string {
-  return version.replace(/^V/, "").replace("Point", ".");
+  return enumText.bluetoothVersion(version);
 }

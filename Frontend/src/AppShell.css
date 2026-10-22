@@ -50,6 +50,11 @@
   font-size: 14px;
 }
 
+.language-toggle {
+  display: inline-flex;
+  gap: 4px;
+}
+
 .nav-menu-button svg,
 .theme-toggle svg {
   width: 16px;
@@ -827,4 +832,14 @@ html:has(.auth-dialog[open]) {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.logo {
+  display: inline-block;
+  width: 150px;
+  aspect-ratio: 942 / 249;
+  background-color: currentColor;
+  -webkit-mask: url("/navlogo.svg") center / contain no-repeat;
+  mask: url("/navlogo.svg") center / contain no-repeat;
+  mask-mode: alpha;
 }

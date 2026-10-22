@@ -35,6 +35,7 @@ vi.mock("@/api/master-data", async () => {
 });
 
 import { GpuListPage } from "@/pages/master-data/gpus/GpuListPage.tsx";
+import { chooseOption } from "../helpers/choose-option.ts";
 import { renderWithQuery } from "../helpers/query.tsx";
 
 const rtx: GpuOption = {
@@ -305,11 +306,10 @@ describe("GpuListPage", () => {
     await user.click(screen.getByRole("button", { name: "Edit Selected" }));
     const dialog = await screen.findByRole("dialog", { name: "Edit GPUs" });
     const name = within(dialog).getByRole("textbox");
-    const [manufacturer, seriesSelect] = within(dialog).getAllByRole("combobox");
-    await user.selectOptions(manufacturer, "amd");
-    await user.selectOptions(seriesSelect, "rx7000");
     await user.clear(name);
     await user.type(name, "RTX 4070 Ti");
+    await chooseOption(user, "Manufacturer for RTX 4070 Ti", "AMD");
+    await chooseOption(user, "Series for RTX 4070 Ti", "RX 7000");
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
     await waitFor(() => {
       expect(updateGpus).toHaveBeenCalledWith([

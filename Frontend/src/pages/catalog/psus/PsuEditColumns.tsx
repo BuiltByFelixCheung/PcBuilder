@@ -16,6 +16,7 @@ import {
 } from "@/components/catalog/CatalogFields";
 import type { PsuListItem } from "@/api/catalog/psus";
 import { PSU_FORM_FACTORS, PSU_MODULARITIES } from "@/api/enums";
+import { enumText, ui } from "@/i18n/translate-enum";
 
 export function PsuEditColumns(
   manufacturers: { id: string; name: string }[],
@@ -27,13 +28,17 @@ export function PsuEditColumns(
 
   return [
     nameBulkColumn(),
-    idSelectBulkColumn("Manufacturer", "manufacturerId", manufacturers, "Any"),
-    integerColumn("Wattage", "wattage", { type: "number", min: 0 }),
-    enumSelectBulkColumn("Modularity", "modularity", PSU_MODULARITIES),
-    enumSelectBulkColumn("Form factor", "formFactor", PSU_FORM_FACTORS),
-    millimeters("Length (mm)", "lengthMm"),
-    millimeters("Width (mm)", "widthMm"),
-    millimeters("Height (mm)", "heightMm"),
+    idSelectBulkColumn(ui.label("manufacturer"), "manufacturerId", manufacturers, ui.label("any")),
+    integerColumn(ui.label("wattage"), "wattage", { type: "number", min: 0 }),
+    enumSelectBulkColumn(ui.label("modularity"), "modularity", PSU_MODULARITIES, {
+      label: enumText.psuModularity,
+    }),
+    enumSelectBulkColumn(ui.label("formFactor"), "formFactor", PSU_FORM_FACTORS, {
+      label: enumText.psuFormFactor,
+    }),
+    millimeters(ui.label("lengthMm"), "lengthMm"),
+    millimeters(ui.label("widthMm"), "widthMm"),
+    millimeters(ui.label("heightMm"), "heightMm"),
   ];
 }
 
@@ -47,12 +52,16 @@ export function PsuFields(
 
   return [
     nameField(),
-    idSelectField("Manufacturer", "manufacturerId", manufacturers, "Any"),
-    integerField("Wattage", "wattage", { type: "number", min: 0 }),
-    enumSelectField("Modularity", "modularity", PSU_MODULARITIES),
-    enumSelectField("Form factor", "formFactor", PSU_FORM_FACTORS),
-    millimeters("Length (mm)", "lengthMm"),
-    millimeters("Width (mm)", "widthMm"),
-    millimeters("Height (mm)", "heightMm"),
+    idSelectField(ui.label("manufacturer"), "manufacturerId", manufacturers, ui.label("any")),
+    integerField(ui.label("wattage"), "wattage", { type: "number", min: 0 }),
+    enumSelectField(ui.label("modularity"), "modularity", PSU_MODULARITIES, {
+      label: enumText.psuModularity,
+    }),
+    enumSelectField(ui.label("formFactor"), "formFactor", PSU_FORM_FACTORS, {
+      label: enumText.psuFormFactor,
+    }),
+    millimeters(ui.label("lengthMm"), "lengthMm"),
+    millimeters(ui.label("widthMm"), "widthMm"),
+    millimeters(ui.label("heightMm"), "heightMm"),
   ];
 }

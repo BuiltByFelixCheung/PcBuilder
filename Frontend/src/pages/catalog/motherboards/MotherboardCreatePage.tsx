@@ -25,6 +25,7 @@ import {
   usbPortColumns,
 } from "@/pages/catalog/motherboards/MotherboardChildColumns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ui } from "@/i18n/translate-enum";
 
 const emptyMotherboard = unsetCatalogItem<MotherboardListItem>({
   id: "",
@@ -67,9 +68,9 @@ export function MotherboardCreatePage() {
 
   return (
     <CatalogCreateForm
-      title="New motherboard"
+      title={ui.dialog("newMotherboard")}
       backTo="/catalog/motherboards"
-      backLabel="Back to motherboards"
+      backLabel={ui.empty("backTo", { entity: ui.nav("products.motherboards") })}
       saving={saving}
       error={error}
       onSubmit={() =>
@@ -89,7 +90,7 @@ export function MotherboardCreatePage() {
       <div className="catalog-create-columns columns-2">
         <Card>
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
+            <CardTitle>{ui.section("basicInformation")}</CardTitle>
           </CardHeader>
           <CardContent>
             <CatalogScalarFields
@@ -101,7 +102,7 @@ export function MotherboardCreatePage() {
         </Card>
         <div className="catalog-create-column">
           <CatalogCollectionEditor
-            title="PCIe slots"
+            title={ui.section("pcieSlots")}
             columns={pcieSlotColumns}
             rows={pcieSlots}
             onChange={setPcieSlots}
@@ -116,7 +117,7 @@ export function MotherboardCreatePage() {
             })}
           />
           <CatalogCollectionEditor
-            title="M.2 slots"
+            title={ui.section("m2Slots")}
             columns={m2SlotColumns}
             rows={m2Slots}
             onChange={setM2Slots}
@@ -132,7 +133,7 @@ export function MotherboardCreatePage() {
             })}
           />
           <CatalogCollectionEditor
-            title="USB ports"
+            title={ui.section("usbPorts")}
             columns={usbPortColumns}
             rows={usbPorts}
             onChange={setUsbPorts}

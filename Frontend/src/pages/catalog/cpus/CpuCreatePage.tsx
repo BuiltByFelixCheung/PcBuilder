@@ -24,6 +24,7 @@ import {
   supportChipsetColumns,
 } from "@/pages/catalog/cpus/CpuChildColumns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ui } from "@/i18n/translate-enum";
 
 const emptyCpu: CpuListItem = {
   id: "",
@@ -62,9 +63,9 @@ export function CpuCreatePage() {
 
   return (
     <CatalogCreateForm
-      title="New CPU"
+      title={ui.dialog("newCpu")}
       backTo="/catalog/cpus"
-      backLabel="Back to CPUs"
+      backLabel={ui.empty("backTo", { entity: ui.nav("products.cpus") })}
       saving={saving}
       error={error}
       onSubmit={() =>
@@ -83,7 +84,7 @@ export function CpuCreatePage() {
       <div className="grid grid-cols-1 items-start gap-8 *:min-w-0 min-[1025px]:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
+            <CardTitle>{ui.section("basicInformation")}</CardTitle>
           </CardHeader>
           <CardContent>
             <CatalogScalarFields
@@ -115,7 +116,7 @@ export function CpuCreatePage() {
           </CardContent>
         </Card>
         <CatalogCollectionEditor
-          title="RAM compatibility"
+          title={ui.section("ramCompatibility")}
           columns={ramCompatColumns}
           rows={ramCompats}
           onChange={setRamCompats}
@@ -128,7 +129,7 @@ export function CpuCreatePage() {
           })}
         />
         <CatalogCollectionEditor
-          title="Supported chipsets"
+          title={ui.section("supportedChipsets")}
           columns={supportChipsetColumns(manufacturerChipsets)}
           rows={supportChipsets}
           onChange={setSupportChipsets}
