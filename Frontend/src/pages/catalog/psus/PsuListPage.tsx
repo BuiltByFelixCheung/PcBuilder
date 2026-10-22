@@ -37,7 +37,7 @@ import {
   CatalogRangeField,
 } from "@/components/catalog/CatalogFilterFields.tsx";
 import { usePcBuild } from "@/builds/use-pc-build";
-import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { CatalogListResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importPsus } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
@@ -285,32 +285,24 @@ export function PsuListPage() {
           </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <CatalogPagedResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={items}
-            filtering={filtering}
-            loadingMessage={ui.empty("loading", { entity: ui.entity("psus") })}
-            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("psus") })}
-            emptyMessage={ui.empty("noneInCatalog", { entity: ui.entity("psus") })}
-            isAdmin={isAdmin}
-            newItemLabel={ui.action("newPsu")}
-            newItemTo="/catalog/psus/new"
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onEditSelected={startEditing}
-            onImport={excelImport.openImport}
-            pageIndex={pageIndex}
-            pageCount={pageCount}
-            onPageChange={goToPage}
-          />
-        </div>
+        <CatalogListResults
+          entity="psus"
+          query={query}
+          items={items}
+          filtering={filtering}
+          columns={columns}
+          isAdmin={isAdmin}
+          newItemLabel={ui.action("newPsu")}
+          newItemTo="/catalog/psus/new"
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onImport={excelImport.openImport}
+          onEditSelected={startEditing}
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          onPageChange={goToPage}
+        />
       </div>
       {editRows ? (
         <BulkEditDialog

@@ -17,8 +17,8 @@ export function AppHeader() {
 
   return (
     <header className="app-header">
-      <Link to="/" className="brand">
-        <span className="logo" role="img" aria-label="Logo" />
+      <Link to="/" className="brand" aria-label="Logo">
+        <span className="logo" />
       </Link>
       <nav className="app-nav" aria-label={ui.nav("account")}>
         <LanguageToggle />

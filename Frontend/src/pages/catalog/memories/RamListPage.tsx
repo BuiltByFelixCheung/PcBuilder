@@ -1,6 +1,6 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { catalogLeadColumns } from "@/components/catalog/CatalogLeadColumns";
+import { catalogLeadColumns, unitColumn } from "@/components/catalog/CatalogLeadColumns";
 import { beginBulkEdit } from "@/lib/begin-bulk-edit";
 import { deleteMemories } from "@/api/catalog/bulk-delete";
 import {
@@ -46,7 +46,7 @@ import {
 import { usePcBuild } from "@/builds/use-pc-build";
 import { unsetCatalogItem } from "@/components/catalog/catalog-create";
 import { CatalogCreateDialog } from "@/components/catalog/CatalogCreateDialog";
-import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { CatalogListResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importMemories } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
@@ -121,23 +121,26 @@ export function RamListPage() {
           header: ui.header("ramRank"),
           cell: (info) => enumText.ramRank(info.getValue()),
         }),
-        columnHelper.accessor("memorySizePerStickGb", {
-          header: ui.header("moduleSize"),
-          cell: (info) => `${info.getValue()} ${ui.unit("gb")}`,
-        }),
-        columnHelper.accessor("totalMemorySizeGb", {
-          header: ui.header("kitSize"),
-          cell: (info) => `${info.getValue()} ${ui.unit("gb")}`,
-        }),
-        columnHelper.accessor("maxMemorySpeedMts", {
-          header: ui.header("speed"),
-          cell: (info) => `${info.getValue()} ${ui.unit("mtS")}`,
-        }),
+        unitColumn(
+          columnHelper,
+          "memorySizePerStickGb",
+          ui.header("moduleSize"),
+          ui.unit("gb"),
+        ),
+        unitColumn(
+          columnHelper,
+          "totalMemorySizeGb",
+          ui.header("kitSize"),
+          ui.unit("gb"),
+        ),
+        unitColumn(
+          columnHelper,
+          "maxMemorySpeedMts",
+          ui.header("speed"),
+          ui.unit("mtS"),
+        ),
         columnHelper.accessor("modulesCount", { header: ui.header("modulesCount") }),
-        columnHelper.accessor("heightMm", {
-          header: ui.header("height"),
-          cell: (info) => `${info.getValue()} ${ui.unit("mm")}`,
-        }),
+        unitColumn(columnHelper, "heightMm", ui.header("height"), ui.unit("mm")),
       ]),
     [isAdmin],
   );
@@ -466,32 +469,24 @@ export function RamListPage() {
           <CatalogFilterActions onClear={clearFilters} />
         </form>
 
-        <div className="catalog-results">
-          <CatalogPagedResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={items}
-            filtering={filtering}
-            loadingMessage={ui.empty("loading", { entity: ui.entity("memories") })}
-            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("memories") })}
-            emptyMessage={ui.empty("noneInCatalog", { entity: ui.entity("memories") })}
-            isAdmin={isAdmin}
-            newItemLabel={ui.action("newMemory")}
-            onNewItem={() => setCreating(true)}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onEditSelected={startEditing}
-            onImport={excelImport.openImport}
-            pageIndex={pageIndex}
-            pageCount={pageCount}
-            onPageChange={goToPage}
-          />
-        </div>
+        <CatalogListResults
+          entity="memories"
+          query={query}
+          items={items}
+          filtering={filtering}
+          columns={columns}
+          isAdmin={isAdmin}
+          newItemLabel={ui.action("newMemory")}
+          onNewItem={() => setCreating(true)}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onImport={excelImport.openImport}
+          onEditSelected={startEditing}
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          onPageChange={goToPage}
+        />
       </div>
       {creating ? (
         <CatalogCreateDialog

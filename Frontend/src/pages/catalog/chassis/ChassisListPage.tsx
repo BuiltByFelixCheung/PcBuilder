@@ -26,7 +26,7 @@ import {
   emptyChassisFilter,
 } from "@/api/catalog/params/chassis-list-params";
 import { MB_FORM_FACTORS } from "@/api/enums";
-import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { CatalogListResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importChassis } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
@@ -472,32 +472,24 @@ export function ChassisListPage() {
           </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <CatalogPagedResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={items}
-            filtering={filtering}
-            loadingMessage={ui.empty("loading", { entity: ui.entity("chassis") })}
-            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("chassis") })}
-            emptyMessage={ui.empty("noneInCatalog", { entity: ui.entity("chassis") })}
-            isAdmin={isAdmin}
-            newItemLabel={ui.action("newChassis")}
-            newItemTo="/catalog/chassis/new"
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onEditSelected={startEditing}
-            onImport={excelImport.openImport}
-            pageIndex={pageIndex}
-            pageCount={pageCount}
-            onPageChange={goToPage}
-          />
-        </div>
+        <CatalogListResults
+          entity="chassis"
+          query={query}
+          items={items}
+          filtering={filtering}
+          columns={columns}
+          isAdmin={isAdmin}
+          newItemLabel={ui.action("newChassis")}
+          newItemTo="/catalog/chassis/new"
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onImport={excelImport.openImport}
+          onEditSelected={startEditing}
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          onPageChange={goToPage}
+        />
       </div>
       {editRows ? (
         <BulkEditDialog

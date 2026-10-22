@@ -36,7 +36,7 @@ import {
   formSelectClassName,
   NameField,
 } from "@/components/filters/ListFilters";
-import { MasterDataResults } from "@/components/master-data/MasterDataResults";
+import { MasterDataListResults } from "@/components/master-data/MasterDataResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import { ui } from "@/i18n/translate-enum";
@@ -196,29 +196,22 @@ export function GpuListPage() {
           </FieldGroup>
           <FilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <MasterDataResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={visibleItems}
-            filtering={filtering}
-            loadingMessage={ui.empty("loading", { entity: ui.entity("gpus") })}
-            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("gpus") })}
-            emptyMessage={ui.empty("noneFound", { entity: ui.entity("gpus") })}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onEditSelected={startEditing}
-            onImport={excelImport.openImport}
-            newItemTo={gpuEditPath(newMasterDataEditValue)}
-            newItemLabel={ui.action("newGpu")}
-            keepTableWhenEmpty
-          />
-        </div>
+        <MasterDataListResults
+          entity="gpus"
+          empty="noneFound"
+          query={query}
+          items={visibleItems}
+          filtering={filtering}
+          columns={columns}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onEditSelected={startEditing}
+          onImport={excelImport.openImport}
+          newItemTo={gpuEditPath(newMasterDataEditValue)}
+          newItemLabel={ui.action("newGpu")}
+          keepTableWhenEmpty
+        />
         {editRows ? (
           <BulkEditDialog
             title={ui.dialog("editGpus")}

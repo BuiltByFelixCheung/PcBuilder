@@ -45,7 +45,7 @@ import {
 } from "@/components/catalog/CatalogFilterFields.tsx";
 import { unsetCatalogItem } from "@/components/catalog/catalog-create";
 import { CatalogCreateDialog } from "@/components/catalog/CatalogCreateDialog";
-import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { CatalogListResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importWirelessNetworkAdapters } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
@@ -335,32 +335,24 @@ export function WirelessNetworkAdapterListPage() {
           </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <CatalogPagedResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={items}
-            filtering={filtering}
-            loadingMessage={ui.empty("loading", { entity: ui.entity("wirelessNetworkAdapters") })}
-            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("wirelessNetworkAdapters") })}
-            emptyMessage={ui.empty("noneInCatalog", { entity: ui.entity("wirelessNetworkAdapters") })}
-            isAdmin={isAdmin}
-            newItemLabel={ui.action("newWirelessNetworkAdapter")}
-            onNewItem={() => setCreating(true)}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onEditSelected={startEditing}
-            onImport={excelImport.openImport}
-            pageIndex={pageIndex}
-            pageCount={pageCount}
-            onPageChange={goToPage}
-          />
-        </div>
+        <CatalogListResults
+          entity="wirelessNetworkAdapters"
+          query={query}
+          items={items}
+          filtering={filtering}
+          columns={columns}
+          isAdmin={isAdmin}
+          newItemLabel={ui.action("newWirelessNetworkAdapter")}
+          onNewItem={() => setCreating(true)}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onImport={excelImport.openImport}
+          onEditSelected={startEditing}
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          onPageChange={goToPage}
+        />
       </div>
       {creating ? (
         <CatalogCreateDialog

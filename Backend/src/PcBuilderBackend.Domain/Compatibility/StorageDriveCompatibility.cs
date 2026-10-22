@@ -53,7 +53,7 @@ public static class StorageDriveCompatibility
         M2FormFactor slotFormFactor,
         bool supportsSata,
         int slotCount) =>
-        CompatibilityExpression.Bind(SlotAccepts, slotKey, slotFormFactor, supportsSata, slotCount);
+        CompatibilityExpression.Bind<StorageDrive>(SlotAccepts, slotKey, slotFormFactor, supportsSata, slotCount);
 
     private static Expression<Func<StorageFormFactor, M2FormFactor?>> BuildM2Form()
     {

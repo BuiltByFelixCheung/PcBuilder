@@ -30,7 +30,7 @@ import {
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MasterDataResults } from "@/components/master-data/MasterDataResults";
+import { MasterDataListResults } from "@/components/master-data/MasterDataResults";
 import { FilterActions } from "@/components/filters/ListFilters";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
@@ -195,29 +195,22 @@ export function ManufacturerListPage() {
           </FieldGroup>
           <FilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <MasterDataResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={visibleItems}
-            filtering={filtering}
-            loadingMessage={ui.empty("loading", { entity: ui.entity("manufacturers") })}
-            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("manufacturers") })}
-            emptyMessage={ui.empty("noneFound", { entity: ui.entity("manufacturers") })}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onEditSelected={startEditing}
-            onImport={excelImport.openImport}
-            newItemTo={manufacturerEditPath(newMasterDataEditValue)}
-            newItemLabel={ui.action("newManufacturer")}
-            keepTableWhenEmpty
-          />
-        </div>
+        <MasterDataListResults
+          entity="manufacturers"
+          empty="noneFound"
+          query={query}
+          items={visibleItems}
+          filtering={filtering}
+          columns={columns}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onEditSelected={startEditing}
+          onImport={excelImport.openImport}
+          newItemTo={manufacturerEditPath(newMasterDataEditValue)}
+          newItemLabel={ui.action("newManufacturer")}
+          keepTableWhenEmpty
+        />
         {editRows ? (
           <BulkEditDialog
             title={ui.dialog("editManufacturers")}

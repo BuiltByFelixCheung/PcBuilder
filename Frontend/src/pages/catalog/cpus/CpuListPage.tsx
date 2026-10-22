@@ -1,6 +1,10 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { catalogLeadColumns } from "@/components/catalog/CatalogLeadColumns";
+import {
+  catalogLeadColumns,
+  unitColumn,
+  yesNoColumn,
+} from "@/components/catalog/CatalogLeadColumns";
 import { beginBulkEdit } from "@/lib/begin-bulk-edit";
 import { deleteCpus } from "@/api/catalog/bulk-delete";
 import {
@@ -24,7 +28,7 @@ import {
   emptyCpuFilter,
 } from "@/api/catalog/params/cpu-list-params";
 import { usePcBuild } from "@/builds";
-import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { CatalogListResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importCpus } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
@@ -72,22 +76,15 @@ export function CpuListPage() {
         ),
         columnHelper.accessor("seriesName", { header: ui.header("series") }),
         columnHelper.accessor("socketName", { header: ui.header("socket") }),
-        columnHelper.accessor("thermalDesignPower", {
-          header: ui.header("tdp"),
-          cell: (info) => `${info.getValue()} ${ui.unit("watts")}`,
-        }),
-        columnHelper.accessor("powerConsumptionWatts", {
-          header: ui.header("power"),
-          cell: (info) => `${info.getValue()} ${ui.unit("watts")}`,
-        }),
-        columnHelper.accessor("maxMemoryGb", {
-          header: ui.header("maxRam"),
-          cell: (info) => `${info.getValue()} ${ui.unit("gb")}`,
-        }),
-        columnHelper.accessor("integratedGraphics", {
-          header: ui.header("igpu"),
-          cell: (info) => (info.getValue() ? ui.label("yes") : ui.label("no")),
-        }),
+        unitColumn(columnHelper, "thermalDesignPower", ui.header("tdp"), ui.unit("watts")),
+        unitColumn(
+          columnHelper,
+          "powerConsumptionWatts",
+          ui.header("power"),
+          ui.unit("watts"),
+        ),
+        unitColumn(columnHelper, "maxMemoryGb", ui.header("maxRam"), ui.unit("gb")),
+        yesNoColumn(columnHelper, "integratedGraphics", ui.header("igpu")),
       ]),
     [isAdmin],
   );
@@ -244,32 +241,24 @@ export function CpuListPage() {
           <CatalogFilterActions onClear={clearFilters} />
         </form>
 
-        <div className="catalog-results">
-          <CatalogPagedResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={items}
-            filtering={filtering}
-            loadingMessage={ui.empty("loading", { entity: ui.entity("cpus") })}
-            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("cpus") })}
-            emptyMessage={ui.empty("noneInCatalog", { entity: ui.entity("cpus") })}
-            isAdmin={isAdmin}
-            newItemLabel={ui.action("newCpu")}
-            newItemTo="/catalog/cpus/new"
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onImport={excelImport.openImport}
-            onEditSelected={startEditing}
-            pageIndex={pageIndex}
-            pageCount={pageCount}
-            onPageChange={goToPage}
-          />
-        </div>
+        <CatalogListResults
+          entity="cpus"
+          query={query}
+          items={items}
+          filtering={filtering}
+          columns={columns}
+          isAdmin={isAdmin}
+          newItemLabel={ui.action("newCpu")}
+          newItemTo="/catalog/cpus/new"
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onImport={excelImport.openImport}
+          onEditSelected={startEditing}
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          onPageChange={goToPage}
+        />
       </div>
       {editRows ? (
         <BulkEditDialog

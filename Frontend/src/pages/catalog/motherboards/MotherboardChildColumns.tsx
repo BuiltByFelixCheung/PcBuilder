@@ -18,6 +18,19 @@ import {
   type MotherboardUsbPort,
 } from "@/api/catalog/motherboards";
 
+function countField(label: string, value: number, onChange: (value: number) => void) {
+  return (
+    <Input
+      aria-label={label}
+      className="w-20"
+      type="number"
+      min={1}
+      value={value}
+      onChange={(event) => onChange(Number(event.target.value))}
+    />
+  );
+}
+
 function enumField<T extends string>(
   label: string,
   value: T,
@@ -78,20 +91,10 @@ export const pcieSlotColumns: ChildCollectionColumn<{ value: MotherboardPcieSlot
     },
     {
       header: () => ui.header("slots"),
-      cell: (row, update) => (
-        <Input
-          aria-label={ui.label("pcieSlotCount")}
-          className="w-20"
-          type="number"
-          min={1}
-          value={row.value.slotCount}
-          onChange={(event) =>
-            update({
-              value: { ...row.value, slotCount: Number(event.target.value) },
-            })
-          }
-        />
-      ),
+      cell: (row, update) =>
+        countField(ui.label("pcieSlotCount"), row.value.slotCount, (slotCount) =>
+          update({ value: { ...row.value, slotCount } }),
+        ),
     },
   ];
 
@@ -120,20 +123,10 @@ export const m2SlotColumns: ChildCollectionColumn<{ value: MotherboardM2Slot }>[
   },
   {
     header: () => ui.header("slots"),
-    cell: (row, update) => (
-      <Input
-        aria-label={ui.label("m2SlotCount")}
-        className="w-20"
-        type="number"
-        min={1}
-        value={row.value.slotCount}
-        onChange={(event) =>
-          update({
-            value: { ...row.value, slotCount: Number(event.target.value) },
-          })
-        }
-      />
-    ),
+    cell: (row, update) =>
+      countField(ui.label("m2SlotCount"), row.value.slotCount, (slotCount) =>
+        update({ value: { ...row.value, slotCount } }),
+      ),
   },
   {
     header: () => ui.header("sata"),
@@ -197,19 +190,9 @@ export const usbPortColumns: ChildCollectionColumn<{ value: MotherboardUsbPort }
   },
   {
     header: () => ui.header("ports"),
-    cell: (row, update) => (
-      <Input
-        aria-label={ui.label("usbPortCount")}
-        className="w-20"
-        type="number"
-        min={1}
-        value={row.value.portCount}
-        onChange={(event) =>
-          update({
-            value: { ...row.value, portCount: Number(event.target.value) },
-          })
-        }
-      />
-    ),
+    cell: (row, update) =>
+      countField(ui.label("usbPortCount"), row.value.portCount, (portCount) =>
+        update({ value: { ...row.value, portCount } }),
+      ),
   },
 ];

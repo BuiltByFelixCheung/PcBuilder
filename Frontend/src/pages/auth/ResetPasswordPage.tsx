@@ -8,8 +8,11 @@ import {
   type ResetPasswordValues,
 } from "../../auth/schemas.ts";
 import { useAuth } from "../../auth/use-auth.ts";
-import { FormTextField } from "@/components/FormTextField.tsx";
-import { Button } from "@/components/ui/button";
+import {
+  AuthSubmitButton,
+  AuthSuccessDialog,
+  PasswordControlField,
+} from "@/components/auth/AuthFormParts";
 import { FieldGroup } from "@/components/ui/field";
 import { applyApiFieldErrors } from "../../lib/rhf-api-errors.ts";
 import { ui } from "@/i18n/translate-enum";
@@ -84,23 +87,13 @@ export function ResetPasswordPage() {
 
   return (
     <section className="auth-page">
-      <dialog
-        className="auth-dialog"
+      <AuthSuccessDialog
         open={dialogOpen}
-        aria-labelledby="reset-success-title"
-      >
-        <div className="auth-dialog-card">
-          <h2 id="reset-success-title">{ui.message("passwordReset")}</h2>
-          <p>{ui.message("passwordUpdatedCanSignIn")}</p>
-          <button
-            type="button"
-            className="auth-submit"
-            onClick={() => void navigate("/login", { replace: true })}
-          >
-            {ui.action("close")}
-          </button>
-        </div>
-      </dialog>
+        titleId="reset-success-title"
+        title={ui.message("passwordReset")}
+        message={ui.message("passwordUpdatedCanSignIn")}
+        onClose={() => void navigate("/login", { replace: true })}
+      />
       <form className="auth-card" onSubmit={handleSubmit(onSubmit)} noValidate>
         <h1>{PAGE_TITLE()}</h1>
         <p className="auth-lead">{ui.message("chooseNewPassword")}</p>
@@ -110,34 +103,27 @@ export function ResetPasswordPage() {
           </p>
         ) : null}
         <FieldGroup>
-          <FormTextField
+          <PasswordControlField
             id="password"
             label={ui.label("newPassword")}
-            type="password"
             autoComplete="new-password"
-            required
             hint={ui.message("passwordHint")}
             error={errors.password}
             registration={register("password")}
           />
-          <FormTextField
+          <PasswordControlField
             id="confirmPassword"
             label={ui.label("confirmNewPassword")}
-            type="password"
             autoComplete="new-password"
-            required
             error={errors.confirmPassword}
             registration={register("confirmPassword")}
           />
         </FieldGroup>
-        <Button
-          type="submit"
-          size="lg"
-          className="mt-6 h-10 w-full"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? ui.label("resettingPassword") : PAGE_TITLE()}
-        </Button>
+        <AuthSubmitButton
+          pending={isSubmitting}
+          pendingLabel={ui.label("resettingPassword")}
+          label={PAGE_TITLE()}
+        />
       </form>
     </section>
   );

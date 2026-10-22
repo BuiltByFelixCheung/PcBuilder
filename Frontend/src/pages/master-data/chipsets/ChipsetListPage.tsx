@@ -33,7 +33,7 @@ import {
   IdSelectField,
   NameField,
 } from "@/components/filters/ListFilters";
-import { MasterDataResults } from "@/components/master-data/MasterDataResults";
+import { MasterDataListResults } from "@/components/master-data/MasterDataResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import { ui } from "@/i18n/translate-enum";
@@ -167,27 +167,20 @@ export function ChipsetListPage() {
           </FieldGroup>
           <FilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <MasterDataResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={visibleItems}
-            filtering={filtering}
-            loadingMessage={ui.empty("loading", { entity: ui.entity("chipsets") })}
-            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("chipsets") })}
-            emptyMessage={ui.empty("noneYet", { entity: ui.entity("chipsets") })}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onImport={excelImport.openImport}
-            newItemTo={chipsetEditPath(newMasterDataEditValue)}
-            newItemLabel={ui.action("newChipset")}
-          />
-        </div>
+        <MasterDataListResults
+          entity="chipsets"
+          empty="noneYet"
+          query={query}
+          items={visibleItems}
+          filtering={filtering}
+          columns={columns}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onImport={excelImport.openImport}
+          newItemTo={chipsetEditPath(newMasterDataEditValue)}
+          newItemLabel={ui.action("newChipset")}
+        />
       </div>
       {editingId ? (
         <ChipsetFormDialog

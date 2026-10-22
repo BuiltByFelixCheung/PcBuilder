@@ -46,7 +46,7 @@ public class ChassisFan : ProductEntity
             if (maxFansPerDaisyChain is null)
                 throw new ArgumentException(
                     "Max fans per daisy chain is required when daisy chaining is supported.",
-                    nameof(ChassisFanSpecs.MaxFansPerDaisyChain));
+                    nameof(specs));
 
             ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(maxFansPerDaisyChain.Value, 1);
         }

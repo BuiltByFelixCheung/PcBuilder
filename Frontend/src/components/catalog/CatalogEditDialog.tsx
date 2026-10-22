@@ -3,14 +3,7 @@ import axios from "axios";
 import { parseApiError } from "@/api/errors.ts";
 import type { CatalogField } from "@/components/catalog/CatalogFields";
 import { CatalogFieldRows } from "@/components/catalog/CatalogCreateForm";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { CatalogItemDialog } from "@/components/catalog/CatalogItemDialog";
 import { FieldGroup } from "@/components/ui/field";
 import { ui } from "@/i18n/translate-enum";
 
@@ -49,37 +42,18 @@ export function CatalogEditDialog<T extends Identified>({
   }
 
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open && !saving) onClose();
-      }}
+    <CatalogItemDialog
+      title={title}
+      error={error}
+      saving={saving}
+      onClose={onClose}
+      onSubmit={() => void save()}
+      submitLabel={saving ? ui.action("saving") : ui.action("save")}
     >
-      <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-full flex-col overflow-hidden sm:max-w-lg">
-        <DialogHeader className="shrink-0">
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
-        {error ? (
-          <p className="form-error shrink-0" role="alert">
-            {error}
-          </p>
-        ) : null}
-        <FieldGroup className="min-h-0 flex-1 gap-3 overflow-y-auto">
-          <CatalogFieldRows fields={fields} item={draft} onChange={setDraft} />
-        </FieldGroup>
-        <DialogFooter className="shrink-0">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={saving}
-            onClick={onClose}
-          >{ui.action("cancel")}</Button>
-          <Button type="button" disabled={saving} onClick={() => void save()}>
-            {saving ? ui.action("saving") : ui.action("save")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <FieldGroup className="min-h-0 flex-1 gap-3 overflow-y-auto">
+        <CatalogFieldRows fields={fields} item={draft} onChange={setDraft} />
+      </FieldGroup>
+    </CatalogItemDialog>
   );
 }
 

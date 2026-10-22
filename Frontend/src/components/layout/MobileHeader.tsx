@@ -36,8 +36,8 @@ export function MobileHeader() {
 
   return (
     <header className="app-header mobile-header">
-      <Link to="/" className="brand">
-        <span className="logo" role="img" aria-label="Logo" />
+      <Link to="/" className="brand" aria-label="Logo">
+        <span className="logo" />
       </Link>
       <div className="app-nav">
         <LanguageToggle />

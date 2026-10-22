@@ -10,6 +10,7 @@ import { ListPagination } from "@/components/ListPagination";
 import { PageStatus } from "@/components/PageStatus";
 import { ManagementActions } from "@/components/ManagementActions";
 import { DataTable, type DataTableColumns } from "@/components/ui/data-table";
+import { ui } from "@/i18n/translate-enum";
 
 type CatalogResultsBase<TData extends RowData> = {
   isInitialLoading: boolean;
@@ -146,5 +147,88 @@ export function CatalogPagedResults<TData extends RowData>({
         onPageChange={onPageChange}
       />
     </>
+  );
+}
+
+type CatalogListQuery = {
+  isPending: boolean;
+  data?: unknown;
+  isError: boolean;
+  error: unknown;
+};
+
+type CatalogBulkDelete = {
+  onDeleteSelected: () => void | Promise<void>;
+  isDeleting: boolean;
+  deleteError: string | null;
+};
+
+export function CatalogListResults<TData extends RowData>({
+  entity,
+  query,
+  items,
+  filtering,
+  columns,
+  isAdmin,
+  newItemLabel,
+  newItemTo,
+  onNewItem,
+  rowSelection,
+  onRowSelectionChange,
+  bulkDelete,
+  onImport,
+  onEditSelected,
+  pageIndex,
+  pageCount,
+  onPageChange,
+}: Readonly<{
+  entity: string;
+  query: CatalogListQuery;
+  items: TData[];
+  filtering: boolean;
+  columns: DataTableColumns<TData>;
+  isAdmin: boolean;
+  newItemLabel: string;
+  newItemTo?: string;
+  onNewItem?: () => void;
+  rowSelection: RowSelectionState;
+  onRowSelectionChange: OnChangeFn<RowSelectionState>;
+  bulkDelete: CatalogBulkDelete;
+  onImport: () => void;
+  onEditSelected?: () => void;
+  pageIndex: number;
+  pageCount: number;
+  onPageChange: (pageIndex: number) => void;
+}>) {
+  return (
+    <div className="catalog-results">
+      <CatalogPagedResults
+        isInitialLoading={query.isPending && !query.data}
+        isError={query.isError}
+        error={query.error}
+        items={items}
+        filtering={filtering}
+        loadingMessage={ui.empty("loading", { entity: ui.entity(entity) })}
+        emptyFilteredMessage={ui.empty("noMatchFilters", {
+          entity: ui.entity(entity),
+        })}
+        emptyMessage={ui.empty("noneInCatalog", { entity: ui.entity(entity) })}
+        isAdmin={isAdmin}
+        newItemLabel={newItemLabel}
+        newItemTo={newItemTo}
+        onNewItem={onNewItem}
+        columns={columns}
+        rowSelection={rowSelection}
+        onRowSelectionChange={onRowSelectionChange}
+        onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
+        deleting={bulkDelete.isDeleting}
+        deleteError={bulkDelete.deleteError}
+        onImport={onImport}
+        onEditSelected={onEditSelected}
+        pageIndex={pageIndex}
+        pageCount={pageCount}
+        onPageChange={onPageChange}
+      />
+    </div>
   );
 }

@@ -7,20 +7,25 @@ import {enumText, ui} from "@/i18n/translate-enum";
 
 type NamedCable = PsuCable & { id: string; name: string };
 
-const cableTypeField = enumSelectField<NamedCable, PsuCableType>(
-  ui.label("type"),
-  "type",
-  PSU_CABLE_TYPES,
-  { label: enumText.psuCableType },
-);
+function cableTypeControl(
+  row: PsuCable,
+  update: (next: PsuCable) => void,
+) {
+  const field = enumSelectField<NamedCable, PsuCableType>(
+    ui.label("type"),
+    "type",
+    PSU_CABLE_TYPES,
+    { label: enumText.psuCableType },
+  );
+  return field.control({ ...row, id: "", name: "" }, (next) => {
+    update({ ...row, type: next.type });
+  });
+}
 
 export const cableColumns: ChildCollectionColumn<PsuCable>[] = [
   {
     header: () => ui.header("type"),
-    cell: (row, update) => 
-      cableTypeField.control({ ...row, id: "", name: "" }, (next) => {
-        update({ ...row, type: next.type });
-      }),
+    cell: (row, update) => cableTypeControl(row, update),
   },
   {
     header: () => ui.header("cables"),

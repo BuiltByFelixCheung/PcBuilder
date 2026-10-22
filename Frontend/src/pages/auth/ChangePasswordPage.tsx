@@ -8,8 +8,11 @@ import {
   type ChangePasswordValues,
 } from "../../auth/schemas.ts";
 import { useAuth } from "../../auth/use-auth.ts";
-import { FormTextField } from "@/components/FormTextField.tsx";
-import { Button } from "@/components/ui/button";
+import {
+  AuthSubmitButton,
+  AuthSuccessDialog,
+  PasswordControlField,
+} from "@/components/auth/AuthFormParts";
 import { FieldGroup } from "@/components/ui/field";
 import { applyApiFieldErrors } from "../../lib/rhf-api-errors.ts";
 import { ui } from "@/i18n/translate-enum";
@@ -86,23 +89,13 @@ export function ChangePasswordPage() {
 
   return (
     <section className="auth-page">
-      <dialog
-        className="auth-dialog"
+      <AuthSuccessDialog
         open={dialogOpen}
-        aria-labelledby="change-success-title"
-      >
-        <div className="auth-dialog-card">
-          <h2 id="change-success-title">{ui.message("passwordChanged")}</h2>
-          <p>{ui.message("passwordUpdatedSignInAgain")}</p>
-          <button
-            type="button"
-            className="auth-submit"
-            onClick={() => void handleLogout()}
-          >
-            {ui.action("close")}
-          </button>
-        </div>
-      </dialog>
+        titleId="change-success-title"
+        title={ui.message("passwordChanged")}
+        message={ui.message("passwordUpdatedSignInAgain")}
+        onClose={() => void handleLogout()}
+      />
       <form className="auth-card" onSubmit={handleSubmit(onSubmit)} noValidate>
         <h1>{PAGE_TITLE()}</h1>
         <p className="auth-lead">{ui.message("chooseNewPassword")}</p>
@@ -112,43 +105,34 @@ export function ChangePasswordPage() {
           </p>
         ) : null}
         <FieldGroup>
-          <FormTextField
+          <PasswordControlField
             id="currentPassword"
             label={ui.label("currentPassword")}
-            type="password"
             autoComplete="current-password"
-            required
             error={errors.currentPassword}
             registration={register("currentPassword")}
           />
-          <FormTextField
+          <PasswordControlField
             id="newPassword"
             label={ui.label("newPassword")}
-            type="password"
             autoComplete="new-password"
-            required
             hint={ui.message("passwordHint")}
             error={errors.newPassword}
             registration={register("newPassword")}
           />
-          <FormTextField
+          <PasswordControlField
             id="confirmNewPassword"
             label={ui.label("confirmNewPassword")}
-            type="password"
             autoComplete="new-password"
-            required
             error={errors.confirmNewPassword}
             registration={register("confirmNewPassword")}
           />
         </FieldGroup>
-        <Button
-          type="submit"
-          size="lg"
-          className="mt-6 h-10 w-full"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? ui.label("changingPassword") : PAGE_TITLE()}
-        </Button>
+        <AuthSubmitButton
+          pending={isSubmitting}
+          pendingLabel={ui.label("changingPassword")}
+          label={PAGE_TITLE()}
+        />
       </form>
     </section>
   );

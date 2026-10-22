@@ -42,7 +42,7 @@ import {
 import { usePcBuild } from "@/builds/use-pc-build";
 import { unsetCatalogItem } from "@/components/catalog/catalog-create";
 import { CatalogCreateDialog } from "@/components/catalog/CatalogCreateDialog";
-import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { CatalogListResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importStorageDrives } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
@@ -302,32 +302,24 @@ export function StorageListPage() {
           </CatalogFilterGroup>
           <CatalogFilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <CatalogPagedResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={items}
-            filtering={filtering}
-            loadingMessage={ui.empty("loading", { entity: ui.entity("storageDrives") })}
-            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("storageDrives") })}
-            emptyMessage={ui.empty("noneInCatalog", { entity: ui.entity("storageDrives") })}
-            isAdmin={isAdmin}
-            newItemLabel={ui.action("newStorageDrive")}
-            onNewItem={() => setCreating(true)}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onImport={excelImport.openImport}
-            onEditSelected={startEditing}
-            pageIndex={pageIndex}
-            pageCount={pageCount}
-            onPageChange={goToPage}
-          />
-        </div>
+        <CatalogListResults
+          entity="storageDrives"
+          query={query}
+          items={items}
+          filtering={filtering}
+          columns={columns}
+          isAdmin={isAdmin}
+          newItemLabel={ui.action("newStorageDrive")}
+          onNewItem={() => setCreating(true)}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onImport={excelImport.openImport}
+          onEditSelected={startEditing}
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          onPageChange={goToPage}
+        />
       </div>
       {creating ? (
         <CatalogCreateDialog

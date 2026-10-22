@@ -20,12 +20,11 @@ import {
   MasterDataOptions,
 } from "@/components/master-data/MasterDataDialogShell";
 import { FormTextField } from "@/components/FormTextField";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { NamedSelect } from "@/components/master-data/NamedSelect";
 import {
   applyApiFieldErrors,
   applyApiFormError,
 } from "@/lib/rhf-api-errors.ts";
-import { formSelectClassName } from "@/components/filters/ListFilters";
 import { clearSocketFromAnotherManufacturer } from "@/lib/master-data-edit";
 import { useState } from "react";
 import { ui } from "@/i18n/translate-enum";
@@ -207,49 +206,30 @@ function ChipsetFields({
         error={errors.name}
         registration={register("name")}
       />
-      <Field data-invalid={errors.manufacturerId ? true : undefined}>
-        <FieldLabel htmlFor="chipset-edit-manufacturer">{ui.label("manufacturer")}</FieldLabel>
-        <select
-          id="chipset-edit-manufacturer"
-          className={formSelectClassName}
-          aria-invalid={errors.manufacturerId ? true : undefined}
-          {...manufacturerRegistration}
-          onChange={(event) => {
-            void manufacturerRegistration.onChange(event);
-            clearSocketFromAnotherManufacturer(
-              event.target.value,
-              sockets,
-              getValues("socketId"),
-              setValue,
-            );
-          }}
-        >
-          <option value="">{ui.label("selectManufacturer")}</option>
-          {manufacturers.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
-        <FieldError errors={[errors.manufacturerId]} />
-      </Field>
-      <Field data-invalid={errors.socketId ? true : undefined}>
-        <FieldLabel htmlFor="chipset-edit-socket">{ui.label("socket")}</FieldLabel>
-        <select
-          id="chipset-edit-socket"
-          className={formSelectClassName}
-          aria-invalid={errors.socketId ? true : undefined}
-          {...register("socketId")}
-        >
-          <option value="">{ui.label("selectSocket")}</option>
-          {socketOptions.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
-        <FieldError errors={[errors.socketId]} />
-      </Field>
+      <NamedSelect
+        id="chipset-edit-manufacturer"
+        label={ui.label("manufacturer")}
+        error={errors.manufacturerId}
+        registration={manufacturerRegistration}
+        placeholder={ui.label("selectManufacturer")}
+        options={manufacturers}
+        onChange={(event) =>
+          clearSocketFromAnotherManufacturer(
+            event.target.value,
+            sockets,
+            getValues("socketId"),
+            setValue,
+          )
+        }
+      />
+      <NamedSelect
+        id="chipset-edit-socket"
+        label={ui.label("socket")}
+        error={errors.socketId}
+        registration={register("socketId")}
+        placeholder={ui.label("selectSocket")}
+        options={socketOptions}
+      />
     </MasterDataFormShell>
   );
 }

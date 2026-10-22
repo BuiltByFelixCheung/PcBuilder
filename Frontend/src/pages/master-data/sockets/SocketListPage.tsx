@@ -42,7 +42,7 @@ import {
   formSelectClassName,
   NameField,
 } from "@/components/filters/ListFilters";
-import { MasterDataResults } from "@/components/master-data/MasterDataResults";
+import { MasterDataListResults } from "@/components/master-data/MasterDataResults";
 import { ui } from "@/i18n/translate-enum";
 
 const EMPTY_ITEMS: SocketOption[] = [];
@@ -172,28 +172,21 @@ export function SocketListPage() {
           </FieldGroup>
           <FilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <MasterDataResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={visibleItems}
-            filtering={filtering}
-            loadingMessage={ui.empty("loading", { entity: ui.entity("sockets") })}
-            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("sockets") })}
-            emptyMessage={ui.empty("noneYet", { entity: ui.entity("sockets") })}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onEditSelected={startEditing}
-            onImport={excelImport.openImport}
-            newItemTo={socketEditPath(newMasterDataEditValue)}
-            newItemLabel={ui.action("newSocket")}
-          />
-        </div>
+        <MasterDataListResults
+          entity="sockets"
+          empty="noneYet"
+          query={query}
+          items={visibleItems}
+          filtering={filtering}
+          columns={columns}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onEditSelected={startEditing}
+          onImport={excelImport.openImport}
+          newItemTo={socketEditPath(newMasterDataEditValue)}
+          newItemLabel={ui.action("newSocket")}
+        />
       </div>
       {editRows ? (
         <BulkEditDialog

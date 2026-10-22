@@ -33,7 +33,7 @@ import {
 import { dataTableFeatures } from "@/components/ui/data-table-features";
 import { createSelectionColumn } from "@/components/ui/selection-column";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MasterDataResults } from "@/components/master-data/MasterDataResults";
+import { MasterDataListResults } from "@/components/master-data/MasterDataResults";
 import {
   FilterActions,
   NameField,
@@ -176,28 +176,21 @@ export function CpuSeriesListPage() {
           </FieldGroup>
           <FilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <MasterDataResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={visibleItems}
-            filtering={filtering}
-            loadingMessage={ui.empty("loading", { entity: ui.entity("cpuSeries") })}
-            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("cpuSeries") })}
-            emptyMessage={ui.empty("noneYet", { entity: ui.entity("cpuSeries") })}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onEditSelected={startEditing}
-            onImport={excelImport.openImport}
-            newItemTo={cpuSeriesEditPath(newMasterDataEditValue)}
-            newItemLabel={ui.action("newCpuSeries")}
-          />
-        </div>
+        <MasterDataListResults
+          entity="cpuSeries"
+          empty="noneYet"
+          query={query}
+          items={visibleItems}
+          filtering={filtering}
+          columns={columns}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onEditSelected={startEditing}
+          onImport={excelImport.openImport}
+          newItemTo={cpuSeriesEditPath(newMasterDataEditValue)}
+          newItemLabel={ui.action("newCpuSeries")}
+        />
       </div>
       {editRows ? (
         <BulkEditDialog

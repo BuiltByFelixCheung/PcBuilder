@@ -7,6 +7,7 @@ import {
   createManufacturer,
   deleteManufacturer,
   MANUFACTURER_PRODUCT_TYPES,
+  manufacturerProductTypeLabel,
   masterDataKeys,
   updateManufacturer,
   type Manufacturer,
@@ -188,7 +189,7 @@ function ManufacturerFields({
                     });
                   }}
                 />
-                {type.label}
+                {manufacturerProductTypeLabel(type.value)}
               </label>
             );
           })}

@@ -5,7 +5,10 @@ import { parseApiError } from "../../api/errors.ts";
 import { registerSchema, type RegisterValues } from "../../auth/schemas.ts";
 import { useAuth } from "../../auth/use-auth.ts";
 import { FormTextField } from "../../components/FormTextField.tsx";
-import { Button } from "@/components/ui/button";
+import {
+  AuthSubmitButton,
+  PasswordControlField,
+} from "@/components/auth/AuthFormParts";
 import { FieldGroup } from "@/components/ui/field";
 import {
   applyApiFieldErrors,
@@ -82,34 +85,27 @@ export function RegisterPage() {
             error={errors.email}
             registration={register("email")}
           />
-          <FormTextField
+          <PasswordControlField
             id="password"
             label={ui.label("password")}
-            type="password"
             autoComplete="new-password"
-            required
             hint={ui.message("passwordHint")}
             error={errors.password}
             registration={register("password")}
           />
-          <FormTextField
+          <PasswordControlField
             id="confirmPassword"
             label={ui.label("confirmPassword")}
-            type="password"
             autoComplete="new-password"
-            required
             error={errors.confirmPassword}
             registration={register("confirmPassword")}
           />
         </FieldGroup>
-        <Button
-          type="submit"
-          size="lg"
-          className="mt-6 h-10 w-full"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? ui.label("creatingAccount") : ui.page("createAccount")}
-        </Button>
+        <AuthSubmitButton
+          pending={isSubmitting}
+          pendingLabel={ui.label("creatingAccount")}
+          label={ui.page("createAccount")}
+        />
         <p className="auth-switch" style={{ textAlign: "center" }}>
           {ui.message("alreadyHaveAccount")} <Link to="/login">{ui.action("signIn")}</Link>
         </p>

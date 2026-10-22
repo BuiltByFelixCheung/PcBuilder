@@ -27,7 +27,7 @@ public static class MotherboardMemoryCompatibility
             board.RamSlots);
 
     public static Expression<Func<Ram, bool>> Filter(Motherboard board) =>
-        CompatibilityExpression.Bind(
+        CompatibilityExpression.Bind<Ram>(
             Body,
             board.DdrGeneration,
             board.RamFormFactor,
@@ -76,7 +76,7 @@ public static class CpuMemoryCompatibility
     public static Expression<Func<Ram, bool>> Filter(Cpu cpu)
     {
         var clauses = cpu.RamCompats
-            .Select(compat => CompatibilityExpression.Bind(
+            .Select(compat => CompatibilityExpression.Bind<Ram>(
                 ConfigMatches,
                 compat.DdrGeneration,
                 compat.RamModuleCount,

@@ -11,7 +11,7 @@ export function LanguageToggle() {
   const current = selectedLanguage(i18n.resolvedLanguage ?? i18n.language);
 
   return (
-    <div className="language-toggle" role="group" aria-label={ui.label("language")}>
+    <fieldset className="language-toggle" aria-label={ui.label("language")}>
       {LANGUAGES.map((language) => (
         <button
           key={language.code}
@@ -26,6 +26,6 @@ export function LanguageToggle() {
           {language.shortLabel}
         </button>
       ))}
-    </div>
+    </fieldset>
   );
 }

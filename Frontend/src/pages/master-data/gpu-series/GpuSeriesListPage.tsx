@@ -36,7 +36,7 @@ import {
   formSelectClassName,
   NameField,
 } from "@/components/filters/ListFilters";
-import { MasterDataResults } from "@/components/master-data/MasterDataResults";
+import { MasterDataListResults } from "@/components/master-data/MasterDataResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { useExcelImport } from "@/hooks/use-excel-import";
 import { ui } from "@/i18n/translate-enum";
@@ -168,28 +168,21 @@ export function GpuSeriesListPage() {
           </FieldGroup>
           <FilterActions onClear={clearFilters} />
         </form>
-        <div className="catalog-results">
-          <MasterDataResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={visibleItems}
-            filtering={filtering}
-            loadingMessage={ui.empty("loading", { entity: ui.entity("gpuSeries") })}
-            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("gpuSeries") })}
-            emptyMessage={ui.empty("noneFound", { entity: ui.entity("gpuSeries") })}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onEditSelected={startEditing}
-            onImport={excelImport.openImport}
-            newItemTo={gpuSeriesEditPath(newMasterDataEditValue)}
-            newItemLabel={ui.action("newGpuSeries")}
-          />
-        </div>
+        <MasterDataListResults
+          entity="gpuSeries"
+          empty="noneFound"
+          query={query}
+          items={visibleItems}
+          filtering={filtering}
+          columns={columns}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onEditSelected={startEditing}
+          onImport={excelImport.openImport}
+          newItemTo={gpuSeriesEditPath(newMasterDataEditValue)}
+          newItemLabel={ui.action("newGpuSeries")}
+        />
       </div>
       {editRows ? (
         <BulkEditDialog

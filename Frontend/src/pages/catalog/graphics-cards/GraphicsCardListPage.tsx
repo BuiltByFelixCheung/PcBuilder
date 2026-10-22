@@ -1,6 +1,10 @@
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { catalogLeadColumns } from "@/components/catalog/CatalogLeadColumns";
+import {
+  catalogLeadColumns,
+  unitColumn,
+  yesNoColumn,
+} from "@/components/catalog/CatalogLeadColumns";
 import { beginBulkEdit } from "@/lib/begin-bulk-edit";
 import { deleteGraphicsCards } from "@/api/catalog/bulk-delete";
 import {
@@ -41,7 +45,7 @@ import {
 import { usePcBuild } from "@/builds/use-pc-build";
 import { unsetCatalogItem } from "@/components/catalog/catalog-create";
 import { CatalogCreateDialog } from "@/components/catalog/CatalogCreateDialog";
-import { CatalogPagedResults } from "@/components/catalog/CatalogResults";
+import { CatalogListResults } from "@/components/catalog/CatalogResults";
 import { useBulkDelete } from "@/hooks/use-bulk-delete";
 import { importGraphicsCards } from "@/api/catalog/import-excel";
 import { useExcelImport } from "@/hooks/use-excel-import";
@@ -114,35 +118,27 @@ export function GraphicsCardListPage() {
           (id) => `/catalog/graphics-cards/${id}`,
         ),
         columnHelper.accessor("gpuName", { header: ui.header("gpu") }),
-        columnHelper.accessor("videoMemoryGb", {
-          header: ui.header("videoMemory"),
-          cell: (info) => `${info.getValue()} ${ui.unit("gb")}`,
-        }),
+        unitColumn(
+          columnHelper,
+          "videoMemoryGb",
+          ui.header("videoMemory"),
+          ui.unit("gb"),
+        ),
         columnHelper.accessor("pcieSlotsUsed", { header: ui.header("pcieSlotsUsed") }),
         columnHelper.accessor("pcieGeneration", {
           header: ui.header("pcieGeneration"),
           cell: (info) => enumText.pcieGeneration(info.getValue()),
         }),
-        columnHelper.accessor("isLowProfile", {
-          header: ui.header("isLowProfile"),
-          cell: (info) => (info.getValue() ? ui.label("yes") : ui.label("no")),
-        }),
-        columnHelper.accessor("lengthMm", {
-          header: ui.header("length"),
-          cell: (info) => `${info.getValue()} ${ui.unit("mm")}`,
-        }),
-        columnHelper.accessor("widthMm", {
-          header: ui.header("width"),
-          cell: (info) => `${info.getValue()} ${ui.unit("mm")}`,
-        }),
-        columnHelper.accessor("heightMm", {
-          header: ui.header("height"),
-          cell: (info) => `${info.getValue()} ${ui.unit("mm")}`,
-        }),
-        columnHelper.accessor("powerConsumptionWatts", {
-          header: ui.header("powerConsumption"),
-          cell: (info) => `${info.getValue()} ${ui.unit("watts")}`,
-        }),
+        yesNoColumn(columnHelper, "isLowProfile", ui.header("isLowProfile")),
+        unitColumn(columnHelper, "lengthMm", ui.header("length"), ui.unit("mm")),
+        unitColumn(columnHelper, "widthMm", ui.header("width"), ui.unit("mm")),
+        unitColumn(columnHelper, "heightMm", ui.header("height"), ui.unit("mm")),
+        unitColumn(
+          columnHelper,
+          "powerConsumptionWatts",
+          ui.header("powerConsumption"),
+          ui.unit("watts"),
+        ),
         columnHelper.accessor("powerConnectorType", {
           header: ui.header("powerConnectorType"),
         }),
@@ -431,32 +427,24 @@ export function GraphicsCardListPage() {
           <CatalogFilterActions onClear={clearFilters} />
         </form>
 
-        <div className="catalog-results">
-          <CatalogPagedResults
-            isInitialLoading={query.isPending && !query.data}
-            isError={query.isError}
-            error={query.error}
-            items={items}
-            filtering={filtering}
-            loadingMessage={ui.empty("loading", { entity: ui.entity("graphicsCards") })}
-            emptyFilteredMessage={ui.empty("noMatchFilters", { entity: ui.entity("graphicsCards") })}
-            emptyMessage={ui.empty("noneInCatalog", { entity: ui.entity("graphicsCards") })}
-            isAdmin={isAdmin}
-            newItemLabel={ui.action("newGraphicsCard")}
-            onNewItem={() => setCreating(true)}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onDeleteSelected={() => void bulkDelete.onDeleteSelected()}
-            deleting={bulkDelete.isDeleting}
-            deleteError={bulkDelete.deleteError}
-            onImport={excelImport.openImport}
-            onEditSelected={startEditing}
-            pageIndex={pageIndex}
-            pageCount={pageCount}
-            onPageChange={goToPage}
-          />
-        </div>
+        <CatalogListResults
+          entity="graphicsCards"
+          query={query}
+          items={items}
+          filtering={filtering}
+          columns={columns}
+          isAdmin={isAdmin}
+          newItemLabel={ui.action("newGraphicsCard")}
+          onNewItem={() => setCreating(true)}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkDelete={bulkDelete}
+          onImport={excelImport.openImport}
+          onEditSelected={startEditing}
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          onPageChange={goToPage}
+        />
       </div>
       {creating ? (
         <CatalogCreateDialog
