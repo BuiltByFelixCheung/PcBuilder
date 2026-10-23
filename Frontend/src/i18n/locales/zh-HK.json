@@ -6,8 +6,8 @@
         "Ddr5": "DDR5"
       },
       "Rank": {
-        "SingleRank": "單排",
-        "DualRank": "雙排"
+        "SingleRank": "單面",
+        "DualRank": "雙面"
       },
       "FormFactor": {
         "UDimm": "UDIMM",
@@ -34,8 +34,8 @@
         "X16": "x16"
       },
       "SlotOrientation": {
-        "Vertical": "垂直",
-        "Horizontal": "水平"
+        "Vertical": "直立",
+        "Horizontal": "橫向"
       }
     },
     "Motherboard": {
@@ -211,8 +211,8 @@
       },
       "Status": {
         "Incompatible": "不兼容",
-        "CompatibleActionRequired": "兼容，需要處理",
-        "CompatibleReduced": "兼容，但有所降低",
+        "CompatibleActionRequired": "兼容，但需要額外處理",
+        "CompatibleReduced": "兼容，但性能較差",
         "Compatible": "兼容"
       },
       "Reasons": {
@@ -259,7 +259,7 @@
     "ddr": "DDR",
     "ddrGeneration": "DDR 世代",
     "ramFormFactor": "記憶體規格",
-    "ramRank": "記憶體 Rank",
+    "ramRank": "單面/雙面",
     "ramSlots": "記憶體插槽",
     "moduleSize": "單條容量",
     "kitSize": "套裝容量",
@@ -333,13 +333,13 @@
     "orientation": "方向",
     "options": "選項",
     "profile": "高度規格",
-    "isLowProfile": "矮版",
+    "isLowProfile": "半高規格",
     "singleDiameter": "單一尺寸",
     "location": "位置",
     "productLines": "產品線",
     "supportedMbFormFactors": "支援的主機板規格",
     "public": "公開",
-    "rank": "秩",
+    "rank": "單面/雙面",
     "yes": "是",
     "no": "否",
     "any": "全部",
@@ -352,7 +352,7 @@
     "pcieSlot": "PCIe 插槽",
     "pcieSlots": "PCIe 插槽",
     "slotWidth": "插槽寬度",
-    "lowProfile": "矮版",
+    "lowProfile": "半高規格",
     "usbVersion": "USB 版本",
     "usbType": "USB 類型",
     "usbPorts": "USB 接口",
@@ -467,13 +467,13 @@
     "pcieType": "PCIe 類型",
     "pcieLanes": "PCIe 通道",
     "ddrGenerationShort": "DDR 世代",
-    "ramRankShort": "記憶體 Rank",
+    "ramRankShort": "單面/雙面",
     "required": "需要",
     "notRequired": "不需要",
     "included": "已附",
     "notIncluded": "未附",
-    "fullHeightTitle": "標準高度",
-    "lowProfileTitle": "矮版",
+    "fullHeightTitle": "全高",
+    "lowProfileTitle": "半高",
     "noDescription": "沒有描述。",
     "tdpMax": "TDP 上限",
     "powerMax": "功率上限",
@@ -553,7 +553,7 @@
     "ddr": "DDR",
     "ddrGeneration": "DDR 世代",
     "ramFormFactor": "記憶體規格",
-    "ramRank": "記憶體 Rank",
+    "ramRank": "單面/雙面",
     "ramSlots": "記憶體插槽",
     "moduleSize": "單條容量",
     "kitSize": "套裝容量",
@@ -611,7 +611,7 @@
     "orientation": "方向",
     "options": "選項",
     "profile": "高度規格",
-    "isLowProfile": "矮版",
+    "isLowProfile": "半高規格",
     "singleDiameter": "單一尺寸",
     "location": "位置",
     "productLines": "產品線",
@@ -636,7 +636,7 @@
     "epsConnectors": "EPS 接頭",
     "supportedMbFormFactors": "支援的主機板規格",
     "public": "公開",
-    "rank": "秩",
+    "rank": "單面/雙面",
     "yes": "是",
     "no": "否",
     "any": "全部",
@@ -649,7 +649,7 @@
     "pcieSlot": "PCIe 插槽",
     "pcieSlots": "PCIe 插槽",
     "slotWidth": "插槽寬度",
-    "lowProfile": "矮版",
+    "lowProfile": "半高規格",
     "usbVersion": "USB 版本",
     "usbType": "USB 類型",
     "usbPorts": "USB 接口",
@@ -726,7 +726,7 @@
     "editPsuFormFactors": "編輯電源規格",
     "editBuild": "編輯砌機組合",
     "editThisBuild": "編輯此組裝",
-    "startABuild": "開始砌機組合",
+    "startABuild": "開始砌機",
     "openBuilder": "開啟砌機系統",
     "browseChassis": "瀏覽機箱",
     "viewBuild": "查看砌機組合",
@@ -845,7 +845,7 @@
     "noneFound": "找不到{{entity}}。",
     "noneSimple": "沒有{{entity}}。",
     "notFound": "找不到{{entity}}",
-    "noPublicBuilds": "尚未有公開組裝。",
+    "noPublicBuilds": "尚未有公開砌機組合。",
     "notFoundEntity": "找不到{{entity}}",
     "noUsbPorts": "沒有 USB 接口。",
     "noM2Slots": "沒有 M.2 插槽。",
@@ -855,7 +855,7 @@
     "noSupportedSockets": "沒有支援的插座。",
     "backTo": "返回{{entity}}",
     "notFoundDot": "找不到{{entity}}。",
-    "noPublicBuildsStart": "尚未有公開組裝。",
+    "noPublicBuildsStart": "尚未有公開砌機組合。",
     "motherboardNotFound": "找不到主機板。",
     "chassisNotFound": "找不到機箱。",
     "chassisFanNotFound": "找不到機箱風扇。",
@@ -884,7 +884,7 @@
       "wiredNetworkAdapters": "有線網絡適配器",
       "wirelessNetworkAdapters": "無線網絡適配器"
     },
-    "saveBuild": "儲存組裝",
+    "saveBuild": "儲存砌機組合",
     "compatibility": "兼容性"
   },
   "units": {
@@ -959,8 +959,8 @@
   },
   "pages": {
     "account": "帳戶",
-    "browseBuilds": "瀏覽組裝",
-    "myBuilds": "我的組裝",
+    "browseBuilds": "瀏覽砌機組合",
+    "myBuilds": "我的砌機組合",
     "signIn": "登入",
     "createAccount": "建立帳戶",
     "forgotPassword": "忘記密碼",
@@ -1014,7 +1014,7 @@
     "ram": "記憶體"
   },
   "messages": {
-    "homeLead": "揀零件、檢查兼容性，然後儲存砌機組合。公開砌機組合會顯示在「瀏覽砌機組合」；私人組裝則留在「我的砌機組合」。",
+    "homeLead": "揀零件、檢查兼容性，然後儲存砌機組合。公開砌機組合會顯示在「瀏覽砌機組合」；私人砌機組合則留在「我的砌機組合」。",
     "startBuildDescription": "開啟砌機系統，逐個插槽加入零件。",
     "browseBuildsDescription": "查看其他會員分享的公開砌機組合。",
     "partsCatalogDescription": "機箱、處理器、顯示卡及其他庫存。",
