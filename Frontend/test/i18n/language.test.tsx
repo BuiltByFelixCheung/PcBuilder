@@ -49,7 +49,7 @@ describe("language", () => {
       "true",
     );
     expect(enumText.compatibilityStatus("CompatibleActionRequired")).toBe(
-      "兼容，需要處理",
+      "兼容，但需要額外處理",
     );
     expect(enumText.ddrGeneration("Ddr5")).toBe("DDR5");
     expect(enumText.compatibilitySlot("GraphicsCard")).toBe("顯示卡");
@@ -79,6 +79,6 @@ describe("language", () => {
 
     await user.click(screen.getByRole("button", { name: "繁體中文" }));
 
-    expect(await screen.findByText("單排")).toBeInTheDocument();
+    expect(await screen.findByText("單面")).toBeInTheDocument();
   });
 });
