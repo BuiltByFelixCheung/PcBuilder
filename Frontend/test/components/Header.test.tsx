@@ -34,6 +34,7 @@ describe("header chrome", () => {
   afterEach(() => {
     document.documentElement.classList.remove("dark");
     localStorage.removeItem("theme");
+    document.querySelector('link[rel="icon"]')?.remove();
   });
 
   it("switches between light and dark mode", async () => {
@@ -50,12 +51,20 @@ describe("header chrome", () => {
     );
     expect(document.documentElement).toHaveClass("dark");
     expect(localStorage.getItem("theme")).toBe("dark");
+    expect(document.querySelector('link[rel="icon"]')).toHaveAttribute(
+      "href",
+      "/favicon-dark.svg",
+    );
 
     await user.click(
       screen.getByRole("button", { name: "Switch to light mode" }),
     );
     expect(document.documentElement).not.toHaveClass("dark");
     expect(localStorage.getItem("theme")).toBe("light");
+    expect(document.querySelector('link[rel="icon"]')).toHaveAttribute(
+      "href",
+      "/favicon.svg",
+    );
   });
 
   it("renders guest links and signed-in actions", async () => {

@@ -16,6 +16,13 @@
             theme = "dark";
           }
           document.documentElement.classList.toggle("dark", theme === "dark");
+          var icon = document.querySelector('link[rel="icon"]');
+          if (icon) {
+            icon.setAttribute(
+              "href",
+              theme === "dark" ? "/favicon-dark.svg" : "/favicon.svg",
+            );
+          }
         } catch {
           /* keep the light palette when storage is unavailable */
         }

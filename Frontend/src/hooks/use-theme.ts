@@ -15,8 +15,26 @@ function systemTheme(): Theme {
   return window.matchMedia(DARK_QUERY).matches ? "dark" : "light";
 }
 
+const FAVICON: Record<Theme, string> = {
+  light: "/favicon.svg",
+  dark: "/favicon-dark.svg",
+};
+
+function applyFavicon(theme: Theme) {
+  const href = FAVICON[theme];
+  const current = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+  if (current?.getAttribute("href") === href) return;
+
+  const link = document.createElement("link");
+  link.rel = "icon";
+  link.type = "image/svg+xml";
+  link.setAttribute("href", href);
+  current?.replaceWith(link) ?? document.head.appendChild(link);
+}
+
 function applyTheme(theme: Theme) {
   document.documentElement.classList.toggle("dark", theme === "dark");
+  applyFavicon(theme);
 }
 
 export function useTheme() {
