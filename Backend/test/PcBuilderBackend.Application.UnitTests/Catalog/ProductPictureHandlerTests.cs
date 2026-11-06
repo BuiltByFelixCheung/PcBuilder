@@ -101,6 +101,43 @@ public class ProductPictureHandlerTests
     }
 
     [Fact]
+    public async Task Upload_removes_the_object_when_saving_the_row_is_canceled()
+    {
+        _storage.UploadAsync(
+                Arg.Any<Stream>(),
+                "cpu.jpg",
+                "image/jpeg",
+                Arg.Any<CancellationToken>())
+            .Returns("pc-builder/cpu.jpg");
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
+            .ThrowsAsync(new OperationCanceledException(cancellation.Token));
+
+        await using var content = new MemoryStream([1]);
+        var act = async () => await new UploadProductPictureHandler(
+                _pictures,
+                _storage,
+                _unitOfWork,
+                _mapper,
+                NullLogger<UploadProductPictureHandler>.Instance)
+            .Handle(
+                new UploadProductPictureCommand(
+                    ProductType.Cpu,
+                    Guid.NewGuid(),
+                    content,
+                    "cpu.jpg",
+                    "image/jpeg",
+                    content.Length),
+                cancellation.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+        await _storage.Received(1).DeleteAsync(
+            "pc-builder/cpu.jpg",
+            Arg.Is<CancellationToken>(token => !token.IsCancellationRequested));
+    }
+
+    [Fact]
     public async Task Delete_removes_the_object_then_deactivates_the_row()
     {
         var picture = new ProductPicture(ProductType.Psu, Guid.NewGuid(), "pc-builder/psu.png");

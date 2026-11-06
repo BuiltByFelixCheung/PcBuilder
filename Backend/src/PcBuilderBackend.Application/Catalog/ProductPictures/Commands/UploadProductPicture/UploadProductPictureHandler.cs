@@ -34,7 +34,7 @@ public class UploadProductPictureHandler(
         }
         catch (Exception exception)
         {
-            await RemoveOrphanObject(key, exception, cancellationToken);
+            await RemoveOrphanObject(key, exception);
             throw;
         }
 
@@ -42,14 +42,13 @@ public class UploadProductPictureHandler(
         return mapper.Map<ProductPictureDto>(entity);
     }
 
-    private async Task RemoveOrphanObject(
-        string key,
-        Exception saveFailure,
-        CancellationToken cancellationToken)
+    private async Task RemoveOrphanObject(string key, Exception saveFailure)
     {
         try
         {
-            await storage.DeleteAsync(key, cancellationToken);
+            // The request token is often already canceled. Cleanup still has to
+            // delete the object that has no matching row.
+            await storage.DeleteAsync(key, CancellationToken.None);
         }
         catch (Exception cleanupFailure)
         {
