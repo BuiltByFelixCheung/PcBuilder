@@ -6,6 +6,7 @@ import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import { AddToBuildButton } from "@/builds";
 import { useAuth } from "@/auth/use-auth";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
+import { ProductPictures } from "@/components/catalog/ProductPictures";
 import {
   CatalogDetailFrame,
   SpecRow,
@@ -60,6 +61,10 @@ export function WiredNetworkAdapterDetailPage() {
     >
       {adapter ? (
         <>
+          <ProductPictures
+            productType="WiredNetworkAdapter"
+            productId={adapter.id}
+          />
           {editing ? (
             <CatalogEditDialog
               title={ui.dialog("editWiredNetworkAdapter")}

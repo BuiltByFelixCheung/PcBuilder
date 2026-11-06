@@ -33,6 +33,7 @@ internal static partial class EntityLog
     public const string Gpu = "GPU";
     public const string Manufacturer = "Manufacturer";
     public const string Socket = "Socket";
+    public const string ProductPicture = "Product Picture";
 
     // Logger Message for entity operations
     [LoggerMessage(
@@ -203,4 +204,14 @@ internal static partial class EntityLog
         Level = LogLevel.Warning,
         Message = "Not authorized to perform bulk action on {EntityName}.")]
     public static partial void NotAuthorizedBulk(ILogger logger, string entityName);
+
+    [LoggerMessage(
+        EventId = 1028,
+        Level = LogLevel.Error,
+        Message = "Failed to remove uploaded picture {PictureKey} after the picture row could not be saved. {SaveError}")]
+    public static partial void PictureCleanupFailed(
+        ILogger logger,
+        Exception exception,
+        string pictureKey,
+        string saveError);
 }

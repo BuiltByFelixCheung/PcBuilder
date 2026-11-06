@@ -1316,6 +1316,45 @@ namespace PcBuilderBackend.Infrastructure.Persistence.Migrations
                     b.ToTable("PcBuildUsers", (string)null);
                 });
 
+            modelBuilder.Entity("PcBuilderBackend.Domain.Entities.ProductPicture", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ConcurrencyToken")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PictureKey")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<ProductType>("ProductType")
+                        .HasColumnType("product_type");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PictureKey")
+                        .IsUnique();
+
+                    b.HasIndex("ProductType", "ProductId");
+
+                    b.ToTable("ProductPictures");
+                });
+
             modelBuilder.Entity("PcBuilderBackend.Domain.Entities.Psu", b =>
                 {
                     b.Property<Guid>("Id")

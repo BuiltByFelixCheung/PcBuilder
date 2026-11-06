@@ -537,7 +537,8 @@
     "nChipsets": "晶片組",
     "or": "或",
     "na": "不適用",
-    "pagination": "分頁"
+    "pagination": "分頁",
+    "pictureFile": "圖片檔案"
   },
   "headers": {
     "name": "名稱",
@@ -732,6 +733,9 @@
     "viewBuild": "查看砌機組合",
     "viewPublicBuilds": "查看公開砌機組合",
     "importFromExcel": "從 Excel 匯入",
+    "uploadPicture": "上載圖片",
+    "uploadingPicture": "上載中…",
+    "deletePicture": "刪除圖片",
     "requestNewResetLink": "申請新的重設連結",
     "createAccount": "建立帳戶",
     "resetPassword": "重設密碼",
@@ -804,7 +808,8 @@
     "motherboardFormFactors": "主機板規格",
     "psuFormFactors": "電源規格",
     "compatibility": "兼容性",
-    "sockets": "插座"
+    "sockets": "插座",
+    "pictures": "圖片"
   },
   "nav": {
     "catalog": "零件目錄",
@@ -1011,7 +1016,8 @@
     "pcieSlots": "PCIe 插槽",
     "motherboardFormFactors": "主機板規格",
     "psuFormFactors": "電源規格",
-    "ram": "記憶體"
+    "ram": "記憶體",
+    "pictures": "圖片"
   },
   "messages": {
     "homeLead": "揀零件、檢查兼容性，然後儲存砌機組合。公開砌機組合會顯示在「瀏覽砌機組合」；私人砌機組合則留在「我的砌機組合」。",

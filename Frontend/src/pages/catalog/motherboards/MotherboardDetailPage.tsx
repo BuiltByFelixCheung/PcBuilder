@@ -17,6 +17,7 @@ import { builderHref, usePcBuild } from "@/builds";
 import { useAuth } from "@/auth/use-auth";
 import { useState } from "react";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
+import { ProductPictures } from "@/components/catalog/ProductPictures";
 import { ChildCollectionDialog } from "@/components/catalog/ChildCollectionDialog";
 import {
   motherboardKeys,
@@ -107,6 +108,7 @@ export function MotherboardDetailPage() {
           </Button>
         )}
       </div>
+      <ProductPictures productType="Motherboard" productId={motherboard.id} />
       {isEditing ? (
         <CatalogEditDialog
           title={ui.dialog("editMotherboard")}
