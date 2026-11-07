@@ -1,15 +1,23 @@
 import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { parseApiError } from "@/api/errors";
 import {
   deleteProductPicture,
   productPictureContentUrl,
   productPictureKeys,
   uploadProductPicture,
+  type ProductPicture,
   type ProductType,
 } from "@/api/catalog/pictures";
 import { useAuth } from "@/auth/use-auth";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useProductPictures } from "@/hooks/use-product-pictures";
 import { ui } from "@/i18n/translate-enum";
 
@@ -25,6 +33,7 @@ export function ProductPictures({
   const queryClient = useQueryClient();
   const pictures = useProductPictures(productType, productId);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const listKey = productPictureKeys.list(productType, productId);
 
   const upload = useMutation({
@@ -65,10 +74,17 @@ export function ProductPictures({
         <div className="product-pictures-grid">
           {items.map((picture) => (
             <figure className="product-picture" key={picture.id}>
-              <img
-                src={productPictureContentUrl(picture.id)}
-                alt={ui.section("pictures")}
-              />
+              <button
+                type="button"
+                className="product-picture-open"
+                aria-label={ui.action("viewPicture")}
+                onClick={() => setSelectedId(picture.id)}
+              >
+                <img
+                  src={productPictureContentUrl(picture.id)}
+                  alt={ui.section("pictures")}
+                />
+              </button>
               {isAdmin ? (
                 <Button
                   type="button"
@@ -110,6 +126,95 @@ export function ProductPictures({
         </div>
       ) : null}
       {actionError ? <p>{actionError}</p> : null}
+      <ProductPictureViewer
+        pictures={items}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+        onClose={() => setSelectedId(null)}
+      />
     </section>
+  );
+}
+
+function ProductPictureViewer({
+  pictures,
+  selectedId,
+  onSelect,
+  onClose,
+}: Readonly<{
+  pictures: ProductPicture[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onClose: () => void;
+}>) {
+  const selectedIndex = pictures.findIndex((picture) => picture.id === selectedId);
+  const selected = selectedIndex >= 0 ? pictures[selectedIndex] : null;
+  const hasNeighbors = pictures.length > 1;
+
+  function showOffset(offset: number) {
+    if (!hasNeighbors || selectedIndex < 0) return;
+    const next = (selectedIndex + offset + pictures.length) % pictures.length;
+    onSelect(pictures[next].id);
+  }
+
+  return (
+    <Dialog
+      open={selected !== null}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent
+        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] flex-col gap-3 overflow-hidden sm:max-w-4xl"
+        onKeyDown={(event) => {
+          if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            showOffset(-1);
+          } else if (event.key === "ArrowRight") {
+            event.preventDefault();
+            showOffset(1);
+          }
+        }}
+      >
+        <DialogHeader className="pr-8">
+          <DialogTitle>{ui.section("pictures")}</DialogTitle>
+        </DialogHeader>
+        {selected ? (
+          <div className="product-picture-viewer">
+            {hasNeighbors ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label={ui.action("previous")}
+                onClick={() => showOffset(-1)}
+              >
+                <ChevronLeftIcon />
+              </Button>
+            ) : null}
+            <img
+              src={productPictureContentUrl(selected.id)}
+              alt={ui.section("pictures")}
+            />
+            {hasNeighbors ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label={ui.action("next")}
+                onClick={() => showOffset(1)}
+              >
+                <ChevronRightIcon />
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+        {hasNeighbors && selected ? (
+          <p className="text-center text-muted-foreground">
+            {selectedIndex + 1} / {pictures.length}
+          </p>
+        ) : null}
+      </DialogContent>
+    </Dialog>
   );
 }

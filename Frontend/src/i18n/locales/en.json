@@ -735,6 +735,7 @@
     "importFromExcel": "Import from Excel",
     "uploadPicture": "Upload picture",
     "uploadingPicture": "Uploading…",
+    "viewPicture": "View picture",
     "deletePicture": "Delete picture",
     "requestNewResetLink": "Request a new reset link",
     "createAccount": "Create an account",

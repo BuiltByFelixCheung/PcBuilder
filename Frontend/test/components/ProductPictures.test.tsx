@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ProductPicture } from "@/api/catalog/pictures";
@@ -80,6 +80,70 @@ describe("ProductPictures", () => {
 
     await waitFor(() => {
       expect(deleteProductPicture).toHaveBeenCalledWith("picture-1");
+    });
+  });
+
+  it("opens an enlarged picture and closes it", async () => {
+    const user = userEvent.setup();
+    renderPictures(false);
+
+    await user.click(
+      await screen.findByRole("button", { name: "View picture" }),
+    );
+
+    const dialog = await screen.findByRole("dialog", { name: "Pictures" });
+    expect(within(dialog).getByRole("img", { name: "Pictures" })).toHaveAttribute(
+      "src",
+      "/api/catalog/pictures/picture-1/content",
+    );
+    expect(
+      within(dialog).queryByRole("button", { name: "Next" }),
+    ).not.toBeInTheDocument();
+
+    await user.click(within(dialog).getByRole("button", { name: "Close" }));
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+  });
+
+  it("moves between enlarged pictures", async () => {
+    listProductPictures.mockResolvedValue([
+      picture,
+      { ...picture, id: "picture-2" },
+    ]);
+    const user = userEvent.setup();
+    renderPictures(false);
+
+    const [first] = await screen.findAllByRole("button", { name: "View picture" });
+    await user.click(first);
+
+    const dialog = await screen.findByRole("dialog", { name: "Pictures" });
+    expect(within(dialog).getByRole("img", { name: "Pictures" })).toHaveAttribute(
+      "src",
+      "/api/catalog/pictures/picture-1/content",
+    );
+
+    await user.click(within(dialog).getByRole("button", { name: "Next" }));
+    expect(within(dialog).getByRole("img", { name: "Pictures" })).toHaveAttribute(
+      "src",
+      "/api/catalog/pictures/picture-2/content",
+    );
+
+    await user.click(within(dialog).getByRole("button", { name: "Previous" }));
+    expect(within(dialog).getByRole("img", { name: "Pictures" })).toHaveAttribute(
+      "src",
+      "/api/catalog/pictures/picture-1/content",
+    );
+
+    await user.keyboard("{ArrowRight}");
+    expect(within(dialog).getByRole("img", { name: "Pictures" })).toHaveAttribute(
+      "src",
+      "/api/catalog/pictures/picture-2/content",
+    );
+
+    await user.keyboard("{Escape}");
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
 });
