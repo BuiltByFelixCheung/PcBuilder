@@ -21,6 +21,7 @@ import { builderHref, usePcBuild } from "@/builds";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/auth/use-auth";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
+import { ProductPictures } from "@/components/catalog/ProductPictures";
 import {
   cpuCoolerKeys,
   cpuCoolerListItem,
@@ -284,6 +285,7 @@ export function CpuCoolerDetailPage() {
           </Button>
         )}
       </div>
+      <ProductPictures productType="CpuCooler" productId={cooler.id} />
       {editing ? (
         <CatalogEditDialog
           title={ui.dialog("editCpuCooler")}

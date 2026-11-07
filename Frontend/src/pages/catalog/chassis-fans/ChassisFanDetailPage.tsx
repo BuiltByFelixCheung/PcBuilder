@@ -9,6 +9,7 @@ import { formatFanDiameterMm, formatFanHeaderType } from "@/api/enums";
 import { AddToBuildButton } from "@/builds";
 import { useAuth } from "@/auth/use-auth";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
+import { ProductPictures } from "@/components/catalog/ProductPictures";
 import { Button } from "@/components/ui/button";
 import { chassisFanKeys, updateChassisFan } from "@/api/catalog/chassis-fans";
 import { ChassisFanFields } from "@/pages/catalog/chassis-fans/ChassisFanEditColumns";
@@ -58,6 +59,7 @@ export function ChassisFanDetailPage() {
           </Button>
         )}
       </div>
+      <ProductPictures productType="ChassisFan" productId={fan.id} />
       {editing ? (
         <CatalogEditDialog
           title={ui.dialog("editChassisFan")}

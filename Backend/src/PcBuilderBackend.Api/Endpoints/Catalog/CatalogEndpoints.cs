@@ -24,5 +24,6 @@ public static class CatalogEndpoints
         group.MapStorageDriveEndpoints();
         group.MapWiredNetworkAdapterEndpoints();
         group.MapWirelessNetworkAdapterEndpoints();
+        group.MapProductPictureEndpoints();
     }
 }

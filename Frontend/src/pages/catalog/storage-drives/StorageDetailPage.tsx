@@ -9,6 +9,7 @@ import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import { AddToBuildButton } from "@/builds";
 import { useAuth } from "@/auth/use-auth";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
+import { ProductPictures } from "@/components/catalog/ProductPictures";
 import { Button } from "@/components/ui/button";
 import {
   storageDriveKeys,
@@ -69,6 +70,7 @@ export function StorageDetailPage() {
           </Button>
         )}
       </div>
+      <ProductPictures productType="StorageDrive" productId={drive.id} />
       {editing ? (
         <CatalogEditDialog
           title={ui.dialog("editStorageDrive")}

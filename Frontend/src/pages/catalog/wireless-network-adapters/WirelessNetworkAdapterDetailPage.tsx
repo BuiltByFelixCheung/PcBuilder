@@ -12,6 +12,7 @@ import {
 import { enumText, ui } from "@/i18n/translate-enum";
 import { useAuth } from "@/auth/use-auth";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
+import { ProductPictures } from "@/components/catalog/ProductPictures";
 import {
   CatalogDetailFrame,
   SpecRow,
@@ -65,6 +66,10 @@ export function WirelessNetworkAdapterDetailPage() {
     >
       {adapter ? (
         <>
+          <ProductPictures
+            productType="WirelessNetworkAdapter"
+            productId={adapter.id}
+          />
           {editing ? (
             <CatalogEditDialog
               title={ui.dialog("editWirelessNetworkAdapter")}
