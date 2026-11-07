@@ -97,11 +97,11 @@ public class ProductPictureHandlerTests
                 CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
-        await _storage.Received(1).DeleteAsync("pc-builder/cpu.jpg", Arg.Any<CancellationToken>());
+        await _storage.Received(1).DeleteAsync("pc-builder/cpu.jpg", CancellationToken.None);
     }
 
     [Fact]
-    public async Task Upload_removes_the_object_when_saving_the_row_is_canceled()
+    public async Task Upload_removes_the_object_when_saving_is_cancelled()
     {
         _storage.UploadAsync(
                 Arg.Any<Stream>(),
@@ -132,9 +132,7 @@ public class ProductPictureHandlerTests
                 cancellation.Token);
 
         await act.Should().ThrowAsync<OperationCanceledException>();
-        await _storage.Received(1).DeleteAsync(
-            "pc-builder/cpu.jpg",
-            Arg.Is<CancellationToken>(token => !token.IsCancellationRequested));
+        await _storage.Received(1).DeleteAsync("pc-builder/cpu.jpg", CancellationToken.None);
     }
 
     [Fact]
