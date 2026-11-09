@@ -48,7 +48,14 @@ function BuildPictureImage({ id }: Readonly<{ id: string }>) {
 }
 
 function useBuildPictureObjectUrl(id: string) {
-  const [src, setSrc] = useState<string | null>(null);
+  const [picture, setPicture] = useState<{
+    id: string;
+    src: string;
+  } | null>(null);
+
+  if (picture !== null && picture.id !== id) {
+    setPicture(null);
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -61,11 +68,16 @@ function useBuildPictureObjectUrl(id: string) {
         signal: controller.signal,
       })
       .then((response) => {
-        objectUrl = URL.createObjectURL(response.data);
-        if (active) setSrc(objectUrl);
+        const nextUrl = URL.createObjectURL(response.data);
+        if (!active) {
+          URL.revokeObjectURL(nextUrl);
+          return;
+        }
+        objectUrl = nextUrl;
+        setPicture({ id, src: nextUrl });
       })
       .catch(() => {
-        if (active) setSrc(null);
+        if (active) setPicture(null);
       });
 
     return () => {
@@ -75,5 +87,5 @@ function useBuildPictureObjectUrl(id: string) {
     };
   }, [id]);
 
-  return src;
+  return picture?.id === id ? picture.src : null;
 }
