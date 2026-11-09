@@ -24,7 +24,7 @@ public class DeleteBuildPictureHandler(
         }
 
         var build = await builds.GetByIdAsync(entity.BuildId, cancellationToken);
-        if (build is null)
+        if (build is null || !BuildAccess.IsVisible(build, currentUser.UserId))
         {
             EntityLog.NotFound(logger, EntityLog.PcBuild, entity.BuildId);
             return false;

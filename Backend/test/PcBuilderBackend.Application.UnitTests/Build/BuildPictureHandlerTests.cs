@@ -83,6 +83,27 @@ public class BuildPictureHandlerTests
     }
 
     [Fact]
+    public async Task Upload_hides_a_private_build_from_other_members()
+    {
+        var buildId = Guid.NewGuid();
+        _builds.GetByIdAsync(buildId, Arg.Any<CancellationToken>())
+            .Returns(Build(buildId, Guid.NewGuid(), isPublic: false));
+
+        await using var content = new MemoryStream([1]);
+        var act = () => UploadHandler().Handle(
+            new UploadBuildPictureCommand(buildId, content, "build.jpg", "image/jpeg", content.Length),
+            CancellationToken.None);
+
+        await act.Should().ThrowAsync<KeyNotFoundException>()
+            .WithMessage("Build was not found.");
+        await _storage.DidNotReceive().UploadAsync(
+            Arg.Any<Stream>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Upload_saves_a_picture_for_the_guest_who_created_the_build()
     {
         var buildId = Guid.NewGuid();
@@ -230,6 +251,23 @@ public class BuildPictureHandlerTests
             CancellationToken.None);
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        picture.IsActive.Should().BeTrue();
+        await _storage.DidNotReceive().DeleteAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Delete_hides_a_picture_on_a_private_build_from_other_members()
+    {
+        var picture = new BuildPicture(Guid.NewGuid(), "pc-builder/build.png");
+        _pictures.GetByIdAsync(picture.Id, Arg.Any<CancellationToken>()).Returns(picture);
+        _builds.GetByIdAsync(picture.BuildId, Arg.Any<CancellationToken>())
+            .Returns(Build(picture.BuildId, Guid.NewGuid(), isPublic: false));
+
+        var deleted = await DeleteHandler().Handle(
+            new DeleteBuildPictureCommand(picture.Id),
+            CancellationToken.None);
+
+        deleted.Should().BeFalse();
         picture.IsActive.Should().BeTrue();
         await _storage.DidNotReceive().DeleteAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }

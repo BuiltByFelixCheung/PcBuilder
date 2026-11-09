@@ -24,7 +24,7 @@ public class UploadBuildPictureHandler(
         CancellationToken cancellationToken)
     {
         var build = await builds.GetByIdAsync(request.BuildId, cancellationToken);
-        if (build is null)
+        if (build is null || !BuildAccess.IsVisible(build, currentUser.UserId))
         {
             EntityLog.NotFound(logger, EntityLog.PcBuild, request.BuildId);
             throw new KeyNotFoundException("Build was not found.");
