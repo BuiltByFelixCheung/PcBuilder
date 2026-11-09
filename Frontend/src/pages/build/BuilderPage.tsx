@@ -38,6 +38,7 @@ import {
   type PcBuildPart,
 } from "@/api/builds";
 import { PageStatus } from "@/components/PageStatus.tsx";
+import { BuildPictures } from "@/components/build/BuildPictures";
 import { enumText, ui } from "@/i18n/translate-enum";
 import { usePcBuildCompatibility } from "@/hooks/use-pc-build-compatibility";
 import { usePcBuildDetail } from "@/hooks/use-pc-build-detail";
@@ -717,6 +718,7 @@ function BuilderWorkspace({
           onClear={onClear}
         />
       </div>
+      {buildId ? <BuildPictures buildId={buildId} canEdit={canEditSaved} /> : null}
       <div className="grid items-start gap-6 min-[1025px]:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]">
         <CompatibilityStatus query={compatibility} enabled={hasParts} />
         <div className="min-w-0">

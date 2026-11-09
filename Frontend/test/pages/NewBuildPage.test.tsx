@@ -43,6 +43,18 @@ vi.mock("@/api/builds", async () => {
     updatePcBuild: (...args: unknown[]) => updatePcBuild(...args),
   };
 });
+
+const listBuildPictures = vi.fn();
+
+vi.mock("@/api/builds/pictures", async () => {
+  const actual = await vi.importActual<typeof import("@/api/builds/pictures")>(
+    "@/api/builds/pictures",
+  );
+  return {
+    ...actual,
+    listBuildPictures: (...args: unknown[]) => listBuildPictures(...args),
+  };
+});
 import { AuthContext } from "@/auth/auth-context.ts";
 import { BuilderPage } from "@/pages/build/BuilderPage.tsx";
 import { authValue, testUser } from "../helpers/auth.ts";
@@ -98,6 +110,8 @@ describe("BuilderPage", () => {
     checkPcBuildCompatibility.mockReset();
     createPcBuild.mockReset();
     updatePcBuild.mockReset();
+    listBuildPictures.mockReset();
+    listBuildPictures.mockResolvedValue([]);
     checkPcBuildCompatibility.mockResolvedValue({
       status: "Compatible",
       issues: [],
@@ -269,6 +283,9 @@ describe("BuilderPage", () => {
       screen.queryByRole("button", { name: "Remove" }),
     ).not.toBeInTheDocument();
     expect(screen.getAllByText("None").length).toBeGreaterThan(0);
+    expect(await screen.findByRole("heading", { name: "Pictures" })).toBeInTheDocument();
+    expect(screen.getByText("No pictures yet.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Upload picture" })).not.toBeInTheDocument();
   });
 
   it("lets the owner edit a saved build on /builds/:id/edit", async () => {
@@ -286,6 +303,7 @@ describe("BuilderPage", () => {
       await screen.findByRole("button", { name: "Save build" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Remove" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Upload picture" })).toBeInTheDocument();
   });
 
   it("sends a non-owner from /edit to the view page", async () => {
@@ -335,13 +353,15 @@ describe("BuilderPage", () => {
   });
 
   it("opens the save dialog and creates a build", async () => {
-    createPcBuild.mockResolvedValue({
+    const created = {
       ...savedBuild,
       id: "created-1",
       name: "Living room",
       description: "Quiet daily driver",
       ...completeDraft,
-    });
+    };
+    createPcBuild.mockResolvedValue(created);
+    getBuildById.mockResolvedValue(created);
     const user = userEvent.setup();
     renderBuilder("/builds/current", completeDraft);
     expect(
@@ -383,13 +403,15 @@ describe("BuilderPage", () => {
   });
 
   it("lets a member publish when saving a new build", async () => {
-    createPcBuild.mockResolvedValue({
+    const created = {
       ...savedBuild,
       id: "created-2",
       name: "Showpiece",
       isPublic: true,
       ...completeDraft,
-    });
+    };
+    createPcBuild.mockResolvedValue(created);
+    getBuildById.mockResolvedValue(created);
     const user = userEvent.setup();
     renderBuilder("/builds/current", completeDraft, ownerAuth);
     expect(

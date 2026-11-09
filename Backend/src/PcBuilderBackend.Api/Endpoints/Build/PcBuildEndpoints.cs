@@ -86,6 +86,8 @@ public static class PcBuildEndpoints
             .WithSummary("Delete multiple PC builds")
             .WithDescription("\n    DELETE /api/builds/bulk");
 
+        group.MapBuildPictureEndpoints();
+
         group.MapDelete("/{id:guid}", Delete)
             .RequireAuthorization(AuthPolicies.BuildWrite)
             .Produces(StatusCodes.Status204NoContent)

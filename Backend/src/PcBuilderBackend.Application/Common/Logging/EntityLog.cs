@@ -34,6 +34,7 @@ internal static partial class EntityLog
     public const string Manufacturer = "Manufacturer";
     public const string Socket = "Socket";
     public const string ProductPicture = "Product Picture";
+    public const string BuildPicture = "Build Picture";
 
     // Logger Message for entity operations
     [LoggerMessage(
