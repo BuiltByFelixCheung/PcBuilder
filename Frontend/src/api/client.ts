@@ -40,11 +40,21 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const original = error.config;
-    if (!original || error.response?.status !== 401) {
+    if (
+      !original ||
+      error.code === "ERR_CANCELED" ||
+      error.response?.status !== 401
+    ) {
       throw error;
     }
 
-    if (shouldSkipRefresh(original) || retriedRequests.has(original)) {
+    // A guest build is readable by link. A 401 on that read must not refresh
+    // and then wipe the signed-in session.
+    if (
+      shouldSkipRefresh(original) ||
+      isPublicBuildRead(original) ||
+      retriedRequests.has(original)
+    ) {
       throw error;
     }
 
@@ -86,6 +96,19 @@ export async function refreshSession(): Promise<AuthTokens | null> {
 
 function shouldSkipRefresh(config: InternalAxiosRequestConfig): boolean {
   return anonymousAuthPath.test(requestPath(config));
+}
+
+const publicBuildRead =
+  /^\/api\/builds\/[0-9a-f-]{36}(?:\/pictures)?$/i;
+const publicPictureContent =
+  /^\/api\/builds\/pictures\/[0-9a-f-]{36}\/content$/i;
+
+function isPublicBuildRead(config: InternalAxiosRequestConfig): boolean {
+  if ((config.method ?? "get").toLowerCase() !== "get") {
+    return false;
+  }
+  const path = requestPath(config);
+  return publicBuildRead.test(path) || publicPictureContent.test(path);
 }
 
 function requestPath(config: InternalAxiosRequestConfig): string {
