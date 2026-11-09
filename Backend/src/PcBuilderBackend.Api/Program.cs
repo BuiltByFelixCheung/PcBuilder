@@ -95,5 +95,6 @@ app.MapAuthEndpoints();
 app.MapPcBuildEndpoints();
 app.MapSpaFallback();
 
+await app.MigrateCatalogAsync();
 await app.SeedIdentityAsync();
 await app.RunAsync();
