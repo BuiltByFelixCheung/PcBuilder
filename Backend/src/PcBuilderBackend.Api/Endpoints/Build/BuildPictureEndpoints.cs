@@ -37,6 +37,7 @@ public static class BuildPictureEndpoints
 
         group.MapPost("/{buildId:guid}/pictures", UploadPicture)
             .AllowAnonymous()
+            .AddEndpointFilter(ChallengeRejectedBearer)
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .Produces<BuildPictureDto>(StatusCodes.Status201Created)
@@ -55,6 +56,7 @@ public static class BuildPictureEndpoints
 
         group.MapDelete("/pictures/{id:guid}", DeletePicture)
             .AllowAnonymous()
+            .AddEndpointFilter(ChallengeRejectedBearer)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -117,6 +119,25 @@ public static class BuildPictureEndpoints
             new DeleteBuildPictureCommand(id, PictureEditToken(context)),
             cancellationToken);
         return deleted ? TypedResults.NoContent() : TypedResults.NotFound();
+    }
+
+    private static async ValueTask<object?> ChallengeRejectedBearer(
+        EndpointFilterInvocationContext context,
+        EndpointFilterDelegate next)
+    {
+        var http = context.HttpContext;
+        if (http.User.Identity?.IsAuthenticated != true && BearerTokenWasSent(http.Request))
+            return TypedResults.Challenge();
+
+        return await next(context);
+    }
+
+    private static bool BearerTokenWasSent(HttpRequest request)
+    {
+        var authorization = request.Headers.Authorization.ToString();
+        const string prefix = "Bearer ";
+        return authorization.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+               && !string.IsNullOrWhiteSpace(authorization[prefix.Length..]);
     }
 
     private static string? PictureEditToken(HttpContext context) =>
