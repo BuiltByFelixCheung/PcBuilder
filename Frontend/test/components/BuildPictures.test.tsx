@@ -93,7 +93,7 @@ describe("BuildPictures", () => {
     await user.click(screen.getByRole("button", { name: "Delete picture" }));
 
     await waitFor(() => {
-      expect(deleteBuildPicture).toHaveBeenCalledWith("picture-1");
+      expect(deleteBuildPicture).toHaveBeenCalledWith("picture-1", "build-1");
     });
   });
 

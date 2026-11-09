@@ -8,4 +8,5 @@ public record UploadBuildPictureCommand(
     Stream Content,
     string FileName,
     string ContentType,
-    long Length) : IRequest<BuildPictureDto>;
+    long Length,
+    string? EditToken = null) : IRequest<BuildPictureDto>;

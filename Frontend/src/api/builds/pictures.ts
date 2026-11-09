@@ -1,4 +1,8 @@
 import { api } from "../client";
+import {
+  BUILD_PICTURE_EDIT_TOKEN_HEADER,
+  buildPictureEditToken,
+} from "./picture-edit-token";
 
 export type BuildPicture = {
   id: string;
@@ -24,10 +28,22 @@ export async function uploadBuildPicture(buildId: string, file: File) {
   const { data } = await api.post<BuildPicture>(
     `/builds/${buildId}/pictures`,
     body,
+    { headers: pictureEditHeaders(buildId) },
   );
   return data;
 }
 
-export async function deleteBuildPicture(id: string) {
-  await api.delete(`/builds/pictures/${id}`);
+export async function deleteBuildPicture(id: string, buildId: string) {
+  await api.delete(`/builds/pictures/${id}`, {
+    headers: pictureEditHeaders(buildId),
+  });
+}
+
+function pictureEditHeaders(
+  buildId: string,
+): { [BUILD_PICTURE_EDIT_TOKEN_HEADER]: string } | undefined {
+  const token = buildPictureEditToken(buildId);
+  return token
+    ? { [BUILD_PICTURE_EDIT_TOKEN_HEADER]: token }
+    : undefined;
 }

@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Link, Route, Routes } from "react-router-dom";
 import type { PcBuildDetail, PcBuildDraft } from "@/api/builds";
+import { BUILD_PICTURE_EDIT_TOKEN_STORAGE_KEY } from "@/api/builds/picture-edit-token";
 
 const getChassisById = vi.fn();
 const getStorageDriveById = vi.fn();
@@ -112,6 +113,7 @@ describe("BuilderPage", () => {
     updatePcBuild.mockReset();
     listBuildPictures.mockReset();
     listBuildPictures.mockResolvedValue([]);
+    localStorage.removeItem(BUILD_PICTURE_EDIT_TOKEN_STORAGE_KEY);
     checkPcBuildCompatibility.mockResolvedValue({
       status: "Compatible",
       issues: [],
@@ -393,6 +395,12 @@ describe("BuilderPage", () => {
     expect(
       await screen.findByRole("heading", { name: "Living room" }),
     ).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Pictures" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Upload picture" }),
+    ).not.toBeInTheDocument();
     await user.click(screen.getByRole("link", { name: "Current draft" }));
     expect(
       await screen.findByRole("heading", { name: "New build" }),
@@ -400,6 +408,53 @@ describe("BuilderPage", () => {
     expect(
       screen.getByRole("button", { name: "Choose a chassis" }),
     ).toBeInTheDocument();
+  });
+
+  it("lets a guest upload pictures to the build they just saved", async () => {
+    const created = {
+      ...savedBuild,
+      id: "created-guest",
+      userId: null,
+      userName: null,
+      name: "Guest box",
+      pictureEditToken: "guest-token",
+      ...completeDraft,
+    };
+    createPcBuild.mockResolvedValue(created);
+    getBuildById.mockResolvedValue(created);
+    const user = userEvent.setup();
+    renderBuilder("/builds/current", completeDraft);
+    expect(
+      await screen.findByRole("heading", { name: "Compatibility" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save build" }));
+    await user.type(screen.getByLabelText("Name"), "Guest box");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(
+      await screen.findByRole("button", { name: "Upload picture" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Edit this build" }),
+    ).not.toBeInTheDocument();
+    expect(localStorage.getItem(BUILD_PICTURE_EDIT_TOKEN_STORAGE_KEY)).toContain(
+      "guest-token",
+    );
+  });
+
+  it("hides picture upload on another guest's build", async () => {
+    getBuildById.mockResolvedValue({
+      ...savedBuild,
+      userId: null,
+      userName: null,
+    });
+    renderBuilder("/builds/build-1");
+    expect(
+      await screen.findByRole("heading", { name: "Pictures" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Upload picture" }),
+    ).not.toBeInTheDocument();
   });
 
   it("lets a member publish when saving a new build", async () => {

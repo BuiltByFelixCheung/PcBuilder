@@ -39,7 +39,10 @@ export type PcBuildListItem = {
   isPublic: boolean;
 };
 
-export type PcBuildDetail = PcBuildListItem & PcBuildFields;
+export type PcBuildDetail = PcBuildListItem &
+  PcBuildFields & {
+    pictureEditToken?: string | null;
+  };
 
 export const pcBuildKeys = {
   all: ["builds"] as const,

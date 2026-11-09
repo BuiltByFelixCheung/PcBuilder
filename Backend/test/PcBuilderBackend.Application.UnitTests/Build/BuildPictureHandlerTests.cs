@@ -83,6 +83,101 @@ public class BuildPictureHandlerTests
     }
 
     [Fact]
+    public async Task Upload_saves_a_picture_for_the_guest_who_created_the_build()
+    {
+        var buildId = Guid.NewGuid();
+        var (token, hash) = BuildPictureEditToken.Create();
+        _currentUser.UserId.Returns((Guid?)null);
+        _builds.GetByIdAsync(buildId, Arg.Any<CancellationToken>())
+            .Returns(GuestBuild(buildId));
+        _builds.GetPictureEditTokenHashAsync(buildId, Arg.Any<CancellationToken>())
+            .Returns(hash);
+        _storage.UploadAsync(
+                Arg.Any<Stream>(),
+                "build.jpg",
+                "image/jpeg",
+                Arg.Any<CancellationToken>())
+            .Returns("pc-builder/build.jpg");
+        _mapper.Map<BuildPictureDto>(Arg.Any<BuildPicture>())
+            .Returns(call =>
+            {
+                var picture = call.Arg<BuildPicture>();
+                return new BuildPictureDto(picture.Id, picture.BuildId);
+            });
+
+        await using var content = new MemoryStream([1, 2, 3]);
+        var result = await UploadHandler().Handle(
+            new UploadBuildPictureCommand(
+                buildId,
+                content,
+                "build.jpg",
+                "image/jpeg",
+                content.Length,
+                token),
+            CancellationToken.None);
+
+        result.BuildId.Should().Be(buildId);
+        _pictures.Received(1).Add(Arg.Is<BuildPicture>(picture => picture.BuildId == buildId));
+    }
+
+    [Fact]
+    public async Task Upload_rejects_a_guest_token_that_does_not_match_the_build()
+    {
+        var buildId = Guid.NewGuid();
+        var (_, hash) = BuildPictureEditToken.Create();
+        var (otherToken, _) = BuildPictureEditToken.Create();
+        _currentUser.UserId.Returns((Guid?)null);
+        _builds.GetByIdAsync(buildId, Arg.Any<CancellationToken>())
+            .Returns(GuestBuild(buildId));
+        _builds.GetPictureEditTokenHashAsync(buildId, Arg.Any<CancellationToken>())
+            .Returns(hash);
+
+        await using var content = new MemoryStream([1]);
+        var act = () => UploadHandler().Handle(
+            new UploadBuildPictureCommand(
+                buildId,
+                content,
+                "build.jpg",
+                "image/jpeg",
+                content.Length,
+                otherToken),
+            CancellationToken.None);
+
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await _storage.DidNotReceive().UploadAsync(
+            Arg.Any<Stream>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Upload_rejects_a_guest_token_on_a_member_build()
+    {
+        var buildId = Guid.NewGuid();
+        var (token, _) = BuildPictureEditToken.Create();
+        _currentUser.UserId.Returns((Guid?)null);
+        _builds.GetByIdAsync(buildId, Arg.Any<CancellationToken>())
+            .Returns(Build(buildId, Guid.NewGuid(), isPublic: true));
+
+        await using var content = new MemoryStream([1]);
+        var act = () => UploadHandler().Handle(
+            new UploadBuildPictureCommand(
+                buildId,
+                content,
+                "build.jpg",
+                "image/jpeg",
+                content.Length,
+                token),
+            CancellationToken.None);
+
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await _builds.DidNotReceive().GetPictureEditTokenHashAsync(
+            Arg.Any<Guid>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Upload_removes_the_object_when_the_row_cannot_be_saved()
     {
         var buildId = Guid.NewGuid();
@@ -137,6 +232,27 @@ public class BuildPictureHandlerTests
         await act.Should().ThrowAsync<UnauthorizedAccessException>();
         picture.IsActive.Should().BeTrue();
         await _storage.DidNotReceive().DeleteAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Delete_removes_a_guest_picture_when_the_token_matches()
+    {
+        var picture = new BuildPicture(Guid.NewGuid(), "pc-builder/guest.png");
+        var (token, hash) = BuildPictureEditToken.Create();
+        _currentUser.UserId.Returns((Guid?)null);
+        _pictures.GetByIdAsync(picture.Id, Arg.Any<CancellationToken>()).Returns(picture);
+        _builds.GetByIdAsync(picture.BuildId, Arg.Any<CancellationToken>())
+            .Returns(GuestBuild(picture.BuildId));
+        _builds.GetPictureEditTokenHashAsync(picture.BuildId, Arg.Any<CancellationToken>())
+            .Returns(hash);
+
+        var deleted = await DeleteHandler().Handle(
+            new DeleteBuildPictureCommand(picture.Id, token),
+            CancellationToken.None);
+
+        deleted.Should().BeTrue();
+        picture.IsActive.Should().BeFalse();
+        await _storage.Received(1).DeleteAsync("pc-builder/guest.png", Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -259,7 +375,7 @@ public class BuildPictureHandlerTests
         _builds.GetByIdAsync(buildId, Arg.Any<CancellationToken>())
             .Returns(Build(buildId, _ownerId, isPublic: false));
 
-    private static PcBuildDto Build(Guid id, Guid ownerId, bool isPublic) =>
+    private static PcBuildDto Build(Guid id, Guid? ownerId, bool isPublic) =>
         new()
         {
             Id = id,
@@ -267,6 +383,8 @@ public class BuildPictureHandlerTests
             UserId = ownerId,
             IsPublic = isPublic
         };
+
+    private static PcBuildDto GuestBuild(Guid id) => Build(id, null, isPublic: false);
 }
 
 public class BuildPictureValidatorTests

@@ -24,7 +24,7 @@ export function BuildPictures({
   const actions = usePictureMutations(
     buildPictureKeys.list(buildId),
     (file) => uploadBuildPicture(buildId, file),
-    deleteBuildPicture,
+    (id) => deleteBuildPicture(id, buildId),
   );
 
   return (

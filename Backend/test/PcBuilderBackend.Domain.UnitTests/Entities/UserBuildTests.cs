@@ -156,6 +156,18 @@ public class UserBuildTests
     }
 
     [Fact]
+    public void AssignPictureEditToken_stores_a_hash_and_rejects_a_blank_value()
+    {
+        var build = CreateBuild();
+
+        build.AssignPictureEditToken("abc");
+
+        build.PictureEditTokenHash.Should().Be("abc");
+        var blank = () => build.AssignPictureEditToken("  ");
+        blank.Should().Throw<ArgumentException>().WithParameterName("tokenHash");
+    }
+
+    [Fact]
     public void AddPart_rejects_empty_id_and_non_positive_quantity()
     {
         var build = CreateBuild();

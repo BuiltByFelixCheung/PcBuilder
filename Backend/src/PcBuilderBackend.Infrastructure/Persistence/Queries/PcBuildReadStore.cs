@@ -18,6 +18,13 @@ public class PcBuildReadStore(PcBuilderDbContext context, ICurrentUser user, IMa
             .ProjectTo<PcBuildDto>(mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);
 
+    public Task<string?> GetPictureEditTokenHashAsync(Guid id, CancellationToken cancellationToken) =>
+        context.PcBuilds
+            .AsNoTracking()
+            .Where(build => build.Id == id && build.IsActive)
+            .Select(build => build.PictureEditTokenHash)
+            .FirstOrDefaultAsync(cancellationToken);
+
     public Task<PagedResult<PcBuildListItemDto>> ListPublicAsync(
         PagedRequest request,
         CancellationToken cancellationToken) =>

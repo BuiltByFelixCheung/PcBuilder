@@ -1249,6 +1249,10 @@ namespace PcBuilderBackend.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("PictureEditTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<Guid>("PsuId")
                         .HasColumnType("uuid");
 

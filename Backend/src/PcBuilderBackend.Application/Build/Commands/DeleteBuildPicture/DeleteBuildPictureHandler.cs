@@ -30,7 +30,12 @@ public class DeleteBuildPictureHandler(
             return false;
         }
 
-        if (!BuildAccess.IsOwner(build, currentUser.UserId))
+        if (!await BuildPictureAccess.CanManageAsync(
+                build,
+                currentUser.UserId,
+                request.EditToken,
+                builds,
+                cancellationToken))
         {
             EntityLog.NotAuthorized(logger, EntityLog.PcBuild, entity.BuildId);
             throw new UnauthorizedAccessException();

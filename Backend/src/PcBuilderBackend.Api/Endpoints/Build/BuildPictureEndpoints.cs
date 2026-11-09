@@ -5,7 +5,6 @@ using PcBuilderBackend.Application.Build.Commands.DeleteBuildPicture;
 using PcBuilderBackend.Application.Build.Commands.UploadBuildPicture;
 using PcBuilderBackend.Application.Build.Dto;
 using PcBuilderBackend.Application.Build.Queries;
-using PcBuilderBackend.Application.Common.Authorization;
 using PcBuilderBackend.Application.Common.Storage;
 
 namespace PcBuilderBackend.Api.Endpoints.Build;
@@ -37,7 +36,7 @@ public static class BuildPictureEndpoints
                 "\n    Private builds are visible only to their owner.");
 
         group.MapPost("/{buildId:guid}/pictures", UploadPicture)
-            .RequireAuthorization(AuthPolicies.BuildWrite)
+            .AllowAnonymous()
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .Produces<BuildPictureDto>(StatusCodes.Status201Created)
@@ -51,10 +50,11 @@ public static class BuildPictureEndpoints
             .WithDescription(
                 "\n    POST /api/builds/00000000-0000-0000-0000-000000000000/pictures" +
                 "\n    Multipart form: file." +
-                "\n    Requires the Member role and ownership of the build.");
+                "\n    The member who owns the build may upload." +
+                "\n    A guest who created the build sends X-PcBuild-Picture-Token.");
 
         group.MapDelete("/pictures/{id:guid}", DeletePicture)
-            .RequireAuthorization(AuthPolicies.BuildWrite)
+            .AllowAnonymous()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -64,7 +64,8 @@ public static class BuildPictureEndpoints
             .WithDescription(
                 "\n    DELETE /api/builds/pictures/00000000-0000-0000-0000-000000000000" +
                 "\n    Deactivates the picture row and removes the stored object." +
-                "\n    Requires the Member role and ownership of the build.");
+                "\n    The member who owns the build may delete." +
+                "\n    A guest who created the build sends X-PcBuild-Picture-Token.");
     }
 
     private static async Task<Ok<List<BuildPictureDto>>> ListPictures(
@@ -100,7 +101,8 @@ public static class BuildPictureEndpoints
             stream,
             file?.FileName ?? string.Empty,
             file?.ContentType ?? string.Empty,
-            file?.Length ?? 0);
+            file?.Length ?? 0,
+            PictureEditToken(context));
         var result = await sender.Send(command, cancellationToken);
         return TypedResults.Created($"{context.Request.Path}/{result.Id}", result);
     }
@@ -108,11 +110,17 @@ public static class BuildPictureEndpoints
     private static async Task<Results<NoContent, NotFound>> DeletePicture(
         [FromRoute] Guid id,
         [FromServices] ISender sender,
+        HttpContext context,
         CancellationToken cancellationToken)
     {
-        var deleted = await sender.Send(new DeleteBuildPictureCommand(id), cancellationToken);
+        var deleted = await sender.Send(
+            new DeleteBuildPictureCommand(id, PictureEditToken(context)),
+            cancellationToken);
         return deleted ? TypedResults.NoContent() : TypedResults.NotFound();
     }
+
+    private static string? PictureEditToken(HttpContext context) =>
+        context.Request.Headers["X-PcBuild-Picture-Token"].FirstOrDefault();
 
     private sealed class BuildPictureContentResult(StoredObject file) : IResult
     {
