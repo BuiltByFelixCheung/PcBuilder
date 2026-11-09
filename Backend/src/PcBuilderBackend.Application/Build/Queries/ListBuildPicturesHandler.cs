@@ -26,8 +26,8 @@ public class ListBuildPicturesHandler(
 
         if (!BuildAccess.IsVisible(build, currentUser.UserId))
         {
-            EntityLog.NotAuthorized(logger, EntityLog.PcBuild, request.BuildId);
-            throw new UnauthorizedAccessException();
+            EntityLog.NotFound(logger, EntityLog.PcBuild, request.BuildId);
+            throw new KeyNotFoundException("Build was not found.");
         }
 
         return await pictures.ListByBuildAsync(request.BuildId, cancellationToken);

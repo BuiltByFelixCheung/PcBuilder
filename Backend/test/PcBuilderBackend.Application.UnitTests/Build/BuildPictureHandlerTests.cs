@@ -289,7 +289,7 @@ public class BuildPictureHandlerTests
                 NullLogger<ListBuildPicturesHandler>.Instance)
             .Handle(new ListBuildPicturesQuery(buildId), CancellationToken.None);
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await act.Should().ThrowAsync<KeyNotFoundException>();
         await _store.DidNotReceive().ListByBuildAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
@@ -319,11 +319,11 @@ public class BuildPictureHandlerTests
         _builds.GetByIdAsync(picture.BuildId, Arg.Any<CancellationToken>())
             .Returns(Build(picture.BuildId, Guid.NewGuid(), isPublic: false));
 
-        var act = () => ContentHandler().Handle(
+        var result = await ContentHandler().Handle(
             new GetBuildPictureContentQuery(picture.Id),
             CancellationToken.None);
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        result.Should().BeNull();
         await _storage.DidNotReceive().OpenAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 

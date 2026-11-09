@@ -131,7 +131,7 @@ public class PcBuildHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task Get_by_id_forbids_private_build_of_another_user()
+    public async Task Get_by_id_hides_private_build_of_another_user()
     {
         var id = Guid.NewGuid();
         var ownerId = Guid.NewGuid();
@@ -147,10 +147,11 @@ public class PcBuildHandlerTests : IDisposable
         currentUser.UserId.Returns(Guid.NewGuid());
         var identity = Substitute.For<IIdentityService>();
 
-        var act = () => new GetPcBuildByIdHandler(store, currentUser, identity)
+        var result = await new GetPcBuildByIdHandler(store, currentUser, identity)
             .Handle(new GetPcBuildByIdQuery(id), CancellationToken.None);
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        result.Should().BeNull();
+        await identity.DidNotReceive().GetUserAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
