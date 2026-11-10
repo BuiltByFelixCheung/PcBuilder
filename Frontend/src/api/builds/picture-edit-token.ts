@@ -28,6 +28,14 @@ export function hasBuildPictureEditToken(
   return Boolean(buildId && buildPictureEditToken(buildId));
 }
 
+export function forgetBuildPictureEditTokens(): void {
+  try {
+    localStorage.removeItem(BUILD_PICTURE_EDIT_TOKEN_STORAGE_KEY);
+  } catch {
+    /* localStorage can throw in private mode */
+  }
+}
+
 function readTokens(): TokenMap {
   try {
     const raw = localStorage.getItem(BUILD_PICTURE_EDIT_TOKEN_STORAGE_KEY);
