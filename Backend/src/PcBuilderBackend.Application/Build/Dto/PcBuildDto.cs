@@ -1,7 +1,12 @@
+using System.Text.Json.Serialization;
+
 namespace PcBuilderBackend.Application.Build.Dto;
 
 public record PcBuildDto : PcBuildListItemDto
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? PictureEditToken { get; init; }
+
     public Guid ChassisId { get; init; }
     public Guid MotherboardId { get; init; }
     public Guid CpuId { get; init; }

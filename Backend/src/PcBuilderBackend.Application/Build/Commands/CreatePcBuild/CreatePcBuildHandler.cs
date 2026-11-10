@@ -72,9 +72,18 @@ public class CreatePcBuildHandler(
         foreach (var wirelessNetworkAdapter in command.WirelessNetworkAdapters)
             pcBuild.AddWirelessNetworkAdapter(wirelessNetworkAdapter.PartId, wirelessNetworkAdapter.Quantity);
 
+        var memberId = currentUser.IsInRole(AuthRoles.Member) ? currentUser.UserId : null;
+        string? pictureEditToken = null;
+        if (memberId is null)
+        {
+            var issued = BuildPictureEditToken.Create();
+            pcBuild.AssignPictureEditToken(issued.Hash);
+            pictureEditToken = issued.Token;
+        }
+
         pcBuilds.Add(pcBuild);
 
-        if (currentUser.IsInRole(AuthRoles.Member) && currentUser.UserId is { } userId)
+        if (memberId is { } userId)
         {
             var pcBuildUser = new PcBuildUser(pcBuild.Id, userId, command.IsPublic);
             pcBuilds.AddUser(pcBuildUser);
@@ -88,7 +97,7 @@ public class CreatePcBuildHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
         EntityLog.Created(logger, EntityLog.PcBuild, pcBuild.Id);
         LogPcBuildPartsCreation(pcBuild);
-        return mapper.Map<PcBuildDto>(pcBuild);
+        return mapper.Map<PcBuildDto>(pcBuild) with { PictureEditToken = pictureEditToken };
     }
 
     private void LogPcBuildPartsCreation(PcBuild pcBuild)

@@ -537,7 +537,8 @@
     "nChipsets": "chipsets",
     "or": "or",
     "na": "N/A",
-    "pagination": "pagination"
+    "pagination": "pagination",
+    "pictureFile": "Picture file"
   },
   "headers": {
     "name": "Name",
@@ -732,6 +733,10 @@
     "viewBuild": "View build",
     "viewPublicBuilds": "View public builds",
     "importFromExcel": "Import from Excel",
+    "uploadPicture": "Upload picture",
+    "uploadingPicture": "Uploading…",
+    "viewPicture": "View picture",
+    "deletePicture": "Delete picture",
     "requestNewResetLink": "Request a new reset link",
     "createAccount": "Create an account",
     "resetPassword": "Reset Password",
@@ -804,7 +809,8 @@
     "motherboardFormFactors": "Motherboard form factors",
     "psuFormFactors": "PSU form factors",
     "compatibility": "Compatibility",
-    "sockets": "Sockets"
+    "sockets": "Sockets",
+    "pictures": "Pictures"
   },
   "nav": {
     "catalog": "Catalog",
@@ -1011,7 +1017,8 @@
     "pcieSlots": "PCIe slots",
     "motherboardFormFactors": "motherboard form factors",
     "psuFormFactors": "PSU form factors",
-    "ram": "RAM"
+    "ram": "RAM",
+    "pictures": "pictures"
   },
   "messages": {
     "homeLead": "Pick parts, check compatibility, and save a build. Public builds show up on Browse Builds; private ones stay on My builds.",

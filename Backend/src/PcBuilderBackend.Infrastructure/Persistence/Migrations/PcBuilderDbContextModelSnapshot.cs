@@ -55,6 +55,42 @@ namespace PcBuilderBackend.Infrastructure.Persistence.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "wireless_host_interface", new[] { "m2", "pcie", "usb" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("PcBuilderBackend.Domain.Entities.BuildPicture", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BuildId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ConcurrencyToken")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PictureKey")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BuildId");
+
+                    b.HasIndex("PictureKey")
+                        .IsUnique();
+
+                    b.ToTable("BuildPictures");
+                });
+
             modelBuilder.Entity("PcBuilderBackend.Domain.Entities.Chassis", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1213,6 +1249,10 @@ namespace PcBuilderBackend.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("PictureEditTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<Guid>("PsuId")
                         .HasColumnType("uuid");
 
@@ -1314,6 +1354,45 @@ namespace PcBuilderBackend.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("PcBuildUsers", (string)null);
+                });
+
+            modelBuilder.Entity("PcBuilderBackend.Domain.Entities.ProductPicture", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ConcurrencyToken")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PictureKey")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<ProductType>("ProductType")
+                        .HasColumnType("product_type");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PictureKey")
+                        .IsUnique();
+
+                    b.HasIndex("ProductType", "ProductId");
+
+                    b.ToTable("ProductPictures");
                 });
 
             modelBuilder.Entity("PcBuilderBackend.Domain.Entities.Psu", b =>
@@ -1665,6 +1744,15 @@ namespace PcBuilderBackend.Infrastructure.Persistence.Migrations
                     b.HasIndex("ManufacturerId");
 
                     b.ToTable("WirelessNetworkAdapters");
+                });
+
+            modelBuilder.Entity("PcBuilderBackend.Domain.Entities.BuildPicture", b =>
+                {
+                    b.HasOne("PcBuilderBackend.Domain.Entities.PcBuild", null)
+                        .WithMany()
+                        .HasForeignKey("BuildId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("PcBuilderBackend.Domain.Entities.Chassis", b =>

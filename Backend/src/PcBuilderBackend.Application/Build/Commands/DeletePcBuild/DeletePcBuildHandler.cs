@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
+using PcBuilderBackend.Application.Build;
 using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.Common.Logging;
 
@@ -8,6 +9,8 @@ namespace PcBuilderBackend.Application.Build.Commands.DeletePcBuild;
 public class DeletePcBuildHandler(
     IUnitOfWork unitOfWork,
     IPcBuildRepository pcBuilds,
+    IBuildPictureRepository pictures,
+    IStorageService storage,
     ICurrentUser currentUser,
     ILogger<DeletePcBuildHandler> logger) : IRequestHandler<DeletePcBuildCommand, bool>
 {
@@ -27,6 +30,11 @@ public class DeletePcBuildHandler(
             throw new UnauthorizedAccessException();
         }
 
+        await BuildPictureStorage.RemoveForBuildsAsync(
+            pictures,
+            storage,
+            [pcBuild.Id],
+            cancellationToken);
         pcBuild.Deactivate();
         pcBuild.User.Deactivate();
 

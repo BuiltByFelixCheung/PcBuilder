@@ -30,6 +30,7 @@ import {
   type ChassisRadiator,
 } from "@/api/catalog/chassis";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
+import { ProductPictures } from "@/components/catalog/ProductPictures";
 import { ChassisFields } from "@/pages/catalog/chassis/ChassisEditColumns";
 import {
   driveBayColumns,
@@ -369,6 +370,7 @@ export function ChassisDetailPage() {
           </Button>
         )}
       </div>
+      <ProductPictures productType="Chassis" productId={chassis.id} />
       <EditChassisDialog
         chassis={chassis}
         manufacturers={manufacturers}

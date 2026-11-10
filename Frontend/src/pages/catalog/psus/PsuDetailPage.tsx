@@ -16,6 +16,7 @@ import { AddToBuildButton } from "@/builds";
 import { useAuth } from "@/auth/use-auth";
 import { Button } from "@/components/ui/button";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
+import { ProductPictures } from "@/components/catalog/ProductPictures";
 import { ChildCollectionDialog } from "@/components/catalog/ChildCollectionDialog";
 import { enumText, ui } from "@/i18n/translate-enum";
 import {
@@ -71,6 +72,7 @@ export function PsuDetailPage() {
           </Button>
         )}
       </div>
+      <ProductPictures productType="Psu" productId={psu.id} />
       {editing ? (
         <CatalogEditDialog
           title={ui.dialog("editPsu")}

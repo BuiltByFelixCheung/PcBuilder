@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
+using PcBuilderBackend.Application.Build;
 using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.Common.Logging;
 
@@ -7,6 +8,8 @@ namespace PcBuilderBackend.Application.Build.Commands.BulkDeletePcBuild;
 
 public class BulkDeletePcBuildHandler(
     IPcBuildRepository pcBuilds,
+    IBuildPictureRepository pictures,
+    IStorageService storage,
     ILogger<BulkDeletePcBuildHandler> logger,
     ICurrentUser currentUser,
     IUnitOfWork unitOfWork) : IRequestHandler<BulkDeletePcBuildCommand, bool>
@@ -28,6 +31,12 @@ public class BulkDeletePcBuildHandler(
             EntityLog.NotAuthorized(logger, EntityLog.PcBuild, ids[0]);
             throw new UnauthorizedAccessException();
         }
+
+        await BuildPictureStorage.RemoveForBuildsAsync(
+            pictures,
+            storage,
+            entities.Select(entity => entity.Id),
+            cancellationToken);
 
         foreach (var entity in entities)
         {

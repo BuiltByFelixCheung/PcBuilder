@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/auth/use-auth";
 import { useState } from "react";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
+import { ProductPictures } from "@/components/catalog/ProductPictures";
 import { ChildCollectionDialog } from "@/components/catalog/ChildCollectionDialog";
 import { enumText, ui } from "@/i18n/translate-enum";
 import {
@@ -99,6 +100,7 @@ export function CpuDetailPage() {
           </Button>
         )}
       </div>
+      <ProductPictures productType="Cpu" productId={cpu.id} />
       {editing ? (
         <CatalogEditDialog
           title={ui.dialog("editCpu")}

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { builderHref, usePcBuild } from "@/builds";
 import { useAuth } from "@/auth/use-auth";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
+import { ProductPictures } from "@/components/catalog/ProductPictures";
 import { memoryKeys, updateMemory } from "@/api/catalog/memories";
 import { enumText, ui } from "@/i18n/translate-enum";
 import { MemoryFields } from "@/pages/catalog/memories/MemoryEditColumns";
@@ -67,6 +68,7 @@ export function RamDetailPage() {
           </Button>
         )}
       </div>
+      <ProductPictures productType="Ram" productId={ram.id} />
       {editing ? (
         <CatalogEditDialog
           title={ui.dialog("editRam")}

@@ -9,6 +9,7 @@ import { builderHref, usePcBuild } from "@/builds";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/auth/use-auth";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
+import { ProductPictures } from "@/components/catalog/ProductPictures";
 import {
   graphicsCardKeys,
   graphicsCardListItem,
@@ -81,6 +82,7 @@ export function GraphicsCardDetailPage() {
           </Button>
         )}
       </div>
+      <ProductPictures productType="GraphicsCard" productId={graphicsCard.id} />
       {editing ? (
         <CatalogEditDialog
           title={ui.dialog("editGraphicsCard")}

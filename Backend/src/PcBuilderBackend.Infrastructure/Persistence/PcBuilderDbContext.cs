@@ -42,6 +42,8 @@ public class PcBuilderDbContext(DbContextOptions<PcBuilderDbContext> options)
     public DbSet<Domain.Entities.PcBuild> PcBuilds { get; set; } = null!;
     public DbSet<PcBuildUser> PcBuildUsers { get; set; } = null!;
     public DbSet<PcBuildPart> PcBuildParts { get; set; } = null!;
+    public DbSet<ProductPicture> ProductPictures { get; set; } = null!;
+    public DbSet<BuildPicture> BuildPictures { get; set; } = null!;
 
     public override int SaveChanges()
     {

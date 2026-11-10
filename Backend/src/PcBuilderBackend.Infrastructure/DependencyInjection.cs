@@ -9,6 +9,7 @@ using PcBuilderBackend.Application.Catalog.Cpus;
 using PcBuilderBackend.Application.Catalog.GraphicsCards;
 using PcBuilderBackend.Application.Catalog.Memories;
 using PcBuilderBackend.Application.Catalog.Motherboards;
+using PcBuilderBackend.Application.Catalog.ProductPictures;
 using PcBuilderBackend.Application.Catalog.Psus;
 using PcBuilderBackend.Application.Catalog.StorageDrives;
 using PcBuilderBackend.Application.Catalog.WiredNetworkAdapters;
@@ -76,6 +77,8 @@ public static class DependencyInjection
         services.AddScoped<IStorageDriveReadStore, StorageDriveReadStore>();
         services.AddScoped<IWiredNetworkAdapterReadStore, WiredNetworkAdapterReadStore>();
         services.AddScoped<IWirelessNetworkAdapterReadStore, WirelessNetworkAdapterReadStore>();
+        services.AddScoped<IProductPictureReadStore, ProductPictureReadStore>();
+        services.AddScoped<IBuildPictureReadStore, BuildPictureReadStore>();
 
         // Repositories
         services.AddScoped<IChassisRepository, ChassisRepository>();
@@ -89,6 +92,9 @@ public static class DependencyInjection
         services.AddScoped<IStorageDriveRepository, StorageDriveRepository>();
         services.AddScoped<IWiredNetworkAdapterRepository, WiredNetworkAdapterRepository>();
         services.AddScoped<IWirelessNetworkAdapterRepository, WirelessNetworkAdapterRepository>();
+        services.AddScoped<IProductPictureRepository, ProductPictureRepository>();
+        services.AddScoped<IBuildPictureRepository, BuildPictureRepository>();
+        services.AddScoped<IProductExistenceLookup, ProductExistenceLookup>();
 
         services.AddScoped<ICatalogRepository, CatalogRepository>();
         services.AddScoped<IPcBuildRepository, PcBuildRepository>();
