@@ -42,11 +42,10 @@ public static class PcBuildEndpoints
             .AllowAnonymous()
             .Produces<PcBuildDto>()
             .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Read a PC build by ID")
-            .WithDescription(
-                "\n    GET /api/builds/{id}" +
-                "\n    Private builds belonging to another member return 404.");
+            .WithDescription("\n    GET /api/builds/{id}");
 
         group.MapPost("/compatibility", CheckCompatibility)
             .AllowAnonymous()

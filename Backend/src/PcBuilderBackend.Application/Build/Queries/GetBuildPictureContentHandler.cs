@@ -31,8 +31,8 @@ public class GetBuildPictureContentHandler(
 
         if (!BuildAccess.IsVisible(build, currentUser.UserId))
         {
-            EntityLog.NotFound(logger, EntityLog.PcBuild, picture.BuildId);
-            return null;
+            EntityLog.NotAuthorized(logger, EntityLog.PcBuild, picture.BuildId);
+            throw new UnauthorizedAccessException();
         }
 
         return await storage.OpenAsync(picture.PictureKey, cancellationToken);

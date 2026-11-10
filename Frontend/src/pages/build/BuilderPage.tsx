@@ -418,14 +418,6 @@ function saveFailureMessage(sourceId: string | null, error: unknown): string {
   return parsed.message;
 }
 
-function builderLoadErrorMessage(error: unknown): string {
-  const parsed = parseApiError(error);
-  if (parsed.status === 404 || parsed.status === 403) {
-    return ui.empty("notFoundDot", { entity: ui.entity("build") });
-  }
-  return parsed.message;
-}
-
 function builderPageBlocked(input: {
   buildId: string | undefined;
   isViewing: boolean;
@@ -438,7 +430,7 @@ function builderPageBlocked(input: {
   sourceId: string | null;
 }): ReactNode {
   if (input.buildId && input.isLoadError) {
-    return <PageStatus>{builderLoadErrorMessage(input.loadError)}</PageStatus>;
+    return <PageStatus>{parseApiError(input.loadError).message}</PageStatus>;
   }
   if (input.isViewing && !input.viewed) {
     return <PageStatus>{ui.empty("loading", { entity: ui.entity("build") })}</PageStatus>;

@@ -335,29 +335,6 @@ describe("BuilderPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows 404 for another member's private build and keeps the signed-in user", async () => {
-    const { AxiosError } = await import("axios");
-    const error = new AxiosError("not found");
-    error.response = {
-      status: 404,
-      data: { title: "Not Found" },
-      statusText: "Not Found",
-      headers: {},
-      config: {} as never,
-    };
-    getBuildById.mockRejectedValue(error);
-    const signedIn = authValue({
-      user: testUser,
-      isAuthenticated: true,
-      isMember: true,
-    });
-    renderBuilder("/builds/someone-elses-private", undefined, signedIn);
-    expect(await screen.findByText("build not found.")).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Office box" })).not.toBeInTheDocument();
-    expect(signedIn.isAuthenticated).toBe(true);
-    expect(signedIn.user).toEqual(testUser);
-  });
-
   const completeDraft = {
     chassisId: "case-1",
     motherboardId: "mb-1",

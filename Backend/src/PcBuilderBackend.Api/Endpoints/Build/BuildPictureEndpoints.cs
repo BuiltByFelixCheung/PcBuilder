@@ -16,22 +16,24 @@ public static class BuildPictureEndpoints
         group.MapGet("/{buildId:guid}/pictures", ListPictures)
             .AllowAnonymous()
             .Produces<List<BuildPictureDto>>()
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("List pictures for a PC build")
             .WithDescription(
                 "\n    GET /api/builds/00000000-0000-0000-0000-000000000000/pictures" +
-                "\n    Private builds belonging to another member return 404.");
+                "\n    Private builds are visible only to their owner.");
 
         group.MapGet("/pictures/{id:guid}/content", GetPictureContent)
             .AllowAnonymous()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Read a PC build picture")
             .WithDescription(
                 "\n    GET /api/builds/pictures/00000000-0000-0000-0000-000000000000/content" +
-                "\n    Private builds belonging to another member return 404.");
+                "\n    Private builds are visible only to their owner.");
 
         group.MapPost("/{buildId:guid}/pictures", UploadPicture)
             .AllowAnonymous()

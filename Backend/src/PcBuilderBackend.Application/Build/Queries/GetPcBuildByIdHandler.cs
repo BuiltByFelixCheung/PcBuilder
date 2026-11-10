@@ -13,9 +13,10 @@ public class GetPcBuildByIdHandler(IPcBuildReadStore store, ICurrentUser current
         if (pcBuild is null)
             return null;
 
-        // Private non-owner access is indistinguishable from a missing build (404).
-        if (!BuildAccess.IsVisible(pcBuild, currentUser.UserId))
-            return null;
+        if (pcBuild.UserId is { } ownerId
+            && !pcBuild.IsPublic
+            && currentUser.UserId != ownerId)
+            throw new UnauthorizedAccessException();
 
         return await PcBuildUserName.Attach(pcBuild, identity, cancellationToken);
     }
