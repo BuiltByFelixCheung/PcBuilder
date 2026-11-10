@@ -35,6 +35,18 @@ public class PcBuildModelTests
     }
 
     [Fact]
+    public void Picture_edit_token_hash_is_optional()
+    {
+        using var db = CreateContext();
+
+        var hash = db.Model.FindEntityType(typeof(PcBuild))!
+            .FindProperty(nameof(PcBuild.PictureEditTokenHash))!;
+
+        hash.IsNullable.Should().BeTrue();
+        hash.GetMaxLength().Should().Be(64);
+    }
+
+    [Fact]
     public void Motherboard_m2_slots_are_not_unique_on_key_and_generation()
     {
         using var db = CreateContext();

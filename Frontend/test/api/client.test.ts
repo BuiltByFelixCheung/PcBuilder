@@ -151,6 +151,65 @@ describe("api client", () => {
     expect(clearSession).toHaveBeenCalled();
   });
 
+  it("does not sign the viewer out when a public build read returns 401", async () => {
+    const clearSession = vi.fn();
+    bindAuthBridge({
+      getAccessToken: () => "tok",
+      applySession: vi.fn(),
+      clearSession,
+    });
+    const refresh = vi.spyOn(axios, "post");
+    api.defaults.adapter = async (config) => {
+      const error = new AxiosError("unauth");
+      error.config = config;
+      error.response = {
+        status: 401,
+        data: {},
+        statusText: "Unauthorized",
+        headers: {},
+        config,
+      };
+      throw error;
+    };
+
+    const buildId = "11111111-1111-1111-1111-111111111111";
+    await expect(api.get(`/builds/${buildId}`)).rejects.toBeTruthy();
+    await expect(api.get(`/builds/${buildId}/pictures`)).rejects.toBeTruthy();
+    await expect(
+      api.get(`/builds/pictures/${buildId}/content`),
+    ).rejects.toBeTruthy();
+
+    expect(refresh).not.toHaveBeenCalled();
+    expect(clearSession).not.toHaveBeenCalled();
+  });
+
+  it("does not sign the viewer out when a private build read returns 404", async () => {
+    const clearSession = vi.fn();
+    bindAuthBridge({
+      getAccessToken: () => "tok",
+      applySession: vi.fn(),
+      clearSession,
+    });
+    const refresh = vi.spyOn(axios, "post");
+    api.defaults.adapter = async (config) => {
+      const error = new AxiosError("missing");
+      error.config = config;
+      error.response = {
+        status: 404,
+        data: {},
+        statusText: "Not Found",
+        headers: {},
+        config,
+      };
+      throw error;
+    };
+
+    const buildId = "22222222-2222-2222-2222-222222222222";
+    await expect(api.get(`/builds/${buildId}`)).rejects.toBeTruthy();
+    expect(refresh).not.toHaveBeenCalled();
+    expect(clearSession).not.toHaveBeenCalled();
+  });
+
   it("parses absolute URLs when deciding whether to skip refresh", async () => {
     api.defaults.adapter = async (config) => {
       const error = new AxiosError("unauth");

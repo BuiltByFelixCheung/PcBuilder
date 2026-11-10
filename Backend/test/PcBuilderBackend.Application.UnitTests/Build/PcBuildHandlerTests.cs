@@ -48,8 +48,9 @@ public class PcBuildHandlerTests : IDisposable
 
         var created = await handler.Handle(ValidCreate(), CancellationToken.None);
 
-        created.Should().NotBeNull();
-        pcBuilds.Received(1).Add(Arg.Any<PcBuild>());
+        created.PictureEditToken.Should().NotBeNullOrWhiteSpace();
+        pcBuilds.Received(1).Add(Arg.Is<PcBuild>(build =>
+            BuildPictureEditToken.Matches(build.PictureEditTokenHash, created.PictureEditToken)));
         pcBuilds.DidNotReceive().AddUser(Arg.Any<PcBuildUser>());
         await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -73,8 +74,10 @@ public class PcBuildHandlerTests : IDisposable
             unitOfWork,
             _fx.Mapper);
 
-        await handler.Handle(ValidCreate() with { IsPublic = true }, CancellationToken.None);
+        var created = await handler.Handle(ValidCreate() with { IsPublic = true }, CancellationToken.None);
 
+        created.PictureEditToken.Should().BeNull();
+        pcBuilds.Received(1).Add(Arg.Is<PcBuild>(build => build.PictureEditTokenHash == null));
         pcBuilds.Received(1).AddUser(Arg.Is<PcBuildUser>(u => u.UserId == userId && u.IsPublic));
         await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }

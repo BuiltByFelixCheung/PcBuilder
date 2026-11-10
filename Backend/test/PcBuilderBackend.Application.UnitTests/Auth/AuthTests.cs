@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NSubstitute;
+using PcBuilderBackend.Application.Auth;
 using PcBuilderBackend.Application.Auth.Commands.ChangePassword;
 using PcBuilderBackend.Application.Auth.Commands.ForgotPassword;
 using PcBuilderBackend.Application.Auth.Commands.Login;
@@ -207,5 +208,13 @@ public class AuthTests
             .Returns(new IdentityOperationResultDto(true, userId, new Dictionary<string, string[]>()));
         (await handler.Handle(command, CancellationToken.None)).Succeeded.Should().BeTrue();
         await tokens.Received(1).RevokeAllForUserAsync(userId, Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public void Refresh_cookie_is_secure_only_on_https(bool isHttps, bool expected)
+    {
+        RefreshCookieSecurity.RequiresSecure(isHttps).Should().Be(expected);
     }
 }

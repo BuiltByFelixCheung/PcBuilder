@@ -3,6 +3,10 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRoles, type AuthTokens } from "@/auth/types.ts";
 import { useAuth } from "@/auth/use-auth.ts";
+import {
+  BUILD_PICTURE_EDIT_TOKEN_STORAGE_KEY,
+  rememberBuildPictureEditToken,
+} from "@/api/builds/picture-edit-token.ts";
 
 const loginRequest = vi.fn();
 const logoutRequest = vi.fn();
@@ -93,6 +97,7 @@ function Probe() {
 describe("AuthProvider", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.removeItem(BUILD_PICTURE_EDIT_TOKEN_STORAGE_KEY);
     refreshSession.mockResolvedValue(null);
     loginRequest.mockResolvedValue(tokens);
     registerRequest.mockResolvedValue(tokens.user);
@@ -144,6 +149,26 @@ describe("AuthProvider", () => {
 
     await user.click(screen.getByRole("button", { name: "reset" }));
     expect(resetPasswordRequest).toHaveBeenCalled();
+  });
+
+  it("drops guest picture edit tokens when a session starts", async () => {
+    rememberBuildPictureEditToken("build-1", "guest-token");
+    const user = userEvent.setup();
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+    );
+    await waitFor(() =>
+      expect(screen.getByText("ready:true")).toBeInTheDocument(),
+    );
+
+    await user.click(screen.getByRole("button", { name: "login" }));
+    await waitFor(() =>
+      expect(screen.getByText("user:a@b.c")).toBeInTheDocument(),
+    );
+
+    expect(localStorage.getItem(BUILD_PICTURE_EDIT_TOKEN_STORAGE_KEY)).toBeNull();
   });
 
   it("still clears the session if logout fails", async () => {

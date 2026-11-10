@@ -78,6 +78,7 @@ public static class DependencyInjection
         services.AddScoped<IWiredNetworkAdapterReadStore, WiredNetworkAdapterReadStore>();
         services.AddScoped<IWirelessNetworkAdapterReadStore, WirelessNetworkAdapterReadStore>();
         services.AddScoped<IProductPictureReadStore, ProductPictureReadStore>();
+        services.AddScoped<IBuildPictureReadStore, BuildPictureReadStore>();
 
         // Repositories
         services.AddScoped<IChassisRepository, ChassisRepository>();
@@ -92,6 +93,7 @@ public static class DependencyInjection
         services.AddScoped<IWiredNetworkAdapterRepository, WiredNetworkAdapterRepository>();
         services.AddScoped<IWirelessNetworkAdapterRepository, WirelessNetworkAdapterRepository>();
         services.AddScoped<IProductPictureRepository, ProductPictureRepository>();
+        services.AddScoped<IBuildPictureRepository, BuildPictureRepository>();
         services.AddScoped<IProductExistenceLookup, ProductExistenceLookup>();
 
         services.AddScoped<ICatalogRepository, CatalogRepository>();

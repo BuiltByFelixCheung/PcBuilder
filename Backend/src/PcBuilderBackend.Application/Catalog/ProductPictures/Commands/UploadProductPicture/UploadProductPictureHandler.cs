@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using PcBuilderBackend.Application.Catalog.ProductPictures.Dto;
 using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.Common.Logging;
+using PcBuilderBackend.Application.Common.Storage;
 using PcBuilderBackend.Domain.Entities;
 
 namespace PcBuilderBackend.Application.Catalog.ProductPictures.Commands.UploadProductPicture;
@@ -34,25 +35,11 @@ public class UploadProductPictureHandler(
         }
         catch (Exception exception)
         {
-            await RemoveOrphanObject(key, exception);
+            await storage.RemoveOrphanObject(logger, key, exception);
             throw;
         }
 
         EntityLog.Created(logger, EntityLog.ProductPicture, entity.Id);
         return mapper.Map<ProductPictureDto>(entity);
-    }
-
-    private async Task RemoveOrphanObject(string key, Exception saveFailure)
-    {
-        try
-        {
-            // The request token is often already canceled. Cleanup still has to
-            // delete the object that has no matching row.
-            await storage.DeleteAsync(key, CancellationToken.None);
-        }
-        catch (Exception cleanupFailure)
-        {
-            EntityLog.PictureCleanupFailed(logger, cleanupFailure, key, saveFailure.Message);
-        }
     }
 }

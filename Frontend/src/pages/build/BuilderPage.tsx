@@ -24,6 +24,10 @@ import {
   type PcBuildContextValue,
 } from "@/builds/types";
 import {
+  hasBuildPictureEditToken,
+  rememberBuildPictureEditToken,
+} from "@/api/builds/picture-edit-token";
+import {
   createPcBuild,
   pcBuildKeys,
   toPcBuildDraft,
@@ -38,6 +42,7 @@ import {
   type PcBuildPart,
 } from "@/api/builds";
 import { PageStatus } from "@/components/PageStatus.tsx";
+import { BuildPictures } from "@/components/build/BuildPictures";
 import { enumText, ui } from "@/i18n/translate-enum";
 import { usePcBuildCompatibility } from "@/hooks/use-pc-build-compatibility";
 import { usePcBuildDetail } from "@/hooks/use-pc-build-detail";
@@ -532,7 +537,9 @@ function useSaveBuildDialog(input: {
             description,
             isPublic: isPublicToSave,
           });
-      queryClient.setQueryData(pcBuildKeys.detail(saved.id), saved);
+      const { pictureEditToken, ...detail } = saved;
+      rememberBuildPictureEditToken(saved.id, pictureEditToken);
+      queryClient.setQueryData(pcBuildKeys.detail(saved.id), detail);
       setSaveDialogOpen(false);
       skipHydrateRef.current = true;
       navigate(builderViewHref(saved.id));
@@ -600,6 +607,8 @@ export function BuilderPage() {
     auth?.user?.id,
     savedQuery.data?.userId,
   );
+  const canEditPictures =
+    canEditSaved || hasBuildPictureEditToken(buildId);
   const save = useSaveBuildDialog({
     fields,
     sourceId: build.sourceId,
@@ -631,6 +640,7 @@ export function BuilderPage() {
       isViewing={isViewing}
       buildId={buildId}
       canEditSaved={canEditSaved}
+      canEditPictures={canEditPictures}
       canSave={canSave}
       hasParts={hasParts}
       compatibility={compatibility}
@@ -652,6 +662,7 @@ function BuilderWorkspace({
   isViewing,
   buildId,
   canEditSaved,
+  canEditPictures,
   canSave,
   hasParts,
   compatibility,
@@ -669,6 +680,7 @@ function BuilderWorkspace({
   isViewing: boolean;
   buildId: string | undefined;
   canEditSaved: boolean;
+  canEditPictures: boolean;
   canSave: boolean;
   hasParts: boolean;
   compatibility: CompatibilityQuery;
@@ -717,6 +729,9 @@ function BuilderWorkspace({
           onClear={onClear}
         />
       </div>
+      {buildId ? (
+        <BuildPictures buildId={buildId} canEdit={canEditPictures} />
+      ) : null}
       <div className="grid items-start gap-6 min-[1025px]:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]">
         <CompatibilityStatus query={compatibility} enabled={hasParts} />
         <div className="min-w-0">

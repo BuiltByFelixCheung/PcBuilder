@@ -18,6 +18,7 @@ public class PcBuildProfile : Profile
 
         CreateMap<Domain.Entities.PcBuild, PcBuildDto>()
             .IncludeBase<Domain.Entities.PcBuild, PcBuildListItemDto>()
+            .ForMember(d => d.PictureEditToken, o => o.Ignore())
             .ForMember(
                 d => d.ChassisFans,
                 o => o.MapFrom(s => s.Parts.Where(p => p.Type == PcBuildPartType.ChassisFan)))

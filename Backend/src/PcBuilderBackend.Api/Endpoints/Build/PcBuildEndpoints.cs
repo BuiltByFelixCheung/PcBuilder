@@ -63,7 +63,10 @@ public static class PcBuildEndpoints
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Create a PC build")
-            .WithDescription("\n    POST /api/builds");
+            .WithDescription(
+                "\n    POST /api/builds" +
+                "\n    A guest create returns pictureEditToken once. The guest sends it as" +
+                "\n    X-PcBuild-Picture-Token when uploading or deleting pictures on that build.");
 
         group.MapPut("/", Update)
             .RequireAuthorization(AuthPolicies.BuildWrite)
@@ -85,6 +88,8 @@ public static class PcBuildEndpoints
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Delete multiple PC builds")
             .WithDescription("\n    DELETE /api/builds/bulk");
+
+        group.MapBuildPictureEndpoints();
 
         group.MapDelete("/{id:guid}", Delete)
             .RequireAuthorization(AuthPolicies.BuildWrite)

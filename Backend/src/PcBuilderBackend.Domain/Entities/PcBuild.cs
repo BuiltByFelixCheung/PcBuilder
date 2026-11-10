@@ -7,6 +7,7 @@ public class PcBuild : BaseEntity
 {
     public string Name { get; private set; } = string.Empty;
     public string? Description { get; private set; }
+    public string? PictureEditTokenHash { get; private set; }
     public Guid ChassisId { get; private set; }
     public Guid MotherboardId { get; private set; }
     public Guid CpuId { get; private set; }
@@ -50,6 +51,18 @@ public class PcBuild : BaseEntity
         SetDescription(description);
         SetComponents(components);
         UpdatedAtUtc = DateTime.UtcNow;
+    }
+
+    public void AssignPictureEditToken(string tokenHash)
+    {
+        if (string.IsNullOrWhiteSpace(tokenHash))
+            throw new ArgumentException("Picture edit token is required.", nameof(tokenHash));
+
+        var trimmed = tokenHash.Trim();
+        if (trimmed.Length > 64)
+            throw new ArgumentException("Picture edit token hash must be 64 characters or fewer.", nameof(tokenHash));
+
+        PictureEditTokenHash = trimmed;
     }
 
     public void AddStorageDevice(Guid storageDeviceId, int quantity = 1)

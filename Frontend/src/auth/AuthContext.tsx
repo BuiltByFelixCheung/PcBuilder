@@ -15,6 +15,7 @@ import {
   resetPasswordRequest,
   changePasswordRequest,
 } from "../api/auth.ts";
+import { forgetBuildPictureEditTokens } from "../api/builds/picture-edit-token.ts";
 import { bindAuthBridge, refreshSession } from "../api/client.ts";
 import { AuthContext } from "./auth-context.ts";
 import {
@@ -36,6 +37,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const accessTokenRef = useRef<string | null>(null);
 
   const applySession = useCallback((tokens: AuthTokens) => {
+    forgetBuildPictureEditTokens();
     accessTokenRef.current = tokens.accessToken;
     setAccessToken(tokens.accessToken);
     setUser(tokens.user);

@@ -28,6 +28,9 @@ internal sealed class PcBuildConfiguration : IEntityTypeConfiguration<PcBuild>
         builder.Property(pcBuild => pcBuild.Description)
             .HasMaxLength(500);
 
+        builder.Property(pcBuild => pcBuild.PictureEditTokenHash)
+            .HasMaxLength(64);
+
         builder.HasOne<Chassis>()
             .WithMany()
             .HasForeignKey(pcBuild => pcBuild.ChassisId)
