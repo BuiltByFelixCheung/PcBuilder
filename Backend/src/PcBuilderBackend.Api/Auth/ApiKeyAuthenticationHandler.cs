@@ -35,7 +35,6 @@ public sealed class ApiKeyAuthenticationHandler(
 
         var claims = new[]
         {
-            new Claim(ClaimTypes.NameIdentifier, match.CreatedByUserId.ToString()),
             new Claim(ClaimTypes.Role, AuthRoles.Importer),
             new Claim("api_key_id", match.ApiKeyId.ToString())
         };
