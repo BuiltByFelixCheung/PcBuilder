@@ -17,7 +17,7 @@ public static class ProductPictureEndpoints
     {
         var subgroup = group.MapGroup("pictures")
             .WithSidebarGroup("Catalog", "Pictures")
-            .WithDescription("Browse product pictures. Uploading and deleting a picture requires the Admin role.");
+            .WithDescription("Browse product pictures. Uploading a picture requires Admin or an Importer API key. Deleting a picture requires Admin.");
 
         subgroup.MapGet("/", ListPictures)
             .Produces<List<ProductPictureDto>>()
@@ -46,7 +46,7 @@ public static class ProductPictureEndpoints
             .WithDescription(
                 "\n    POST /api/catalog/pictures" +
                 "\n    Multipart form: productType, productId, and file." +
-                "\n    Requires the Admin role.");
+                "\n    Requires the Admin role or an Importer API key.");
 
         subgroup.MapDelete("/{id}", DeletePicture)
             .Produces(StatusCodes.Status204NoContent)
