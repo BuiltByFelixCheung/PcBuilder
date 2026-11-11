@@ -79,5 +79,15 @@ public class ImporterAuthorizationTests
         validator.Validate(new CreateApiKeyCommand("agent", DateTime.UtcNow.AddMinutes(-1))).IsValid.Should().BeFalse();
         validator.Validate(new CreateApiKeyCommand("agent", null)).IsValid.Should().BeTrue();
         validator.Validate(new CreateApiKeyCommand("agent", DateTime.UtcNow.AddHours(1))).IsValid.Should().BeTrue();
+
+        var unspecifiedFuture = DateTime.SpecifyKind(DateTime.UtcNow.AddHours(2), DateTimeKind.Unspecified);
+        validator.Validate(new CreateApiKeyCommand("agent", unspecifiedFuture)).IsValid.Should().BeTrue();
+        var unspecifiedPast = DateTime.SpecifyKind(DateTime.UtcNow.AddMinutes(-2), DateTimeKind.Unspecified);
+        validator.Validate(new CreateApiKeyCommand("agent", unspecifiedPast)).IsValid.Should().BeFalse();
+
+        validator.Validate(new CreateApiKeyCommand("agent", DateTime.UtcNow.AddHours(2).ToLocalTime()))
+            .IsValid.Should().BeTrue();
+        validator.Validate(new CreateApiKeyCommand("agent", DateTime.UtcNow.AddHours(-2).ToLocalTime()))
+            .IsValid.Should().BeFalse();
     }
 }
