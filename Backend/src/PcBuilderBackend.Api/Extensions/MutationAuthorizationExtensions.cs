@@ -1,10 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
+using PcBuilderBackend.Application.Common.Authorization;
 
 namespace PcBuilderBackend.Api.Extensions;
 
 public static class MutationAuthorizationExtensions
 {
-    public static RouteGroupBuilder RequireMutationAuthorization(this RouteGroupBuilder group, string policy)
+    public static RouteGroupBuilder RequireMutationAuthorization(
+        this RouteGroupBuilder group,
+        string writePolicy,
+        string importPolicy)
     {
         ((IEndpointConventionBuilder)group).Add(builder =>
         {
@@ -15,11 +19,12 @@ public static class MutationAuthorizationExtensions
             if (http is null)
                 return;
 
-            if (http.HttpMethods.Any(method => HttpMethods.IsGet(method)))
-                return;
-
-            var route = endpointBuilder.RoutePattern.RawText ?? string.Empty;
-            if (IsQueryRoute(route))
+            var policy = MutationAuthorizationRules.PolicyFor(
+                http.HttpMethods,
+                endpointBuilder.RoutePattern.RawText,
+                writePolicy,
+                importPolicy);
+            if (policy is null)
                 return;
 
             endpointBuilder.Metadata.Add(new AuthorizeAttribute(policy));
@@ -27,9 +32,4 @@ public static class MutationAuthorizationExtensions
 
         return group;
     }
-
-    private static bool IsQueryRoute(string route) =>
-        route.Equals("query", StringComparison.OrdinalIgnoreCase)
-        || route.EndsWith("/query", StringComparison.OrdinalIgnoreCase)
-        || route.EndsWith("/query/", StringComparison.OrdinalIgnoreCase);
 }

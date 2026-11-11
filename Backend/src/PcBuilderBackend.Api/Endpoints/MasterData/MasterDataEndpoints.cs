@@ -10,7 +10,7 @@ public static class MasterDataEndpoints
     {
         var group = app.MapGroup("api/master-data")
             .AddEndpointFilterFactory(ValidationFilter.ValidationFilterFactory)
-            .RequireMutationAuthorization(AuthPolicies.MasterDataWrite)
+            .RequireMutationAuthorization(AuthPolicies.MasterDataWrite, AuthPolicies.MasterDataImport)
             .WithDescription("Browse, Read, Edit, Add and Delete master data entities");
 
         group.MapManufacturerEndpoints();

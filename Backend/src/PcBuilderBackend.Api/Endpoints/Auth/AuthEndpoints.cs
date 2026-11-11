@@ -5,14 +5,17 @@ using PcBuilderBackend.Api.Auth;
 using PcBuilderBackend.Api.Extensions;
 using PcBuilderBackend.Api.Filters;
 using PcBuilderBackend.Application.Auth.Commands.ChangePassword;
+using PcBuilderBackend.Application.Auth.Commands.CreateApiKey;
 using PcBuilderBackend.Application.Auth.Commands.ForgotPassword;
 using PcBuilderBackend.Application.Auth.Commands.Login;
 using PcBuilderBackend.Application.Auth.Commands.Logout;
 using PcBuilderBackend.Application.Auth.Commands.RefreshToken;
 using PcBuilderBackend.Application.Auth.Commands.Register;
 using PcBuilderBackend.Application.Auth.Commands.ResetPassword;
+using PcBuilderBackend.Application.Auth.Commands.RevokeApiKey;
 using PcBuilderBackend.Application.Auth.Dto;
 using PcBuilderBackend.Application.Auth.Queries;
+using PcBuilderBackend.Application.Common.Authorization;
 using PcBuilderBackend.Application.Common.Options;
 
 namespace PcBuilderBackend.Api.Endpoints.Auth;
@@ -24,7 +27,7 @@ public static class AuthEndpoints
         var group = app.MapGroup("api/auth")
             .AddEndpointFilterFactory(ValidationFilter.ValidationFilterFactory)
             .WithSidebarGroup("Auth", "Auth")
-            .WithDescription("Register, sign in, refresh, change or reset password, and inspect the current user");
+            .WithDescription("Register, sign in, refresh, change or reset password, inspect the current user, and manage importer API keys");
 
         group.MapPost("/register", Register)
             .AllowAnonymous()
@@ -66,7 +69,7 @@ public static class AuthEndpoints
                 "Revokes the refresh token (JSON body or cookie) and clears the refresh cookie.\n    POST /api/auth/logout");
 
         group.MapGet("/me", Me)
-            .RequireAuthorization()
+            .RequireAuthorization(AuthPolicies.Interactive)
             .Produces<CurrentUserDto>()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
@@ -92,7 +95,7 @@ public static class AuthEndpoints
             .WithDescription("\n    POST /api/auth/reset-password");
 
         group.MapPost("/change-password", ChangePassword)
-            .RequireAuthorization()
+            .RequireAuthorization(AuthPolicies.Interactive)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
             .ProducesValidationProblem()
@@ -100,6 +103,38 @@ public static class AuthEndpoints
             .WithSummary("Change password")
             .WithDescription(
                 "Requires the current password. Revokes all refresh tokens so the user must sign in again.\n    POST /api/auth/change-password");
+
+        group.MapPost("/api-keys", CreateApiKey)
+            .RequireAuthorization(AuthPolicies.ApiKeyManage)
+            .Produces<IssuedApiKeyDto>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status500InternalServerError)
+            .WithSummary("Create an importer API key")
+            .WithDescription(
+                "Returns the raw key once. Send it as the X-Api-Key header.\n" +
+                "The key can create and import catalog and master data. It cannot update, delete, or manage keys.\n" +
+                "    POST /api/auth/api-keys");
+
+        group.MapGet("/api-keys", ListApiKeys)
+            .RequireAuthorization(AuthPolicies.ApiKeyManage)
+            .Produces<IReadOnlyList<ApiKeyDto>>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status500InternalServerError)
+            .WithSummary("List importer API keys")
+            .WithDescription("Raw keys are not returned.\n    GET /api/auth/api-keys");
+
+        group.MapDelete("/api-keys/{id:guid}", RevokeApiKey)
+            .RequireAuthorization(AuthPolicies.ApiKeyManage)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status500InternalServerError)
+            .WithSummary("Revoke an importer API key")
+            .WithDescription("\n    DELETE /api/auth/api-keys/00000000-0000-0000-0000-000000000000");
     }
 
     private static async Task<Results<Created<CurrentUserDto>, ValidationProblem>> Register(
@@ -210,6 +245,29 @@ public static class AuthEndpoints
 
         RefreshTokenCookies.Delete(context.Request, context.Response, jwt);
         return TypedResults.NoContent();
+    }
+
+    private static async Task<Created<IssuedApiKeyDto>> CreateApiKey(
+        [Validate] [FromBody] CreateApiKeyCommand command,
+        [FromServices] ISender sender,
+        CancellationToken cancellationToken)
+    {
+        var created = await sender.Send(command, cancellationToken);
+        return TypedResults.Created($"/api/auth/api-keys/{created.Id}", created);
+    }
+
+    private static async Task<Ok<IReadOnlyList<ApiKeyDto>>> ListApiKeys(
+        [FromServices] ISender sender,
+        CancellationToken cancellationToken) =>
+        TypedResults.Ok(await sender.Send(new ListApiKeysQuery(), cancellationToken));
+
+    private static async Task<Results<NoContent, NotFound>> RevokeApiKey(
+        [FromRoute] Guid id,
+        [FromServices] ISender sender,
+        CancellationToken cancellationToken)
+    {
+        var revoked = await sender.Send(new RevokeApiKeyCommand(id), cancellationToken);
+        return revoked ? TypedResults.NoContent() : TypedResults.NotFound();
     }
 
     private static Dictionary<string, string[]> ToMutableErrors(IReadOnlyDictionary<string, string[]> errors) =>
