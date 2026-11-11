@@ -45,4 +45,10 @@ internal static partial class IdentityLog
 
     [LoggerMessage(EventId = 3014, Level = LogLevel.Information, Message = "Password changed for user {UserId}.")]
     public static partial void PasswordChanged(ILogger logger, Guid userId);
+
+    [LoggerMessage(EventId = 3015, Level = LogLevel.Information, Message = "API key {ApiKeyId} created by user {UserId}.")]
+    public static partial void ApiKeyCreated(ILogger logger, Guid apiKeyId, Guid userId);
+
+    [LoggerMessage(EventId = 3016, Level = LogLevel.Information, Message = "API key {ApiKeyId} revoked.")]
+    public static partial void ApiKeyRevoked(ILogger logger, Guid apiKeyId);
 }

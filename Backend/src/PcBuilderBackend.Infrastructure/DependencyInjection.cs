@@ -135,6 +135,7 @@ public static class DependencyInjection
 
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IApiKeyService, ApiKeyService>();
     }
 
     private static void AddJwt(IServiceCollection services, IConfiguration configuration)

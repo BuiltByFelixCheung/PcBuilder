@@ -10,7 +10,7 @@ public static class CatalogEndpoints
     {
         var group = app.MapGroup("api/catalog")
             .AddEndpointFilterFactory(ValidationFilter.ValidationFilterFactory)
-            .RequireMutationAuthorization(AuthPolicies.CatalogWrite)
+            .RequireMutationAuthorization(AuthPolicies.CatalogWrite, AuthPolicies.CatalogImport)
             .WithDescription("Browse, Read, Edit, Add and Delete products in catalog");
 
         group.MapChassisEndpoints();

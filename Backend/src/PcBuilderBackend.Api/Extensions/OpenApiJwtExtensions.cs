@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
+using PcBuilderBackend.Api.Auth;
+using PcBuilderBackend.Application.Common.Authorization;
 
 namespace PcBuilderBackend.Api.Extensions;
 
@@ -19,6 +21,14 @@ public static class OpenApiJwtExtensions
                 BearerFormat = "JWT",
                 Description = "JWT Bearer authentication. Paste the access token from POST /api/auth/login."
             };
+            document.Components.SecuritySchemes["ApiKey"] = new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.ApiKey,
+                In = ParameterLocation.Header,
+                Name = ApiKeyAuthenticationDefaults.HeaderName,
+                Description =
+                    "Importer API key from POST /api/auth/api-keys. Allows catalog and master-data create and import."
+            };
             return Task.CompletedTask;
         });
 
@@ -26,8 +36,8 @@ public static class OpenApiJwtExtensions
         {
             var authorize = context.Description.ActionDescriptor.EndpointMetadata
                 .OfType<IAuthorizeData>()
-                .Any();
-            if (!authorize)
+                .ToList();
+            if (authorize.Count == 0)
                 return Task.CompletedTask;
 
             operation.Security ??= [];
@@ -35,6 +45,17 @@ public static class OpenApiJwtExtensions
             {
                 [new OpenApiSecuritySchemeReference("Bearer", context.Document)] = []
             });
+
+            var allowsApiKey = authorize.Any(data =>
+                data.Policy is AuthPolicies.CatalogImport or AuthPolicies.MasterDataImport);
+            if (allowsApiKey)
+            {
+                operation.Security.Add(new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference("ApiKey", context.Document)] = []
+                });
+            }
+
             return Task.CompletedTask;
         });
 
