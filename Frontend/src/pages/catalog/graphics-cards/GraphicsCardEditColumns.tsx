@@ -182,13 +182,15 @@ function PowerConnectorSelect({
   name,
   value,
   onChange,
-}: {
+}: Readonly<{
   label: string;
   name: string;
   value: string;
   onChange: (next: PsuCableType | "") => void;
-}) {
-  const known = GRAPHICS_CARD_POWER_CONNECTORS.some((entry) => entry === value);
+}>) {
+  const known = (GRAPHICS_CARD_POWER_CONNECTORS as readonly string[]).includes(
+    value,
+  );
   return (
     <ChoiceSelect
       label={label}
@@ -216,13 +218,13 @@ function PowerConnectorCountInput({
   connectorType,
   count,
   onChange,
-}: {
+}: Readonly<{
   label: string;
   name: string;
   connectorType: string;
   count: number;
   onChange: (count: number) => void;
-}) {
+}>) {
   const slotPowered = connectorType === "None";
   return (
     <Input
