@@ -64,8 +64,15 @@ public class GraphicsCard : ProductEntity
         if (!Enum.IsDefined(specs.PowerConnectorType))
             throw new ArgumentException("PowerConnectorType must be a valid value");
 
-        if (specs.PowerConnectorCount <= 0)
+        if (specs.PowerConnectorType == PsuCableType.None)
+        {
+            if (specs.PowerConnectorCount != 0)
+                throw new ArgumentException("PowerConnectorCount must be zero when no external power connector is required");
+        }
+        else if (specs.PowerConnectorCount <= 0)
+        {
             throw new ArgumentException("PowerConnectorCount must be greater than zero");
+        }
 
         GpuId = specs.GpuId;
         VideoMemoryGb = specs.VideoMemoryGb;

@@ -101,6 +101,21 @@ public class PsuValidatorTests : IDisposable
     }
 
     [Fact]
+    public async Task Create_rejects_none_cable_type()
+    {
+        var validator = new CreatePsuCommandValidator(_fixture.Lookup);
+        var command = _fixture.ValidCreate() with
+        {
+            Cables = [new PsuCableDto { Type = PsuCableType.None, CablesCount = 1, ConnectorsCount = 1 }]
+        };
+
+        var result = await validator.ValidateAsync(command);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("None"));
+    }
+
+    [Fact]
     public async Task Create_rejects_non_positive_cable_counts()
     {
         var validator = new CreatePsuCommandValidator(_fixture.Lookup);

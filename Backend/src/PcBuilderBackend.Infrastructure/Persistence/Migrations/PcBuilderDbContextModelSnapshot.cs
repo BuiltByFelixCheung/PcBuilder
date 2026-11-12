@@ -38,7 +38,7 @@ namespace PcBuilderBackend.Infrastructure.Persistence.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "pcie_slot_lane", new[] { "x1", "x4", "x8", "x16" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "pcie_slot_type", new[] { "x1", "x4", "x8", "x16" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "product_type", new[] { "chassis", "chassis_fan", "chipset", "cpu", "cpu_cooler", "cpu_series", "gpu", "gpu_series", "graphics_card", "motherboard", "psu", "ram", "socket", "storage_drive", "wired_network_adapter", "wireless_network_adapter" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "psu_cable_type", new[] { "motherboard24pin", "cpu4plus4pin", "pcie6plus2pin", "pcie12v_high_power", "pcie12v2x6", "sata", "molex", "floppy" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "psu_cable_type", new[] { "motherboard24pin", "cpu4plus4pin", "pcie6plus2pin", "pcie12v_high_power", "pcie12v2x6", "sata", "molex", "floppy", "none", "pcie6pin" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "psu_form_factor", new[] { "flex_atx", "tfx", "sfx", "sfx_l", "atx" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "psu_modularity", new[] { "non_modular", "semi_modular", "full_modular" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "radiator_class", new[] { "mm120", "mm140", "mm240", "mm280", "mm360", "mm420" });
