@@ -2,6 +2,12 @@
 
 Guidance for coding agents working in this repository. User instructions in chat override this file.
 
+## Git workflow
+
+- Feature work: branch from `dev` and open PRs against `dev`.
+- Housekeeping only (docs, CI config, repo meta, dependency bumps with no product behavior change): branch from `main` and open PRs against `main` when that is the appropriate target.
+- Do not open feature PRs against `main`.
+
 ## Project
 
 PcBuilder is a PC parts catalog and compatibility builder.
