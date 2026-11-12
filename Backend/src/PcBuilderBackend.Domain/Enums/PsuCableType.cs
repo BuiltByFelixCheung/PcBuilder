@@ -9,5 +9,7 @@ public enum PsuCableType
     Pcie12V2X6 = 5,
     Sata = 6,
     Molex = 7,
-    Floppy = 8
+    Floppy = 8,
+    None = 9,
+    Pcie6Pin = 10
 }

@@ -50,6 +50,8 @@
       "CableType": {
         "Motherboard24Pin": "Motherboard 24-pin",
         "Cpu4Plus4Pin": "CPU 4+4-pin",
+        "None": "None",
+        "Pcie6Pin": "PCIe 6-pin",
         "Pcie6Plus2Pin": "PCIe 6+2-pin",
         "Pcie12VHighPower": "PCIe 12VHPWR",
         "Pcie12V2X6": "PCIe 12V-2x6",

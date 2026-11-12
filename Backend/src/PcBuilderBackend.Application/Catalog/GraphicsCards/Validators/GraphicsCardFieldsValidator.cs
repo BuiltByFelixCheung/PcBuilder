@@ -1,5 +1,6 @@
 using FluentValidation;
 using PcBuilderBackend.Application.Catalog.GraphicsCards;
+using PcBuilderBackend.Domain.Enums;
 
 namespace PcBuilderBackend.Application.Catalog.GraphicsCards.Validators;
 
@@ -19,6 +20,13 @@ public sealed class GraphicsCardFieldsValidator<T> : AbstractValidator<T>
         RuleFor(x => x.HeightMm).GreaterThan(0);
         RuleFor(x => x.PowerConsumptionWatts).GreaterThan(0);
         RuleFor(x => x.PowerConnectorType).IsInEnum();
-        RuleFor(x => x.PowerConnectorCount).GreaterThan(0);
+        RuleFor(x => x.PowerConnectorCount)
+            .Equal(0)
+            .When(x => x.PowerConnectorType == PsuCableType.None)
+            .WithMessage("PowerConnectorCount must be zero when no external power connector is required.");
+        RuleFor(x => x.PowerConnectorCount)
+            .GreaterThan(0)
+            .When(x => x.PowerConnectorType != PsuCableType.None)
+            .WithMessage("PowerConnectorCount must be greater than zero.");
     }
 }

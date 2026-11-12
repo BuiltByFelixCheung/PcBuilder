@@ -1,6 +1,7 @@
 using FluentValidation;
 using PcBuilderBackend.Application.Catalog.Psus.Dto;
 using PcBuilderBackend.Application.Catalog.Psus;
+using PcBuilderBackend.Domain.Enums;
 
 namespace PcBuilderBackend.Application.Catalog.Psus.Validators;
 
@@ -32,7 +33,10 @@ public sealed class PsuCableRulesValidator<T> : AbstractValidator<T>
 
         RuleForEach(x => x.Cables).ChildRules(cable =>
         {
-            cable.RuleFor(c => c.Type).IsInEnum();
+            cable.RuleFor(c => c.Type)
+                .IsInEnum()
+                .NotEqual(PsuCableType.None)
+                .WithMessage("PSU cables cannot use connector type None.");
             cable.RuleFor(c => c.CablesCount).GreaterThan(0);
             cable.RuleFor(c => c.ConnectorsCount).GreaterThan(0);
         });
