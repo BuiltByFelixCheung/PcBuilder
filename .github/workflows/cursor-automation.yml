@@ -1,0 +1,21 @@
+name: Trigger Cursor Automation
+
+on:
+  push:
+    branches:
+      - feature/*
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Cursor webhook
+        env:
+          URL: ${{ secrets.CURSOR_AUTOMATION_URL }}
+          KEY: ${{ secrets.CURSOR_AUTOMATION_KEY }}
+        run: |
+          curl -X POST "$URL" \
+            -H "Authorization: Bearer $KEY" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "context": "Branch: ${{ github.ref_name }}\nSHA: ${{ github.sha }}\nRepo: ${{ github.repository }}\nCommit message: ${{ github.event.head_commit.message }}\nURL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
+            }'
