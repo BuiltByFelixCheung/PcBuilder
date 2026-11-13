@@ -2,8 +2,11 @@ name: Trigger Cursor Automation
 
 on:
   push:
-    branches:
-      - feature/*
+    branches-ignore:
+      - main
+      - master
+      - dev
+
 jobs:
   trigger:
     runs-on: ubuntu-latest
@@ -12,10 +15,27 @@ jobs:
         env:
           URL: ${{ secrets.CURSOR_AUTOMATION_URL }}
           KEY: ${{ secrets.CURSOR_AUTOMATION_KEY }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          SERVER: ${{ github.server_url }}
         run: |
-          curl -X POST "$URL" \
-            -H "Authorization: Bearer $KEY" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "context": "Branch: ${{ github.ref_name }}\nSHA: ${{ github.sha }}\nRepo: ${{ github.repository }}\nCommit message: ${{ github.event.head_commit.message }}\nURL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
-            }'
+          jq -n \
+            --arg branch "$BRANCH" \
+            --arg sha "$SHA" \
+            --arg repo "$REPO" \
+            --arg msg "$COMMIT_MSG" \
+            --arg server "$SERVER" \
+            '{
+              context: (
+                "Branch: \($branch)\n" +
+                "SHA: \($sha)\n" +
+                "Repo: \($repo)\n" +
+                "Commit message: \($msg)\n" +
+                "URL: \($server)/\($repo)/commit/\($sha)"
+              )
+            }' | curl -X POST "$URL" \
+              -H "Authorization: Bearer $KEY" \
+              -H "Content-Type: application/json" \
+              --data-binary @-
