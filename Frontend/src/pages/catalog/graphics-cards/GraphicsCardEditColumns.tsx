@@ -173,8 +173,14 @@ function applyConnector(
   return {
     ...item,
     powerConnectorType: next as PsuCableType,
-    powerConnectorCount: next === "None" ? 0 : item.powerConnectorCount,
+    powerConnectorCount: countForConnector(next, item.powerConnectorCount),
   };
+}
+
+function countForConnector(next: PsuCableType | "", current: number): number {
+  if (next === "None") return 0;
+  if (next === "") return current;
+  return Math.max(current, 1);
 }
 
 function PowerConnectorSelect({
