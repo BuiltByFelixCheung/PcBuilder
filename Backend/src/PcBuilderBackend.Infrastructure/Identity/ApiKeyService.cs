@@ -24,7 +24,7 @@ public class ApiKeyService(ApplicationIdentityDbContext db, ILogger<ApiKeyServic
             Name = name.Trim(),
             TokenHash = ApiKeyToken.Hash(raw),
             Prefix = ApiKeyToken.DisplayPrefix(raw),
-            ExpiresAtUtc = expiresAtUtc,
+            ExpiresAtUtc = NormalizeUtc(expiresAtUtc),
             CreatedAtUtc = DateTime.UtcNow,
             CreatedByUserId = createdByUserId
         };
@@ -94,4 +94,14 @@ public class ApiKeyService(ApplicationIdentityDbContext db, ILogger<ApiKeyServic
 
     private static bool IsActive(ApiKey key, DateTime utcNow) =>
         key.RevokedAtUtc is null && (key.ExpiresAtUtc is null || key.ExpiresAtUtc > utcNow);
+
+    private static DateTime? NormalizeUtc(DateTime? value) =>
+        value is null ? null : NormalizeUtc(value.Value);
+
+    private static DateTime NormalizeUtc(DateTime value) => value.Kind switch
+    {
+        DateTimeKind.Utc => value,
+        DateTimeKind.Local => value.ToUniversalTime(),
+        _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+    };
 }

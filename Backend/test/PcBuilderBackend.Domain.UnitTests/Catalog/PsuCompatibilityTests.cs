@@ -1,4 +1,5 @@
 using FluentAssertions;
+using PcBuilderBackend.Domain.Compatibility;
 using PcBuilderBackend.Domain.Entities;
 using PcBuilderBackend.Domain.Enums;
 using PcBuilderBackend.Domain.ValueObjects;
@@ -108,6 +109,72 @@ public class PsuCompatibilityTests
         var act = () => psu.CheckGraphicsCardCompatibility(gpu);
 
         act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void Slot_powered_card_does_not_require_pcie_cables()
+    {
+        var psu = CreatePsu();
+        var gpu = CreateGpu(70, PsuCableType.None, 0);
+
+        psu.CheckGraphicsCardCompatibility(gpu).Status.Should().Be(PartsCompatibility.Compatible);
+        PsuGraphicsCardCompatibility.Filter(gpu).Compile()(psu).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Slot_powered_card_still_counts_toward_the_power_budget()
+    {
+        var psu = CreatePsu(wattage: 200);
+        var cpu = CreateCpu(powerConsumptionWatts: 150);
+        var gpu = CreateGpu(115, PsuCableType.None, 0);
+
+        var result = psu.CheckPowerBudget(cpu, gpu);
+
+        result.Status.Should().Be(PartsCompatibility.Incompatible);
+        result.Reason.Should().Be(CompatibilityReason.ExceedsPowerBudget);
+    }
+
+    [Fact]
+    public void Six_pin_card_accepts_six_pin_or_six_plus_two_cables()
+    {
+        var gpu = CreateGpu(115, PsuCableType.Pcie6Pin, 1);
+        var bare = CreatePsu();
+        var sixPin = CreatePsu();
+        var sixPlusTwo = CreatePsu();
+        sixPin.AddCable(new PsuCable(sixPin.Id, PsuCableType.Pcie6Pin, 1, 1));
+        sixPlusTwo.AddCable(new PsuCable(sixPlusTwo.Id, PsuCableType.Pcie6Plus2Pin, 1, 1));
+
+        bare.CheckGraphicsCardCompatibility(gpu).Reason.Should().Be(CompatibilityReason.InsufficientPciePowerCables);
+        sixPin.CheckGraphicsCardCompatibility(gpu).Status.Should().Be(PartsCompatibility.Compatible);
+        sixPlusTwo.CheckGraphicsCardCompatibility(gpu).Status.Should().Be(PartsCompatibility.Compatible);
+
+        var filter = PsuGraphicsCardCompatibility.Filter(gpu).Compile();
+        filter(bare).Should().BeFalse();
+        filter(sixPin).Should().BeTrue();
+        filter(sixPlusTwo).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Six_pin_card_sums_six_pin_and_six_plus_two_cables()
+    {
+        var psu = CreatePsu();
+        psu.AddCable(new PsuCable(psu.Id, PsuCableType.Pcie6Pin, 1, 1));
+        psu.AddCable(new PsuCable(psu.Id, PsuCableType.Pcie6Plus2Pin, 1, 1));
+        var gpu = CreateGpu(115, PsuCableType.Pcie6Pin, 2);
+
+        psu.CheckGraphicsCardCompatibility(gpu).Status.Should().Be(PartsCompatibility.Compatible);
+        PsuGraphicsCardCompatibility.Filter(gpu).Compile()(psu).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Eight_pin_card_is_not_satisfied_by_six_pin_cables()
+    {
+        var psu = CreatePsu();
+        psu.AddCable(new PsuCable(psu.Id, PsuCableType.Pcie6Pin, 2, 1));
+        var gpu = CreateGpu(200, PsuCableType.Pcie6Plus2Pin, 1);
+
+        psu.CheckGraphicsCardCompatibility(gpu).Reason.Should().Be(CompatibilityReason.InsufficientPciePowerCables);
+        PsuGraphicsCardCompatibility.Filter(gpu).Compile()(psu).Should().BeFalse();
     }
 
     [Fact]

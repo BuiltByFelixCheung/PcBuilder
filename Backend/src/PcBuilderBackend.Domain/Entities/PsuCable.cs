@@ -27,7 +27,7 @@ public class PsuCable : BaseEntity
         if (psuId == Guid.Empty)
             throw new ArgumentException("PSU ID cannot be empty");
         
-        if (!Enum.IsDefined(type))
+        if (!Enum.IsDefined(type) || type == PsuCableType.None)
             throw new ArgumentException("PSU Cable Type is invalid");
         
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(cablesCount);

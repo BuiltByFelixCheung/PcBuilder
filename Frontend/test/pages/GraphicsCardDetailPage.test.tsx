@@ -80,6 +80,116 @@ describe("GraphicsCardDetailPage", () => {
     expect(screen.getByText("NVIDIA")).toBeInTheDocument();
     expect(screen.getByText("GeForce RTX 40")).toBeInTheDocument();
     expect(screen.getByText("No")).toBeInTheDocument();
+    expect(screen.getByRole("row", { name: /Power connectors/i })).toHaveTextContent(
+      "PCIe 6+2-pin x 1",
+    );
+  });
+
+  it("shows None for a slot-powered card", async () => {
+    getGraphicsCardById.mockResolvedValue({
+      ...card,
+      name: "RTX 3050 LP",
+      powerConnectorType: "None",
+      powerConnectorCount: 0,
+    });
+    renderDetail();
+
+    expect(
+      await screen.findByRole("heading", { name: "RTX 3050 LP" }),
+    ).toBeInTheDocument();
+    const connectors = screen.getByRole("row", { name: /Power connectors/i });
+    expect(connectors).toHaveTextContent("None");
+    expect(connectors).not.toHaveTextContent("x");
+  });
+
+  it("clears the connector count when the card needs no external power", async () => {
+    getGraphicsCardById.mockResolvedValue(card);
+    updateGraphicsCard.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderDetail("/catalog/graphics-cards/gpu-1", { isAdmin: true });
+
+    const title = await screen.findByRole("heading", { name: "TUF RTX 4070" });
+    await user.click(
+      within(title.parentElement!).getByRole("button", { name: "Edit" }),
+    );
+    await user.click(
+      screen.getByRole("combobox", {
+        name: "Power Connector Type for TUF RTX 4070",
+      }),
+    );
+    await user.click(screen.getByRole("option", { name: "None" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => {
+      expect(updateGraphicsCard).toHaveBeenCalledTimes(1);
+    });
+    const [saved] = updateGraphicsCard.mock.calls[0] as [GraphicsCardListItem];
+    expect(saved.powerConnectorType).toBe("None");
+    expect(saved.powerConnectorCount).toBe(0);
+  });
+
+  it("sets a connector count when the card needs an external connector", async () => {
+    getGraphicsCardById.mockResolvedValue({
+      ...card,
+      powerConnectorType: "None",
+      powerConnectorCount: 0,
+    });
+    updateGraphicsCard.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderDetail("/catalog/graphics-cards/gpu-1", { isAdmin: true });
+
+    const title = await screen.findByRole("heading", { name: "TUF RTX 4070" });
+    await user.click(
+      within(title.parentElement!).getByRole("button", { name: "Edit" }),
+    );
+    await user.click(
+      screen.getByRole("combobox", {
+        name: "Power Connector Type for TUF RTX 4070",
+      }),
+    );
+    await user.click(screen.getByRole("option", { name: "PCIe 6-pin" }));
+    expect(
+      screen.getByRole("spinbutton", {
+        name: "Power Connector Count for TUF RTX 4070",
+      }),
+    ).toHaveValue(1);
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => {
+      expect(updateGraphicsCard).toHaveBeenCalledTimes(1);
+    });
+    const [saved] = updateGraphicsCard.mock.calls[0] as [GraphicsCardListItem];
+    expect(saved.powerConnectorType).toBe("Pcie6Pin");
+    expect(saved.powerConnectorCount).toBe(1);
+  });
+
+  it("keeps an existing connector count when the connector type changes", async () => {
+    getGraphicsCardById.mockResolvedValue({
+      ...card,
+      powerConnectorCount: 2,
+    });
+    updateGraphicsCard.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderDetail("/catalog/graphics-cards/gpu-1", { isAdmin: true });
+
+    const title = await screen.findByRole("heading", { name: "TUF RTX 4070" });
+    await user.click(
+      within(title.parentElement!).getByRole("button", { name: "Edit" }),
+    );
+    await user.click(
+      screen.getByRole("combobox", {
+        name: "Power Connector Type for TUF RTX 4070",
+      }),
+    );
+    await user.click(screen.getByRole("option", { name: "PCIe 6-pin" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => {
+      expect(updateGraphicsCard).toHaveBeenCalledTimes(1);
+    });
+    const [saved] = updateGraphicsCard.mock.calls[0] as [GraphicsCardListItem];
+    expect(saved.powerConnectorType).toBe("Pcie6Pin");
+    expect(saved.powerConnectorCount).toBe(2);
   });
 
   it("saves the list item without GPU series fields", async () => {

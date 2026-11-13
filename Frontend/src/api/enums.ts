@@ -12,6 +12,7 @@ export type PcieGeneration = (typeof PCIE_GENERATIONS)[number];
 export const PSU_CABLE_TYPES = [
   "Motherboard24Pin",
   "Cpu4Plus4Pin",
+  "Pcie6Pin",
   "Pcie6Plus2Pin",
   "Pcie12VHighPower",
   "Pcie12V2X6",
@@ -19,7 +20,15 @@ export const PSU_CABLE_TYPES = [
   "Molex",
   "Floppy",
 ] as const;
-export type PsuCableType = (typeof PSU_CABLE_TYPES)[number];
+export type PsuCableType = (typeof PSU_CABLE_TYPES)[number] | "None";
+
+export const GRAPHICS_CARD_POWER_CONNECTORS = [
+  "None",
+  "Pcie6Pin",
+  "Pcie6Plus2Pin",
+  "Pcie12VHighPower",
+  "Pcie12V2X6",
+] as const satisfies readonly PsuCableType[];
 
 export const RAM_FORM_FACTORS = ["UDimm", "SoDimm"] as const;
 export type RamFormFactor = (typeof RAM_FORM_FACTORS)[number];

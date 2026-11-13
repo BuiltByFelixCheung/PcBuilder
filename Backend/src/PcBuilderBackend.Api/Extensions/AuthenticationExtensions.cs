@@ -50,10 +50,10 @@ public static class AuthenticationExtensions
             .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(
                 ApiKeyAuthenticationDefaults.AuthenticationScheme,
                 null)
-            .AddPolicyScheme(BearerOrApiKeyScheme, "JWT bearer or API key", options =>
-            {
-                options.ForwardDefaultSelector = SelectScheme;
-            });
+            .AddScheme<AuthenticationSchemeOptions, BearerOrApiKeyAuthenticationHandler>(
+                BearerOrApiKeyScheme,
+                "JWT bearer or API key",
+                null);
 
         services.AddAuthorizationBuilder()
             .AddRolePolicy(AuthPolicies.MasterDataWrite)
@@ -77,15 +77,25 @@ public static class AuthenticationExtensions
 
     internal static string SelectScheme(HttpContext context)
     {
-        var authorization = context.Request.Headers.Authorization.ToString();
-        if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        if (HasBearerCredential(context.Request))
             return JwtBearerDefaults.AuthenticationScheme;
 
-        if (context.Request.Headers.ContainsKey(ApiKeyAuthenticationDefaults.HeaderName))
+        if (HasApiKeyHeader(context.Request))
             return ApiKeyAuthenticationDefaults.AuthenticationScheme;
 
         return JwtBearerDefaults.AuthenticationScheme;
     }
+
+    internal static bool HasBearerCredential(HttpRequest request)
+    {
+        var authorization = request.Headers.Authorization.ToString();
+        const string prefix = "Bearer ";
+        return authorization.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+               && !string.IsNullOrWhiteSpace(authorization[prefix.Length..]);
+    }
+
+    internal static bool HasApiKeyHeader(HttpRequest request) =>
+        request.Headers.ContainsKey(ApiKeyAuthenticationDefaults.HeaderName);
 
     private static AuthorizationBuilder AddRolePolicy(this AuthorizationBuilder builder, string policyName) =>
         builder.AddPolicy(policyName, policy => policy.RequireRole(AuthPolicyRules.RolesFor(policyName)));

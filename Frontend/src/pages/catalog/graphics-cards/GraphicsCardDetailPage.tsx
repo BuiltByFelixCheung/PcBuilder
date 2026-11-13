@@ -174,10 +174,7 @@ export function GraphicsCardDetailPage() {
               </TableRow>
               <TableRow>
                 <TableHead className="table-stub" scope="row">{ui.label("powerConnectors")}</TableHead>
-                <TableCell>
-                  {enumText.psuCableType(graphicsCard.powerConnectorType)} x{" "}
-                  {graphicsCard.powerConnectorCount}
-                </TableCell>
+                <TableCell>{formatPowerConnectors(graphicsCard)}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -185,4 +182,18 @@ export function GraphicsCardDetailPage() {
       </div>
     </section>
   );
+}
+
+function formatPowerConnectors(graphicsCard: {
+  powerConnectorType: string;
+  powerConnectorCount: number;
+}) {
+  if (
+    graphicsCard.powerConnectorType === "None" ||
+    graphicsCard.powerConnectorCount === 0
+  ) {
+    return enumText.psuCableType("None");
+  }
+
+  return `${enumText.psuCableType(graphicsCard.powerConnectorType)} x ${graphicsCard.powerConnectorCount}`;
 }

@@ -50,6 +50,8 @@
       "CableType": {
         "Motherboard24Pin": "主機板 24 針",
         "Cpu4Plus4Pin": "CPU 4+4 針",
+        "None": "無",
+        "Pcie6Pin": "PCIe 6 針",
         "Pcie6Plus2Pin": "PCIe 6+2 針",
         "Pcie12VHighPower": "PCIe 12VHPWR",
         "Pcie12V2X6": "PCIe 12V-2x6",

@@ -67,18 +67,41 @@ public static class PsuGraphicsCardCompatibility
             (psu.Cables.Where(cable => cable.Type == cableType)
                 .Sum(cable => (int?)cable.CablesCount) ?? 0) >= required;
 
+    private static readonly Expression<Func<Psu, int, bool>> HasSixPinCables =
+        (psu, required) =>
+            (psu.Cables.Where(cable =>
+                    cable.Type == PsuCableType.Pcie6Pin || cable.Type == PsuCableType.Pcie6Plus2Pin)
+                .Sum(cable => (int?)cable.CablesCount) ?? 0) >= required;
+
     private static readonly Func<Psu, PsuCableType, int, bool> HasCablesCompiled = HasCables.Compile();
+    private static readonly Func<Psu, int, bool> HasSixPinCablesCompiled = HasSixPinCables.Compile();
 
     public static PartsCompatibilityResult Evaluate(Psu psu, GraphicsCard gpu)
     {
-        var cableType = RequiredCable(gpu);
-        return HasCablesCompiled(psu, cableType, gpu.PowerConnectorCount)
+        if (RequiresNoExternalPower(gpu))
+            return PartsCompatibilityResult.Compatible();
+
+        var compatible = gpu.PowerConnectorType == PsuCableType.Pcie6Pin
+            ? HasSixPinCablesCompiled(psu, gpu.PowerConnectorCount)
+            : HasCablesCompiled(psu, RequiredCable(gpu), gpu.PowerConnectorCount);
+
+        return compatible
             ? PartsCompatibilityResult.Compatible()
             : PartsCompatibilityResult.Incompatible(CompatibilityReason.InsufficientPciePowerCables);
     }
 
-    public static Expression<Func<Psu, bool>> Filter(GraphicsCard gpu) =>
-        CompatibilityExpression.Bind(HasCables, RequiredCable(gpu), gpu.PowerConnectorCount);
+    public static Expression<Func<Psu, bool>> Filter(GraphicsCard gpu)
+    {
+        if (RequiresNoExternalPower(gpu))
+            return psu => true;
+
+        return gpu.PowerConnectorType == PsuCableType.Pcie6Pin
+            ? CompatibilityExpression.Bind(HasSixPinCables, gpu.PowerConnectorCount)
+            : CompatibilityExpression.Bind(HasCables, RequiredCable(gpu), gpu.PowerConnectorCount);
+    }
+
+    private static bool RequiresNoExternalPower(GraphicsCard gpu) =>
+        gpu.PowerConnectorType == PsuCableType.None || gpu.PowerConnectorCount == 0;
 
     private static PsuCableType RequiredCable(GraphicsCard gpu) => gpu.PowerConnectorType switch
     {

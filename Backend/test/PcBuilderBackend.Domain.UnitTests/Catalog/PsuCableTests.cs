@@ -35,6 +35,14 @@ public class PsuCableTests
         act.Should().Throw<ArgumentException>().WithMessage("*Cable Type*");
     }
 
+    [Fact]
+    public void Constructor_rejects_none()
+    {
+        var act = () => new PsuCable(Guid.NewGuid(), PsuCableType.None, 1, 1);
+
+        act.Should().Throw<ArgumentException>().WithMessage("*Cable Type*");
+    }
+
     [Theory]
     [InlineData(0, 1)]
     [InlineData(-1, 1)]

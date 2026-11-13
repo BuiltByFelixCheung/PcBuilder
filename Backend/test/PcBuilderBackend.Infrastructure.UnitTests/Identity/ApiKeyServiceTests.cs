@@ -68,6 +68,26 @@ public class ApiKeyServiceTests
         listed.Should().OnlyContain(key => key.Prefix.StartsWith(ApiKeyToken.Prefix));
     }
 
+    [Fact]
+    public async Task Create_stores_expiry_as_utc_regardless_of_kind()
+    {
+        await using var db = CreateDb();
+        var service = new ApiKeyService(db, NullLogger<ApiKeyService>.Instance);
+        var userId = Guid.NewGuid();
+        var unspecified = new DateTime(2030, 6, 1, 12, 0, 0, DateTimeKind.Unspecified);
+        var local = new DateTime(2031, 6, 1, 12, 0, 0, DateTimeKind.Local);
+
+        var unspecifiedKey = await service.CreateAsync(userId, "unspecified", unspecified, CancellationToken.None);
+        unspecifiedKey.ExpiresAtUtc.Should().Be(new DateTime(2030, 6, 1, 12, 0, 0, DateTimeKind.Utc));
+
+        var localKey = await service.CreateAsync(userId, "local", local, CancellationToken.None);
+        localKey.ExpiresAtUtc.Should().Be(local.ToUniversalTime());
+        localKey.ExpiresAtUtc!.Value.Kind.Should().Be(DateTimeKind.Utc);
+
+        var stored = await db.ApiKeys.ToListAsync();
+        stored.Should().OnlyContain(key => key.ExpiresAtUtc!.Value.Kind == DateTimeKind.Utc);
+    }
+
     private static ApplicationIdentityDbContext CreateDb()
     {
         var options = new DbContextOptionsBuilder<ApplicationIdentityDbContext>()
