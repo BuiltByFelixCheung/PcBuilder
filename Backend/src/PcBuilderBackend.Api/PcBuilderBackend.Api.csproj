@@ -24,6 +24,7 @@
         </PackageReference>
         <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
         <PackageReference Include="Scalar.AspNetCore" Version="2.16.18" />
+        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
     </ItemGroup>
 
     <ItemGroup>
@@ -32,9 +33,7 @@
       <Content Update="wwwroot\**" CopyToPublishDirectory="Never" />
     </ItemGroup>
 
-    <Target Name="PublishFrontend"
-            AfterTargets="ComputeFilesToPublish"
-            Condition="'$(SkipSpaBuild)' != 'true' And '$(DesignTimeBuild)' != 'true'">
+    <Target Name="PublishFrontend" AfterTargets="ComputeFilesToPublish" Condition="'$(SkipSpaBuild)' != 'true' And '$(DesignTimeBuild)' != 'true'">
         <Message Importance="high" Text="Building frontend into wwwroot..." />
         <Exec WorkingDirectory="$(SpaRoot)" Command="npm ci" />
         <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
