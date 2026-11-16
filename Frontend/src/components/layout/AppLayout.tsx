@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/hooks/use-is-mobile";
-import type { AppLanguage } from "@/i18n";
+import { detectedAppLanguage, type AppLanguage } from "@/i18n";
 import { AppHeader } from "./AppHeader.tsx";
 import { MobileHeader } from "./MobileHeader.tsx";
 import { Navbar } from "./Navbar.tsx";
@@ -12,6 +12,13 @@ export function AppLayout() {
   const isMobile = useIsMobile();
 
   const language = i18n.resolvedLanguage ?? i18n.language;
+
+  useEffect(() => {
+    const next = detectedAppLanguage();
+    if (next && next !== (i18n.resolvedLanguage ?? i18n.language)) {
+      void i18n.changeLanguage(next);
+    }
+  }, [i18n]);
 
   useEffect(() => {
     const documentLanguage: AppLanguage = language.toLowerCase().startsWith("zh")

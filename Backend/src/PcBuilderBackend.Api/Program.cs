@@ -83,8 +83,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseDefaultFiles();
-app.UseStaticFiles();
+// HTML is served by the SPA fallback so /index.html is not hydrated as "/".
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new HtmlHidingFileProvider(app.Environment.WebRootFileProvider),
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();

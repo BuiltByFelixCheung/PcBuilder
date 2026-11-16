@@ -1,26 +1,29 @@
 import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { createRoot, hydrateRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { AuthProvider } from "./auth/index.ts";
-import { createQueryClient } from "./query/query-client.ts";
+import { AppProviders } from "./app-providers.tsx";
 import "./i18n.ts";
 import "./index.css";
 import App from "./App.tsx";
-import { PcBuildProvider } from "./builds/index.ts";
 
-const queryClient = createQueryClient();
+const container = document.getElementById("root");
+if (!container) {
+  throw new Error("Root element is missing");
+}
 
-createRoot(document.getElementById("root")!).render(
+const tree = (
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <PcBuildProvider>
-            <App />
-          </PcBuildProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
-  </StrictMode>,
+    <BrowserRouter>
+      <AppProviders>
+        <App />
+      </AppProviders>
+    </BrowserRouter>
+  </StrictMode>
 );
+
+// Prerendered documents already contain the first paint. Other URLs use the empty shell.
+if (container.childNodes.length > 0) {
+  hydrateRoot(container, tree);
+} else {
+  createRoot(container).render(tree);
+}

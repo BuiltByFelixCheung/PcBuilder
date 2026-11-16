@@ -1,18 +1,52 @@
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "theme";
 const DARK_QUERY = "(prefers-color-scheme: dark)";
 
 export type Theme = "light" | "dark";
 
+const listeners = new Set<() => void>();
+
 function storedTheme(): Theme | null {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored === "light" || stored === "dark" ? stored : null;
+  if (typeof localStorage === "undefined") return null;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored === "light" || stored === "dark" ? stored : null;
+  } catch {
+    return null;
+  }
 }
 
 function systemTheme(): Theme {
-  if (typeof window.matchMedia !== "function") return "light";
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return "light";
+  }
   return window.matchMedia(DARK_QUERY).matches ? "dark" : "light";
+}
+
+function snapshot(): Theme {
+  return storedTheme() ?? systemTheme();
+}
+
+function serverSnapshot(): Theme {
+  return "light";
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  let query: MediaQueryList | undefined;
+  if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+    query = window.matchMedia(DARK_QUERY);
+    query.addEventListener("change", listener);
+  }
+  return () => {
+    listeners.delete(listener);
+    query?.removeEventListener("change", listener);
+  };
+}
+
+function emit() {
+  for (const listener of listeners) listener();
 }
 
 const FAVICON: Record<Theme, string> = {
@@ -29,7 +63,11 @@ function applyFavicon(theme: Theme) {
   link.rel = "icon";
   link.type = "image/svg+xml";
   link.setAttribute("href", href);
-  current?.replaceWith(link) ?? document.head.appendChild(link);
+  if (current) {
+    current.replaceWith(link);
+  } else {
+    document.head.appendChild(link);
+  }
 }
 
 function applyTheme(theme: Theme) {
@@ -38,27 +76,16 @@ function applyTheme(theme: Theme) {
 }
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(
-    () => storedTheme() ?? systemTheme(),
-  );
+  // The server snapshot stays light so prerendered HTML matches the first client render.
+  const theme = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
 
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
 
-  useEffect(() => {
-    if (typeof window.matchMedia !== "function") return;
-    const query = window.matchMedia(DARK_QUERY);
-    const onChange = () => {
-      if (storedTheme() == null) setTheme(systemTheme());
-    };
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
-
   function persistTheme(next: Theme) {
     localStorage.setItem(STORAGE_KEY, next);
-    setTheme(next);
+    emit();
   }
 
   return { theme, setTheme: persistTheme };

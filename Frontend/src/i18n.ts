@@ -11,7 +11,27 @@ export const LANGUAGES = [
 
 export type AppLanguage = (typeof LANGUAGES)[number]["code"];
 
-await i18n.use(LanguageDetector).use(initReactI18next).init({
+export function detectedAppLanguage(): AppLanguage | undefined {
+  const detector = i18n.services.languageDetector as
+    | { detect?: () => unknown }
+    | undefined;
+  const detected = detector?.detect?.();
+  const raw = Array.isArray(detected) ? detected[0] : detected;
+  if (typeof raw !== "string") return undefined;
+  const lower = raw.toLowerCase();
+  if (lower.startsWith("zh")) return "zh-HK";
+  if (lower.startsWith("en")) return "en";
+  return undefined;
+}
+
+// Prerender and the first browser paint both use zh-HK. The detector runs after
+// mount so a stored or browser language cannot disagree with the HTML.
+if (typeof window !== "undefined") {
+  i18n.use(LanguageDetector);
+}
+
+await i18n.use(initReactI18next).init({
+  lng: "zh-HK",
   resources: {
     en: { common: en },
     "zh-HK": { common: zhHK },
