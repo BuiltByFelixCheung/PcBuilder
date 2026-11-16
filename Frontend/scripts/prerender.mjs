@@ -9,7 +9,7 @@ const marker = '<div id="root"></div>';
 const template = fs.readFileSync(templatePath, "utf8");
 
 if (!template.includes(marker)) {
-  throw new Error("dist/index.html is missing <div id=\"root\"></div>");
+  throw new Error('dist/index.html is missing <div id="root"></div>');
 }
 
 fs.writeFileSync(path.join(dist, "__spa-fallback.html"), template);
@@ -23,10 +23,9 @@ for (const route of prerenderPaths) {
     throw new Error(`Prerender of ${route} did not include the app header`);
   }
 
-  const page = template.replace(
-    marker,
-    () => `<div id="root">${appHtml}</div>`,
-  );
+  const page = template
+    .replace('<html lang="en">', '<html lang="zh-HK">')
+    .replace(marker, () => `<div id="root">${appHtml}</div>`);
   const file =
     route === "/"
       ? templatePath
@@ -40,6 +39,9 @@ const home = fs.readFileSync(templatePath, "utf8");
 if (!home.includes("<h1>PC Builder</h1>")) {
   throw new Error("Home HTML is missing its heading");
 }
+if (!home.includes('<html lang="zh-HK">')) {
+  throw new Error('Home HTML is missing lang="zh-HK"');
+}
 
 const cpus = fs.readFileSync(
   path.join(dist, "catalog", "cpus", "index.html"),
@@ -47,6 +49,11 @@ const cpus = fs.readFileSync(
 );
 if (!cpus.includes("處理器")) {
   throw new Error("CPU catalog HTML is missing its heading");
+}
+
+const login = fs.readFileSync(path.join(dist, "login", "index.html"), "utf8");
+if (!login.includes(">登入<") || !login.includes('<html lang="zh-HK">')) {
+  throw new Error("Login HTML is missing its form");
 }
 
 const fallback = fs.readFileSync(

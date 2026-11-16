@@ -13,8 +13,7 @@ export type AppLanguage = (typeof LANGUAGES)[number]["code"];
 
 export function detectedAppLanguage(): AppLanguage | undefined {
   const detector = i18n.services.languageDetector as
-    | { detect?: () => unknown }
-    | undefined;
+    { detect?: () => unknown } | undefined;
   const detected = detector?.detect?.();
   const raw = Array.isArray(detected) ? detected[0] : detected;
   if (typeof raw !== "string") return undefined;
@@ -26,6 +25,10 @@ export function detectedAppLanguage(): AppLanguage | undefined {
 
 // Prerender and the first browser paint both use zh-HK. The detector runs after
 // mount so a stored or browser language cannot disagree with the HTML.
+// Caches stay empty through init: i18next persists the explicit lng immediately,
+// which would replace a stored preference before that detection runs.
+const languageCaches: string[] = [];
+
 if (typeof window !== "undefined") {
   i18n.use(LanguageDetector);
 }
@@ -48,7 +51,7 @@ await i18n.use(initReactI18next).init({
   },
   detection: {
     order: ["localStorage", "querystring", "navigator"],
-    caches: ["localStorage"],
+    caches: languageCaches,
     lookupQuerystring: "lng",
   },
   ns: ["common"],
@@ -61,5 +64,9 @@ await i18n.use(initReactI18next).init({
   },
   debug: import.meta.env.DEV && import.meta.env.MODE !== "test",
 });
+
+if (typeof window !== "undefined") {
+  languageCaches.push("localStorage");
+}
 
 export default i18n;

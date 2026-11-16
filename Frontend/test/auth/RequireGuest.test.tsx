@@ -21,9 +21,9 @@ function renderGuest(auth: ReturnType<typeof authValue>) {
 }
 
 describe("RequireGuest", () => {
-  it("shows loading, redirects members, and renders guests", () => {
+  it("renders the form before the session is known and redirects members", () => {
     const { rerender } = renderGuest(authValue({ isReady: false }));
-    expect(screen.getByText("Loading…")).toBeInTheDocument();
+    expect(screen.getByText("guest form")).toBeInTheDocument();
 
     rerender(
       <AuthContext.Provider
@@ -43,6 +43,7 @@ describe("RequireGuest", () => {
         </MemoryRouter>
       </AuthContext.Provider>,
     );
+    expect(screen.getByText("account page")).toBeInTheDocument();
   });
 
   it("renders the outlet for guests", () => {
