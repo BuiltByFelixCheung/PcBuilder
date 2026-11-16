@@ -4,9 +4,8 @@ import { MemoryRouter } from "react-router-dom";
 import App from "@/App.tsx";
 import { AppProviders } from "@/app-providers.tsx";
 import "@/i18n.ts";
-import { prerenderPaths } from "@/prerender-paths.ts";
 
-export { prerenderPaths };
+export { prerenderPaths } from "@/prerender-paths.ts";
 
 export function render(url: string) {
   return renderToString(
