@@ -19,6 +19,7 @@ import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
 import { ProductPictures } from "@/components/catalog/ProductPictures";
 import { ChildCollectionDialog } from "@/components/catalog/ChildCollectionDialog";
 import { enumText, ui } from "@/i18n/translate-enum";
+import { useCatalogDetailMeta } from "@/seo/catalog-meta";
 import {
   psuKeys,
   psuListItem,
@@ -38,6 +39,17 @@ export function PsuDetailPage() {
   const [editing, setEditing] = useState(false);
   const [editingCables, setEditingCables] = useState(false);
   const manufacturers = useCatalogManufacturers("psu");
+
+  useCatalogDetailMeta({
+    category: ui.nav("products.psus"),
+    categoryPath: "/catalog/psus",
+    productType: "Psu",
+    productId: psuId,
+    name: psu?.name,
+    manufacturer: psu?.manufacturerName,
+    pending: query.isPending,
+    missing: !query.isPending && (query.isError || !psu),
+  });
 
   if (query.isPending) {
     return <PageStatus>{ui.empty("loading", { entity: ui.entity("psu") })}</PageStatus>;
@@ -72,7 +84,7 @@ export function PsuDetailPage() {
           </Button>
         )}
       </div>
-      <ProductPictures productType="Psu" productId={psu.id} />
+      <ProductPictures productType="Psu" productId={psu.id} alt={psu.name} />
       {editing ? (
         <CatalogEditDialog
           title={ui.dialog("editPsu")}

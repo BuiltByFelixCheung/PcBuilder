@@ -1,8 +1,11 @@
 import { useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import type { AppLanguage } from "@/i18n";
+import { ui } from "@/i18n/translate-enum";
+import { applyPageMeta } from "@/seo/page-meta";
+import { isNoIndexPath } from "@/seo/private-paths";
 import { AppHeader } from "./AppHeader.tsx";
 import { MobileHeader } from "./MobileHeader.tsx";
 import { Navbar } from "./Navbar.tsx";
@@ -10,6 +13,8 @@ import { Navbar } from "./Navbar.tsx";
 export function AppLayout() {
   const { i18n } = useTranslation();
   const isMobile = useIsMobile();
+  const { pathname } = useLocation();
+  const noindex = isNoIndexPath(pathname);
 
   const language = i18n.resolvedLanguage ?? i18n.language;
 
@@ -18,8 +23,17 @@ export function AppLayout() {
       ? "zh-HK"
       : "en";
     document.documentElement.lang = documentLanguage;
-    document.title = "PC Builder";
   }, [language]);
+
+  useEffect(() => {
+    if (!noindex) return;
+    applyPageMeta({
+      title: ui.seo("homeTitle"),
+      description: ui.seo("homeDescription"),
+      canonicalPath: pathname,
+      robots: "noindex,nofollow",
+    });
+  }, [noindex, pathname, language]);
 
   return (
     <>

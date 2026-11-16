@@ -18,6 +18,7 @@ import {
 import { StorageFields } from "@/pages/catalog/storage-drives/StorageEditColumns";
 import { formatStorageFormFactor } from "@/api/enums";
 import { enumText, ui } from "@/i18n/translate-enum";
+import { useCatalogDetailMeta } from "@/seo/catalog-meta";
 import {
   Table,
   TableBody,
@@ -34,6 +35,17 @@ export function StorageDetailPage() {
   const { isAdmin } = useAuth();
   const [editing, setEditing] = useState(false);
   const manufacturers = useCatalogManufacturers("storagedrive");
+
+  useCatalogDetailMeta({
+    category: ui.nav("products.storage"),
+    categoryPath: "/catalog/storage",
+    productType: "StorageDrive",
+    productId: storageId,
+    name: drive?.name,
+    manufacturer: drive?.manufacturerName,
+    pending: query.isPending,
+    missing: !query.isPending && (query.isError || !drive),
+  });
 
   if (query.isPending) {
     return <PageStatus>{ui.empty("loading", { entity: ui.entity("storage") })}</PageStatus>;
@@ -70,7 +82,7 @@ export function StorageDetailPage() {
           </Button>
         )}
       </div>
-      <ProductPictures productType="StorageDrive" productId={drive.id} />
+      <ProductPictures productType="StorageDrive" productId={drive.id} alt={drive.name} />
       {editing ? (
         <CatalogEditDialog
           title={ui.dialog("editStorageDrive")}

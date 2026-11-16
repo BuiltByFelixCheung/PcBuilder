@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { useChassisById } from "@/hooks/use-chassis.ts";
 import { enumText, ui } from "@/i18n/translate-enum";
+import { useCatalogDetailMeta } from "@/seo/catalog-meta";
 import { useCatalogManufacturers } from "@/hooks/use-catalog-manufacturers.ts";
 import {
   chassisKeys,
@@ -334,6 +335,17 @@ export function ChassisDetailPage() {
   const [editingPcieSlots, setEditingPcieSlots] = useState(false);
   const manufacturers = useCatalogManufacturers("chassis");
 
+  useCatalogDetailMeta({
+    category: ui.nav("products.chassis"),
+    categoryPath: "/catalog/chassis",
+    productType: "Chassis",
+    productId: chassisId,
+    name: chassis?.name,
+    manufacturer: chassis?.manufacturerName,
+    pending: query.isPending,
+    missing: !query.isPending && (query.isError || !chassis),
+  });
+
   if (query.isPending) {
     return <PageStatus>{ui.empty("loading", { entity: ui.entity("chassis") })}</PageStatus>;
   }
@@ -370,7 +382,7 @@ export function ChassisDetailPage() {
           </Button>
         )}
       </div>
-      <ProductPictures productType="Chassis" productId={chassis.id} />
+      <ProductPictures productType="Chassis" productId={chassis.id} alt={chassis.name} />
       <EditChassisDialog
         chassis={chassis}
         manufacturers={manufacturers}

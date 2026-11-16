@@ -12,6 +12,7 @@ import {
 import { useMotherboard } from "@/hooks/use-motherboards.ts";
 import { formatM2FormFactor, type M2FormFactor } from "@/api/enums";
 import { enumText, ui } from "@/i18n/translate-enum";
+import { useCatalogDetailMeta } from "@/seo/catalog-meta";
 import { Button } from "@/components/ui/button";
 import { builderHref, usePcBuild } from "@/builds";
 import { useAuth } from "@/auth/use-auth";
@@ -62,6 +63,17 @@ export function MotherboardDetailPage() {
   const [editingUsb, setEditingUsb] = useState(false);
   const { manufacturers, sockets, chipsets } = useMotherboardFilterOptions();
 
+  useCatalogDetailMeta({
+    category: ui.nav("products.motherboards"),
+    categoryPath: "/catalog/motherboards",
+    productType: "Motherboard",
+    productId: motherboardId,
+    name: motherboard?.name,
+    manufacturer: motherboard?.manufacturerName,
+    pending: query.isPending,
+    missing: !query.isPending && (query.isError || !motherboard),
+  });
+
   if (query.isPending) {
     return <PageStatus>{ui.empty("loading", { entity: ui.entity("motherboard") })}</PageStatus>;
   }
@@ -108,7 +120,7 @@ export function MotherboardDetailPage() {
           </Button>
         )}
       </div>
-      <ProductPictures productType="Motherboard" productId={motherboard.id} />
+      <ProductPictures productType="Motherboard" productId={motherboard.id} alt={motherboard.name} />
       {isEditing ? (
         <CatalogEditDialog
           title={ui.dialog("editMotherboard")}

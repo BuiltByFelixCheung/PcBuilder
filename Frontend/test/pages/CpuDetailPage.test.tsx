@@ -260,6 +260,12 @@ describe("CpuDetailPage", () => {
     expect(
       await screen.findByText("Something went wrong. Try again."),
     ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute(
+        "content",
+        "noindex,nofollow",
+      );
+    });
   });
 
   it("shows a loading state", async () => {

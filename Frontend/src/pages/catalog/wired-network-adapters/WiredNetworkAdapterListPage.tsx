@@ -32,6 +32,7 @@ import {
   WIRED_HOST_INTERFACES,
 } from "@/api/enums";
 import {enumText, ui} from "@/i18n/translate-enum";
+import { useCatalogListMeta } from "@/seo/catalog-meta";
 import { CatalogCompatibleCheckbox } from "@/components/catalog/CatalogFilterFields.tsx";
 import { unsetCatalogItem } from "@/components/catalog/catalog-create";
 import { CatalogCreateDialog } from "@/components/catalog/CatalogCreateDialog";
@@ -72,6 +73,7 @@ const columnHelper = createColumnHelper<
 >();
 
 export function WiredNetworkAdapterListPage() {
+  useCatalogListMeta(ui.nav("products.wiredNetworkAdapters"));
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(

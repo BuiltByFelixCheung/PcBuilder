@@ -15,6 +15,7 @@ import {
 } from "@/components/catalog/CatalogDetail";
 import { Button } from "@/components/ui/button";
 import { enumText, ui } from "@/i18n/translate-enum";
+import { useCatalogDetailMeta } from "@/seo/catalog-meta";
 import {
   updateWiredNetworkAdapter,
   wiredNetworkAdapterKeys,
@@ -31,6 +32,16 @@ export function WiredNetworkAdapterDetailPage() {
   const manufacturers = useCatalogManufacturers("wirednetworkadapter");
   const backLabel = ui.empty("backTo", {
     entity: ui.nav("products.wiredNetworkAdapters"),
+  });
+  useCatalogDetailMeta({
+    category: ui.nav("products.wiredNetworkAdapters"),
+    categoryPath: "/catalog/wired-network-adapters",
+    productType: "WiredNetworkAdapter",
+    productId: wiredNetworkAdapterId,
+    name: adapter?.name,
+    manufacturer: adapter?.manufacturerName,
+    pending: query.isPending,
+    missing: !query.isPending && (query.isError || !adapter),
   });
 
   return (
@@ -64,6 +75,7 @@ export function WiredNetworkAdapterDetailPage() {
           <ProductPictures
             productType="WiredNetworkAdapter"
             productId={adapter.id}
+            alt={adapter.name}
           />
           {editing ? (
             <CatalogEditDialog

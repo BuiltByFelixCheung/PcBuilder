@@ -31,6 +31,7 @@ import {
   type PsuModularity,
 } from "@/api/enums";
 import {enumText, ui} from "@/i18n/translate-enum";
+import { useCatalogListMeta } from "@/seo/catalog-meta";
 import { formSelectClassName } from "@/components/filters/ListFilters";
 import {
   CatalogCompatibleCheckbox,
@@ -58,6 +59,7 @@ const columnHelper = createColumnHelper<
 >();
 
 export function PsuListPage() {
+  useCatalogListMeta(ui.nav("products.psus"));
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(

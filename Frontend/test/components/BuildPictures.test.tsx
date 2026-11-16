@@ -36,7 +36,7 @@ const picture: BuildPicture = {
 
 function renderPictures(canEdit = false) {
   return renderWithQuery(
-    <BuildPictures buildId="build-1" canEdit={canEdit} />,
+    <BuildPictures buildId="build-1" canEdit={canEdit} alt="Office build" />,
   );
 }
 
@@ -59,7 +59,7 @@ describe("BuildPictures", () => {
   it("shows pictures without upload or delete controls for a visitor", async () => {
     renderPictures(false);
 
-    expect(await screen.findByRole("img", { name: "Pictures" })).toHaveAttribute(
+    expect(await screen.findByRole("img", { name: "Office build" })).toHaveAttribute(
       "src",
       "blob:picture",
     );
@@ -109,7 +109,7 @@ describe("BuildPictures", () => {
     await user.click(first);
 
     const dialog = await screen.findByRole("dialog", { name: "Pictures" });
-    expect(within(dialog).getAllByRole("img", { name: "Pictures" }).length).toBeGreaterThan(0);
+    expect(within(dialog).getAllByRole("img", { name: "Office build" }).length).toBeGreaterThan(0);
     await user.click(within(dialog).getByRole("button", { name: "Next" }));
     expect(within(dialog).getByText("2 / 2")).toBeInTheDocument();
   });

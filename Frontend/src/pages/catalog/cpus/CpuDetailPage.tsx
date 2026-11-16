@@ -19,6 +19,7 @@ import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
 import { ProductPictures } from "@/components/catalog/ProductPictures";
 import { ChildCollectionDialog } from "@/components/catalog/ChildCollectionDialog";
 import { enumText, ui } from "@/i18n/translate-enum";
+import { useCatalogDetailMeta } from "@/seo/catalog-meta";
 import {
   cpuKeys,
   updateCpu,
@@ -56,6 +57,17 @@ export function CpuDetailPage() {
     queryFn: listChipsets,
   });
   const chipsets = chipsetsQuery.data ?? [];
+
+  useCatalogDetailMeta({
+    category: ui.nav("products.cpus"),
+    categoryPath: "/catalog/cpus",
+    productType: "Cpu",
+    productId: cpuId,
+    name: cpu?.name,
+    manufacturer: cpu?.manufacturerName,
+    pending: query.isPending,
+    missing: !query.isPending && (query.isError || !cpu),
+  });
 
   if (query.isPending) {
     return <PageStatus>{ui.empty("loading", { entity: ui.entity("cpu") })}</PageStatus>;
@@ -100,7 +112,7 @@ export function CpuDetailPage() {
           </Button>
         )}
       </div>
-      <ProductPictures productType="Cpu" productId={cpu.id} />
+      <ProductPictures productType="Cpu" productId={cpu.id} alt={cpu.name} />
       {editing ? (
         <CatalogEditDialog
           title={ui.dialog("editCpu")}

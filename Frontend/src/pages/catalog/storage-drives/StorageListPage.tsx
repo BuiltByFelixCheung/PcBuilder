@@ -34,6 +34,7 @@ import {
   type PcieGeneration,
 } from "@/api/enums";
 import {enumText, ui} from "@/i18n/translate-enum";
+import { useCatalogListMeta } from "@/seo/catalog-meta";
 import { formSelectClassName } from "@/components/filters/ListFilters";
 import {
   CatalogCompatibleCheckbox,
@@ -82,6 +83,7 @@ const columnHelper = createColumnHelper<
 >();
 
 export function StorageListPage() {
+  useCatalogListMeta(ui.nav("products.storage"));
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(

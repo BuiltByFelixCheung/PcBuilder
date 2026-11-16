@@ -1114,5 +1114,14 @@
     "quantityCount": "Qty {{count}}",
     "executingVsRated": "({{executing}} vs {{rated}})",
     "cableCounts": "{{cables}} cables, {{connectors}} connectors"
+  },
+  "seo": {
+    "homeTitle": "PC Builder",
+    "homeDescription": "Browse PC parts and check compatibility before you build.",
+    "homeName": "Home",
+    "titled": "{{name}} | PC Builder",
+    "productDescription": "{{name}} by {{manufacturer}}. {{category}}.",
+    "productDescriptionNoBrand": "{{name}}. {{category}}.",
+    "notFoundDescription": "{{category}} was not found."
   }
 }

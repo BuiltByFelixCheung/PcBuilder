@@ -1114,5 +1114,14 @@
     "quantityCount": "數量 {{count}}",
     "executingVsRated": "（{{executing}} 對比 {{rated}}）",
     "cableCounts": "{{cables}} 條線材，{{connectors}} 個接頭"
+  },
+  "seo": {
+    "homeTitle": "PC Builder",
+    "homeDescription": "瀏覽電腦零件，並在砌機前檢查兼容性。",
+    "homeName": "主頁",
+    "titled": "{{name}} | PC Builder",
+    "productDescription": "{{manufacturer}} {{name}}。{{category}}。",
+    "productDescriptionNoBrand": "{{name}}。{{category}}。",
+    "notFoundDescription": "找不到{{category}}。"
   }
 }

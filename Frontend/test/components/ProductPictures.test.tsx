@@ -31,7 +31,7 @@ const picture: ProductPicture = {
 
 function renderPictures(isAdmin = false) {
   return renderWithQuery(
-    <ProductPictures productType="Cpu" productId="cpu-1" />,
+    <ProductPictures productType="Cpu" productId="cpu-1" alt="Ryzen 7 7800X3D" />,
     { isAdmin },
   );
 }
@@ -49,7 +49,7 @@ describe("ProductPictures", () => {
   it("shows pictures without upload or delete controls for a guest", async () => {
     renderPictures(false);
 
-    expect(await screen.findByRole("img", { name: "Pictures" })).toHaveAttribute(
+    expect(await screen.findByRole("img", { name: "Ryzen 7 7800X3D" })).toHaveAttribute(
       "src",
       "/api/catalog/pictures/picture-1/content",
     );
@@ -92,7 +92,7 @@ describe("ProductPictures", () => {
     );
 
     const dialog = await screen.findByRole("dialog", { name: "Pictures" });
-    expect(within(dialog).getByRole("img", { name: "Pictures" })).toHaveAttribute(
+    expect(within(dialog).getByRole("img", { name: "Ryzen 7 7800X3D" })).toHaveAttribute(
       "src",
       "/api/catalog/pictures/picture-1/content",
     );
@@ -118,25 +118,25 @@ describe("ProductPictures", () => {
     await user.click(first);
 
     const dialog = await screen.findByRole("dialog", { name: "Pictures" });
-    expect(within(dialog).getByRole("img", { name: "Pictures" })).toHaveAttribute(
+    expect(within(dialog).getByRole("img", { name: "Ryzen 7 7800X3D" })).toHaveAttribute(
       "src",
       "/api/catalog/pictures/picture-1/content",
     );
 
     await user.click(within(dialog).getByRole("button", { name: "Next" }));
-    expect(within(dialog).getByRole("img", { name: "Pictures" })).toHaveAttribute(
+    expect(within(dialog).getByRole("img", { name: "Ryzen 7 7800X3D" })).toHaveAttribute(
       "src",
       "/api/catalog/pictures/picture-2/content",
     );
 
     await user.click(within(dialog).getByRole("button", { name: "Previous" }));
-    expect(within(dialog).getByRole("img", { name: "Pictures" })).toHaveAttribute(
+    expect(within(dialog).getByRole("img", { name: "Ryzen 7 7800X3D" })).toHaveAttribute(
       "src",
       "/api/catalog/pictures/picture-1/content",
     );
 
     await user.keyboard("{ArrowRight}");
-    expect(within(dialog).getByRole("img", { name: "Pictures" })).toHaveAttribute(
+    expect(within(dialog).getByRole("img", { name: "Ryzen 7 7800X3D" })).toHaveAttribute(
       "src",
       "/api/catalog/pictures/picture-2/content",
     );

@@ -10,6 +10,7 @@ import {
   formatWifiStandard,
 } from "@/api/enums";
 import { enumText, ui } from "@/i18n/translate-enum";
+import { useCatalogDetailMeta } from "@/seo/catalog-meta";
 import { useAuth } from "@/auth/use-auth";
 import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
 import { ProductPictures } from "@/components/catalog/ProductPictures";
@@ -36,6 +37,16 @@ export function WirelessNetworkAdapterDetailPage() {
   const manufacturers = useCatalogManufacturers("wirelessnetworkadapter");
   const backLabel = ui.empty("backTo", {
     entity: ui.nav("products.wirelessNetworkAdapters"),
+  });
+  useCatalogDetailMeta({
+    category: ui.nav("products.wirelessNetworkAdapters"),
+    categoryPath: "/catalog/wireless-network-adapters",
+    productType: "WirelessNetworkAdapter",
+    productId: wirelessNetworkAdapterId,
+    name: adapter?.name,
+    manufacturer: adapter?.manufacturerName,
+    pending: query.isPending,
+    missing: !query.isPending && (query.isError || !adapter),
   });
 
   return (
@@ -69,6 +80,7 @@ export function WirelessNetworkAdapterDetailPage() {
           <ProductPictures
             productType="WirelessNetworkAdapter"
             productId={adapter.id}
+            alt={adapter.name}
           />
           {editing ? (
             <CatalogEditDialog
