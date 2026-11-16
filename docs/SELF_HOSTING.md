@@ -56,7 +56,7 @@ If you set `Smtp__User`, also set `Smtp__Password` (both empty is allowed for op
 | `ConnectionStrings__Redis` or `Redis__Configuration` | Redis connection (default `localhost:6379`) |
 | `Admin__Email` / `Admin__Password` | When both are set, startup seeds an `Admin` user |
 | `S3__BucketName`, `S3__AccessKey`, `S3__SecretKey`, `S3__ServiceUrl` | Object storage for uploads |
-| `App__PublicBaseUrl` | Public site origin used in password-reset links, `/sitemap.xml`, and `/robots.txt` (default `http://localhost:5173`) |
+| `App__PublicBaseUrl` | Public site origin used in password-reset links, `/sitemap.xml`, `/robots.txt`, and the canonical link in the first HTML response (default `http://localhost:5173`) |
 
 ### Infisical (optional)
 
