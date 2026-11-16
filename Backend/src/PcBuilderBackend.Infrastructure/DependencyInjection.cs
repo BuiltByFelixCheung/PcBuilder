@@ -17,6 +17,7 @@ using PcBuilderBackend.Application.Catalog.WirelessNetworkAdapters;
 using PcBuilderBackend.Application.Build;
 using PcBuilderBackend.Application.Common.Interfaces;
 using PcBuilderBackend.Application.Common.Options;
+using PcBuilderBackend.Application.Seo;
 using PcBuilderBackend.Application.MasterData.Chipsets.Dto;
 using PcBuilderBackend.Application.MasterData.CpuSeries.Dto;
 using PcBuilderBackend.Application.MasterData.Gpus.Dto;
@@ -99,6 +100,7 @@ public static class DependencyInjection
         services.AddScoped<ICatalogRepository, CatalogRepository>();
         services.AddScoped<IPcBuildRepository, PcBuildRepository>();
         services.AddScoped<IPcBuildReadStore, PcBuildReadStore>();
+        services.AddScoped<ISitemapReadStore, SitemapReadStore>();
 
         services.AddScoped<IExcelImportService, ClosedXmlExcelImportService>();
 

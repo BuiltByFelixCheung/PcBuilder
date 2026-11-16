@@ -15,10 +15,12 @@ import {
 } from "@/components/ui/card";
 import { usePublicBuilds } from "@/hooks/use-public-builds";
 import { ui } from "@/i18n/translate-enum";
+import { useBrowseBuildsMeta } from "@/seo/catalog-meta";
 
 const EMPTY_ITEMS: never[] = [];
 
 export function BrowseBuildPage() {
+  useBrowseBuildsMeta();
   const [searchParams, setSearchParams] = useSearchParams();
   const request = useMemo(
     () => catalogPagingFromSearch(searchParams),

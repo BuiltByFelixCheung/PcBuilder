@@ -5,10 +5,14 @@ import {
   type ProductType,
 } from "@/api/catalog/pictures";
 
-export function useProductPictures(productType: ProductType, productId: string) {
+export function useProductPictures(
+  productType: ProductType,
+  productId: string,
+  enabled = true,
+) {
   return useQuery({
     queryKey: productPictureKeys.list(productType, productId),
     queryFn: () => listProductPictures(productType, productId),
-    enabled: Boolean(productId),
+    enabled: enabled && Boolean(productId),
   });
 }

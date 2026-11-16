@@ -52,6 +52,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { BulkEditDialog } from "@/components/BulkEditDialog";
 import { ui } from "@/i18n/translate-enum";
+import { useCatalogListMeta } from "@/seo/catalog-meta";
 import {
   ChassisFanEditColumns,
   ChassisFanFields,
@@ -73,6 +74,7 @@ const emptyFan = unsetCatalogItem<ChassisFan>({
 });
 
 export function ChassisFanListPage() {
+  useCatalogListMeta(ui.nav("products.chassisFans"));
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(

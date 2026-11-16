@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { useCpuCooler } from "@/hooks/use-cpu-coolers.ts";
 import { enumText, ui } from "@/i18n/translate-enum";
+import { useCatalogDetailMeta } from "@/seo/catalog-meta";
 import {
   useCatalogManufacturers,
   useCatalogSockets,
@@ -239,6 +240,17 @@ export function CpuCoolerDetailPage() {
   const manufacturers = useCatalogManufacturers("cpucooler");
   const sockets = useCatalogSockets();
 
+  useCatalogDetailMeta({
+    category: ui.nav("products.cpuCoolers"),
+    categoryPath: "/catalog/cpu-coolers",
+    productType: "CpuCooler",
+    productId: cpuCoolerId,
+    name: cooler?.name,
+    manufacturer: cooler?.manufacturerName,
+    pending: query.isPending,
+    missing: !query.isPending && (query.isError || !cooler),
+  });
+
   if (query.isPending) {
     return <PageStatus>{ui.empty("loading", { entity: ui.entity("cpuCooler") })}</PageStatus>;
   }
@@ -285,7 +297,7 @@ export function CpuCoolerDetailPage() {
           </Button>
         )}
       </div>
-      <ProductPictures productType="CpuCooler" productId={cooler.id} />
+      <ProductPictures productType="CpuCooler" productId={cooler.id} alt={cooler.name} />
       {editing ? (
         <CatalogEditDialog
           title={ui.dialog("editCpuCooler")}

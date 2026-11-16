@@ -11,14 +11,15 @@ import {
   usePictureMutations,
 } from "@/components/pictures/PictureGallery";
 import { useProductPictures } from "@/hooks/use-product-pictures";
-import { ui } from "@/i18n/translate-enum";
 
 export function ProductPictures({
   productType,
   productId,
+  alt,
 }: Readonly<{
   productType: ProductType;
   productId: string;
+  alt: string;
 }>) {
   const { isAdmin } = useAuth();
   const pictures = useProductPictures(productType, productId);
@@ -38,7 +39,7 @@ export function ProductPictures({
       onUpload={(file) => actions.upload.mutate(file)}
       onDelete={(id) => actions.remove.mutate(id)}
       renderImage={(id) => (
-        <img src={productPictureContentUrl(id)} alt={ui.section("pictures")} />
+        <img src={productPictureContentUrl(id)} alt={alt} />
       )}
     />
   );
