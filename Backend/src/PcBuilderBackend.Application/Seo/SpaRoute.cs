@@ -46,6 +46,10 @@ public sealed record SpaRoute(
 
 public static class SpaRoutes
 {
+    public const string BuildsPath = "/builds";
+    private const string BuildsPrefix = "/builds/";
+    private const string CatalogPrefix = "/catalog/";
+
     private static readonly HashSet<string> PrivateExact = new(StringComparer.Ordinal)
     {
         "/login",
@@ -65,7 +69,7 @@ public static class SpaRoutes
 
         var path = requestPath.Trim();
         if (!path.StartsWith('/'))
-            path = "/" + path;
+            path = string.Concat('/', path);
 
         if (path.Length > 1)
             path = path.TrimEnd('/');
@@ -82,13 +86,13 @@ public static class SpaRoutes
         if (IsPrivate(path))
             return new SpaRoute(SpaRouteKind.Private, path);
 
-        if (path == "/builds")
-            return new SpaRoute(SpaRouteKind.BuildList, "/builds");
+        if (path == BuildsPath)
+            return new SpaRoute(SpaRouteKind.BuildList, BuildsPath);
 
-        if (path.StartsWith("/builds/", StringComparison.Ordinal))
+        if (path.StartsWith(BuildsPrefix, StringComparison.Ordinal))
             return Build(path);
 
-        if (!path.StartsWith("/catalog/", StringComparison.Ordinal))
+        if (!path.StartsWith(CatalogPrefix, StringComparison.Ordinal))
             return new SpaRoute(SpaRouteKind.Other, path);
 
         return Catalog(path);
@@ -102,17 +106,17 @@ public static class SpaRoutes
         if (path == "/master-data" || path.StartsWith("/master-data/", StringComparison.Ordinal))
             return true;
 
-        if (path.StartsWith("/catalog/", StringComparison.Ordinal)
+        if (path.StartsWith(CatalogPrefix, StringComparison.Ordinal)
             && path.EndsWith("/new", StringComparison.Ordinal))
         {
-            var section = path["/catalog/".Length..^"/new".Length];
+            var section = path[CatalogPrefix.Length..^"/new".Length];
             return section.Length > 0 && !section.Contains('/');
         }
 
-        if (path.StartsWith("/builds/", StringComparison.Ordinal)
+        if (path.StartsWith(BuildsPrefix, StringComparison.Ordinal)
             && path.EndsWith("/edit", StringComparison.Ordinal))
         {
-            var id = path["/builds/".Length..^"/edit".Length];
+            var id = path[BuildsPrefix.Length..^"/edit".Length];
             return id.Length > 0 && !id.Contains('/');
         }
 
@@ -121,18 +125,18 @@ public static class SpaRoutes
 
     private static SpaRoute Build(string path)
     {
-        var idPart = path["/builds/".Length..];
+        var idPart = path[BuildsPrefix.Length..];
         if (idPart.Contains('/'))
             return new SpaRoute(SpaRouteKind.Other, path);
 
         return Guid.TryParse(idPart, out var id)
-            ? new SpaRoute(SpaRouteKind.BuildDetail, $"/builds/{id:D}", Id: id)
+            ? new SpaRoute(SpaRouteKind.BuildDetail, $"{BuildsPath}/{id:D}", Id: id)
             : new SpaRoute(SpaRouteKind.NotFound, path);
     }
 
     private static SpaRoute Catalog(string path)
     {
-        var rest = path["/catalog/".Length..];
+        var rest = path[CatalogPrefix.Length..];
         var slash = rest.IndexOf('/');
         var key = slash < 0 ? rest : rest[..slash];
         var section = SpaCatalog.Find(key);

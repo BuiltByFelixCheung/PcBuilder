@@ -92,7 +92,7 @@ public static class SpaPages
     public static SpaPage BuildList(IReadOnlyList<SpaLink> links, string publicBaseUrl) => new(
         SpaCopy.Titled(SpaCopy.BrowseBuilds),
         SpaCopy.BuildsLead,
-        "/builds",
+        SpaRoutes.BuildsPath,
         SpaCopy.Index,
         SpaCopy.BrowseBuilds,
         SpaCopy.BuildsLead,
@@ -100,7 +100,7 @@ public static class SpaPages
         SpaJson.One(SpaJson.Breadcrumb(publicBaseUrl,
         [
             (SpaCopy.HomeName, "/"),
-            (SpaCopy.BrowseBuilds, "/builds"),
+            (SpaCopy.BrowseBuilds, SpaRoutes.BuildsPath),
         ])));
 
     public static SpaPage Build(
@@ -109,7 +109,7 @@ public static class SpaPages
         string? description,
         string publicBaseUrl)
     {
-        var path = $"/builds/{id:D}";
+        var path = $"{SpaRoutes.BuildsPath}/{id:D}";
         var summary = string.IsNullOrWhiteSpace(description)
             ? SpaCopy.SavedBuild
             : description.Trim();
@@ -125,7 +125,7 @@ public static class SpaPages
             SpaJson.One(SpaJson.Breadcrumb(publicBaseUrl,
             [
                 (SpaCopy.HomeName, "/"),
-                (SpaCopy.BrowseBuilds, "/builds"),
+                (SpaCopy.BrowseBuilds, SpaRoutes.BuildsPath),
                 (name, path),
             ])));
     }
@@ -133,16 +133,18 @@ public static class SpaPages
     public static SpaPage MissingBuild() => new(
         SpaCopy.SiteName,
         SpaCopy.NotFound("build"),
-        "/builds",
+        SpaRoutes.BuildsPath,
         SpaCopy.NoIndex,
         SpaCopy.NotFound("build"),
         "",
-        [new SpaLink(SpaCopy.BrowseBuilds, "/builds")],
+        [new SpaLink(SpaCopy.BrowseBuilds, SpaRoutes.BuildsPath)],
         null);
 }
 
 internal static class SpaJson
 {
+    private const string LdType = "@type";
+
     private static readonly JsonSerializerOptions Options = new()
     {
         Encoder = JavaScriptEncoder.Default,
@@ -156,7 +158,7 @@ internal static class SpaJson
         new()
         {
             ["@context"] = "https://schema.org",
-            ["@type"] = "WebSite",
+            [LdType] = "WebSite",
             ["name"] = name,
             ["description"] = description,
             ["url"] = SpaUrls.Absolute(publicBaseUrl, "/"),
@@ -172,7 +174,7 @@ internal static class SpaJson
             var item = items[index];
             elements.Add(new Dictionary<string, object?>
             {
-                ["@type"] = "ListItem",
+                [LdType] = "ListItem",
                 ["position"] = index + 1,
                 ["name"] = item.Name,
                 ["item"] = SpaUrls.Absolute(publicBaseUrl, item.Path),
@@ -182,7 +184,7 @@ internal static class SpaJson
         return new Dictionary<string, object?>
         {
             ["@context"] = "https://schema.org",
-            ["@type"] = "BreadcrumbList",
+            [LdType] = "BreadcrumbList",
             ["itemListElement"] = elements,
         };
     }
@@ -198,7 +200,7 @@ internal static class SpaJson
         var product = new Dictionary<string, object?>
         {
             ["@context"] = "https://schema.org",
-            ["@type"] = "Product",
+            [LdType] = "Product",
             ["name"] = name,
             ["category"] = category,
             ["url"] = SpaUrls.Absolute(publicBaseUrl, path),
@@ -209,7 +211,7 @@ internal static class SpaJson
         {
             product["brand"] = new Dictionary<string, object?>
             {
-                ["@type"] = "Brand",
+                [LdType] = "Brand",
                 ["name"] = brand,
             };
         }
