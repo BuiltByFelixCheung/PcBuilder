@@ -101,6 +101,8 @@ public static class DependencyInjection
         services.AddScoped<IPcBuildRepository, PcBuildRepository>();
         services.AddScoped<IPcBuildReadStore, PcBuildReadStore>();
         services.AddScoped<ISitemapReadStore, SitemapReadStore>();
+        services.AddScoped<ISpaPageSource, SpaPageSource>();
+        services.AddMemoryCache();
 
         services.AddScoped<IExcelImportService, ClosedXmlExcelImportService>();
 
