@@ -34,6 +34,7 @@ import {
   formatRadiatorClass,
 } from "@/api/enums";
 import {enumText, ui} from "@/i18n/translate-enum";
+import { useCatalogListMeta } from "@/seo/catalog-meta";
 import { usePcBuild } from "@/builds/use-pc-build";
 import type { RangeFilter } from "@/api/paging";
 import { CatalogListResults } from "@/components/catalog/CatalogResults";
@@ -82,6 +83,7 @@ const RADIATOR_AND_FAN_MM_COLUMNS = [
 ] as const;
 
 export function CpuCoolerListPage() {
+  useCatalogListMeta(ui.nav("products.cpuCoolers"));
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(

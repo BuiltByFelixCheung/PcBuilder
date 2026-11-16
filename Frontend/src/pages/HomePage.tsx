@@ -9,8 +9,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ui } from "@/i18n/translate-enum";
+import { useHomeMeta } from "@/seo/catalog-meta";
 
 export function HomePage() {
+  useHomeMeta();
   const { isAdmin } = useAuth();
 
   return (

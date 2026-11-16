@@ -27,6 +27,7 @@ import {
 } from "@/api/catalog/params/motherboard-list-params";
 import { toInteger } from "@/api/helper";
 import {enumText, ui} from "@/i18n/translate-enum";
+import { useCatalogListMeta } from "@/seo/catalog-meta";
 import {
   DDR_GENERATIONS,
   MB_FORM_FACTORS,
@@ -65,6 +66,7 @@ function optionalBooleanValue(value: boolean | undefined): string {
 }
 
 export function MotherboardListPage() {
+  useCatalogListMeta(ui.nav("products.motherboards"));
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(

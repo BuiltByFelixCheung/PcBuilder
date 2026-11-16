@@ -44,6 +44,7 @@ import { BulkEditDialog } from "@/components/BulkEditDialog";
 import { CpuEditColumns } from "@/pages/catalog/cpus/CpuEditColumns";
 import { useQueryClient } from "@tanstack/react-query";
 import { ui } from "@/i18n/translate-enum";
+import { useCatalogListMeta } from "@/seo/catalog-meta";
 
 const EMPTY_ITEMS: CpuListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -52,6 +53,7 @@ const columnHelper = createColumnHelper<
 >();
 
 export function CpuListPage() {
+  useCatalogListMeta(ui.nav("products.cpus"));
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(

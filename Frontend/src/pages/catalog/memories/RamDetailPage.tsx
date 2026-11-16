@@ -12,6 +12,7 @@ import { CatalogEditDialog } from "@/components/catalog/CatalogEditDialog";
 import { ProductPictures } from "@/components/catalog/ProductPictures";
 import { memoryKeys, updateMemory } from "@/api/catalog/memories";
 import { enumText, ui } from "@/i18n/translate-enum";
+import { useCatalogDetailMeta } from "@/seo/catalog-meta";
 import { MemoryFields } from "@/pages/catalog/memories/MemoryEditColumns";
 
 export function RamDetailPage() {
@@ -24,6 +25,17 @@ export function RamDetailPage() {
   const { isAdmin } = useAuth();
   const [editing, setEditing] = useState(false);
   const manufacturers = useCatalogManufacturers("ram");
+
+  useCatalogDetailMeta({
+    category: ui.page("memory"),
+    categoryPath: "/catalog/memories",
+    productType: "Ram",
+    productId: memoryId,
+    name: ram?.name,
+    manufacturer: ram?.manufacturerName,
+    pending: query.isPending,
+    missing: !query.isPending && (query.isError || !ram),
+  });
 
   if (query.isPending) {
     return <PageStatus>{ui.empty("loading", { entity: ui.entity("ram") })}</PageStatus>;
@@ -68,7 +80,7 @@ export function RamDetailPage() {
           </Button>
         )}
       </div>
-      <ProductPictures productType="Ram" productId={ram.id} />
+      <ProductPictures productType="Ram" productId={ram.id} alt={ram.name} />
       {editing ? (
         <CatalogEditDialog
           title={ui.dialog("editRam")}

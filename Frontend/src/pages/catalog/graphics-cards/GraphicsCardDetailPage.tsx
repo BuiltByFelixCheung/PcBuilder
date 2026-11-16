@@ -16,6 +16,7 @@ import {
   updateGraphicsCard,
 } from "@/api/catalog/graphics-cards";
 import { enumText, ui } from "@/i18n/translate-enum";
+import { useCatalogDetailMeta } from "@/seo/catalog-meta";
 import { GraphicsCardFields } from "@/pages/catalog/graphics-cards/GraphicsCardEditColumns";
 import {
   Table,
@@ -35,6 +36,17 @@ export function GraphicsCardDetailPage() {
   const { isAdmin } = useAuth();
   const [editing, setEditing] = useState(false);
   const { manufacturers, gpus } = useGraphicsCardFilterOptions();
+
+  useCatalogDetailMeta({
+    category: ui.nav("products.graphicsCards"),
+    categoryPath: "/catalog/graphics-cards",
+    productType: "GraphicsCard",
+    productId: graphicsCardId,
+    name: graphicsCard?.name,
+    manufacturer: graphicsCard?.manufacturerName,
+    pending: query.isPending,
+    missing: !query.isPending && (query.isError || !graphicsCard),
+  });
 
   if (query.isPending) {
     return <PageStatus>{ui.empty("loading", { entity: ui.entity("graphicsCard") })}</PageStatus>;
@@ -82,7 +94,7 @@ export function GraphicsCardDetailPage() {
           </Button>
         )}
       </div>
-      <ProductPictures productType="GraphicsCard" productId={graphicsCard.id} />
+      <ProductPictures productType="GraphicsCard" productId={graphicsCard.id} alt={graphicsCard.name} />
       {editing ? (
         <CatalogEditDialog
           title={ui.dialog("editGraphicsCard")}

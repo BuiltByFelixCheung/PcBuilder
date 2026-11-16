@@ -11,14 +11,15 @@ import {
   usePictureMutations,
 } from "@/components/pictures/PictureGallery";
 import { useBuildPictures } from "@/hooks/use-build-pictures";
-import { ui } from "@/i18n/translate-enum";
 
 export function BuildPictures({
   buildId,
   canEdit,
+  alt,
 }: Readonly<{
   buildId: string;
   canEdit: boolean;
+  alt: string;
 }>) {
   const pictures = useBuildPictures(buildId);
   const actions = usePictureMutations(
@@ -36,15 +37,15 @@ export function BuildPictures({
       actionError={actions.actionError}
       onUpload={(file) => actions.upload.mutate(file)}
       onDelete={(id) => actions.remove.mutate(id)}
-      renderImage={(id) => <BuildPictureImage id={id} />}
+      renderImage={(id) => <BuildPictureImage id={id} alt={alt} />}
     />
   );
 }
 
-function BuildPictureImage({ id }: Readonly<{ id: string }>) {
+function BuildPictureImage({ id, alt }: Readonly<{ id: string; alt: string }>) {
   const src = useBuildPictureObjectUrl(id);
   if (!src) return null;
-  return <img src={src} alt={ui.section("pictures")} />;
+  return <img src={src} alt={alt} />;
 }
 
 function useBuildPictureObjectUrl(id: string) {

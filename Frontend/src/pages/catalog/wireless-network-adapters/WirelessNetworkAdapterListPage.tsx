@@ -39,6 +39,7 @@ import {
   formatWifiStandard,
 } from "@/api/enums";
 import {enumText, ui} from "@/i18n/translate-enum";
+import { useCatalogListMeta } from "@/seo/catalog-meta";
 import {
   CatalogCompatibleCheckbox,
   CatalogRangeField,
@@ -87,6 +88,7 @@ const columnHelper = createColumnHelper<
 >();
 
 export function WirelessNetworkAdapterListPage() {
+  useCatalogListMeta(ui.nav("products.wirelessNetworkAdapters"));
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(
     () => wirelessNetworkAdapterListParamsFromSearch(searchParams),

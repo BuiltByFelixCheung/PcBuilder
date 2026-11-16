@@ -40,6 +40,7 @@ import { BulkEditDialog } from "@/components/BulkEditDialog";
 import { ChassisEditColumns } from "@/pages/catalog/chassis/ChassisEditColumns";
 import { useQueryClient } from "@tanstack/react-query";
 import { enumText, ui } from "@/i18n/translate-enum";
+import { useCatalogListMeta } from "@/seo/catalog-meta";
 
 const EMPTY_ITEMS: ChassisListItem[] = [];
 const columnHelper = createColumnHelper<
@@ -48,6 +49,7 @@ const columnHelper = createColumnHelper<
 >();
 
 export function ChassisListPage() {
+  useCatalogListMeta(ui.nav("products.chassis"));
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = useMemo(

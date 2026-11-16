@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { chassisFanKeys, updateChassisFan } from "@/api/catalog/chassis-fans";
 import { ChassisFanFields } from "@/pages/catalog/chassis-fans/ChassisFanEditColumns";
 import { ui } from "@/i18n/translate-enum";
+import { useCatalogDetailMeta } from "@/seo/catalog-meta";
 
 export function ChassisFanDetailPage() {
   const { chassisFanId } = useParams();
@@ -23,6 +24,17 @@ export function ChassisFanDetailPage() {
   const { isAdmin } = useAuth();
   const [editing, setEditing] = useState(false);
   const manufacturers = useCatalogManufacturers("chassisfan");
+
+  useCatalogDetailMeta({
+    category: ui.nav("products.chassisFans"),
+    categoryPath: "/catalog/chassis-fans",
+    productType: "ChassisFan",
+    productId: chassisFanId,
+    name: fan?.name,
+    manufacturer: fan?.manufacturerName,
+    pending: query.isPending,
+    missing: !query.isPending && (query.isError || !fan),
+  });
 
   if (query.isPending) {
     return <PageStatus>{ui.empty("loading", { entity: ui.entity("chassisFan") })}</PageStatus>;
@@ -59,7 +71,7 @@ export function ChassisFanDetailPage() {
           </Button>
         )}
       </div>
-      <ProductPictures productType="ChassisFan" productId={fan.id} />
+      <ProductPictures productType="ChassisFan" productId={fan.id} alt={fan.name} />
       {editing ? (
         <CatalogEditDialog
           title={ui.dialog("editChassisFan")}

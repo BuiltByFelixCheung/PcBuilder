@@ -44,6 +44,7 @@ import {
 import { PageStatus } from "@/components/PageStatus.tsx";
 import { BuildPictures } from "@/components/build/BuildPictures";
 import { enumText, ui } from "@/i18n/translate-enum";
+import { usePublicBuildMeta } from "@/seo/catalog-meta";
 import { usePcBuildCompatibility } from "@/hooks/use-pc-build-compatibility";
 import { usePcBuildDetail } from "@/hooks/use-pc-build-detail";
 import { useChassisById } from "@/hooks/use-chassis";
@@ -630,6 +631,13 @@ export function BuilderPage() {
     canEditSaved,
     sourceId: build.sourceId,
   });
+  usePublicBuildMeta({
+    isViewing,
+    pending: isViewing && savedQuery.isPending,
+    missing: isViewing && savedQuery.isError,
+    name: viewed?.name,
+    description: viewed?.description,
+  });
   if (blocked) {
     return blocked;
   }
@@ -730,7 +738,11 @@ function BuilderWorkspace({
         />
       </div>
       {buildId ? (
-        <BuildPictures buildId={buildId} canEdit={canEditPictures} />
+        <BuildPictures
+          buildId={buildId}
+          canEdit={canEditPictures}
+          alt={displayed.name.trim() || ui.label("pcBuild")}
+        />
       ) : null}
       <div className="grid items-start gap-6 min-[1025px]:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]">
         <CompatibilityStatus query={compatibility} enabled={hasParts} />

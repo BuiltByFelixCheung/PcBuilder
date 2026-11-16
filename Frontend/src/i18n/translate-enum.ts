@@ -91,6 +91,10 @@ export function message(key: string, vars?: Vars): string {
   return i18n.t(`messages.${key}`, vars);
 }
 
+export function seo(key: string, vars?: Vars): string {
+  return i18n.t(`seo.${key}`, vars);
+}
+
 export const ui = {
   label,
   header,
@@ -103,4 +107,5 @@ export const ui = {
   entity,
   unit,
   message,
+  seo,
 };
