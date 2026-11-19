@@ -306,6 +306,9 @@ describe("BuilderPage", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Remove" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Upload picture" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Save a copy" }),
+    ).not.toBeInTheDocument();
   });
 
   it("sends a non-owner from /edit to the view page", async () => {
@@ -506,6 +509,62 @@ describe("BuilderPage", () => {
       await screen.findByRole("heading", { name: "New build" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Clear build" })).toBeEnabled();
+  });
+
+  it("keeps save a copy disabled while a read-only build is still being checked", async () => {
+    getBuildById.mockResolvedValue({
+      ...savedBuild,
+      userId: null,
+      userName: null,
+      isPublic: true,
+    });
+    let releaseCompatibility: (result: {
+      status: "Compatible";
+      issues: [];
+    }) => void = () => {};
+    checkPcBuildCompatibility.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseCompatibility = resolve;
+        }),
+    );
+    renderBuilder("/builds/build-1", undefined, ownerAuth);
+    expect(
+      await screen.findByRole("button", { name: "Save a copy" }),
+    ).toBeDisabled();
+    expect(screen.getByText("Checking compatibility…")).toBeInTheDocument();
+    releaseCompatibility({ status: "Compatible", issues: [] });
+    expect(await screen.findByText("No issues.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save a copy" })).toBeEnabled();
+  });
+
+  it("keeps save a copy disabled on a read-only incompatible build", async () => {
+    checkPcBuildCompatibility.mockResolvedValue({
+      status: "Incompatible",
+      issues: [],
+    });
+    getBuildById.mockResolvedValue({
+      ...savedBuild,
+      userId: null,
+      userName: null,
+      isPublic: true,
+    });
+    renderBuilder("/builds/build-1", undefined, ownerAuth);
+    expect(
+      await screen.findByRole("button", { name: "Save a copy" }),
+    ).toBeDisabled();
+    expect(
+      screen.queryByRole("button", { name: "Save build" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides save a copy from a new draft", async () => {
+    renderBuilder("/builds/current", completeDraft, ownerAuth);
+    expect(await screen.findByText("No issues.")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Save a copy" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save build" })).toBeEnabled();
   });
 
   it("hides save a copy from a guest and from the owner", async () => {
