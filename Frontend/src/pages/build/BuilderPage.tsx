@@ -182,6 +182,7 @@ function SaveBuildDialog({
   descriptionError,
   formError,
   isSaving,
+  title,
   onNameChange,
   onDescriptionChange,
   onIsPublicChange,
@@ -197,6 +198,7 @@ function SaveBuildDialog({
   descriptionError?: string;
   formError?: string;
   isSaving: boolean;
+  title: string;
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
   onIsPublicChange: (value: boolean) => void;
@@ -210,7 +212,7 @@ function SaveBuildDialog({
       aria-labelledby="save-build-title"
     >
       <div className="auth-dialog-card">
-        <h2 id="save-build-title">{ui.action("saveBuild")}</h2>
+        <h2 id="save-build-title">{title}</h2>
         <form
           noValidate
           onSubmit={(event) => {
@@ -377,6 +379,26 @@ function canSaveDraft(
   );
 }
 
+function canOfferCopy(
+  isViewing: boolean,
+  isMember: boolean,
+  canEditSaved: boolean,
+  fields: PcBuildFields | undefined,
+): boolean {
+  return isViewing && isMember && !canEditSaved && Boolean(fields);
+}
+
+function canCopyBuild(
+  offered: boolean,
+  compatibility: CompatibilityQuery,
+): boolean {
+  return (
+    offered &&
+    !compatibility.isPending &&
+    compatibility.data?.status !== "Incompatible"
+  );
+}
+
 function isSavedBuildOwner(
   userId: string | undefined,
   buildUserId: string | null | undefined,
@@ -497,11 +519,24 @@ function useSaveBuildDialog(input: {
   const [descriptionError, setDescriptionError] = useState<string>();
   const [formError, setFormError] = useState<string>();
   const [isSaving, setIsSaving] = useState(false);
+  const [forceCreate, setForceCreate] = useState(false);
 
   function openSaveDialog() {
+    setForceCreate(false);
     setSaveName(workspaceName);
     setSaveDescription(workspaceDescription);
     setSaveIsPublic(isPublic);
+    setNameError(undefined);
+    setDescriptionError(undefined);
+    setFormError(undefined);
+    setSaveDialogOpen(true);
+  }
+
+  function openCopyDialog(name: string, description: string) {
+    setForceCreate(true);
+    setSaveName(name);
+    setSaveDescription(description);
+    setSaveIsPublic(false);
     setNameError(undefined);
     setDescriptionError(undefined);
     setFormError(undefined);
@@ -523,30 +558,30 @@ function useSaveBuildDialog(input: {
     setFormError(undefined);
     setIsSaving(true);
     const isPublicToSave = canSetVisibility ? saveIsPublic : false;
+    const creating = forceCreate || !sourceId;
     try {
-      const saved = sourceId
-        ? await updatePcBuild({
-            id: sourceId,
-            ...fields,
-            name,
-            description,
-            isPublic: isPublicToSave,
-          })
-        : await createPcBuild({
-            ...fields,
-            name,
-            description,
-            isPublic: isPublicToSave,
-          });
+      const payload = {
+        ...fields,
+        name,
+        description,
+        isPublic: isPublicToSave,
+      };
+      const saved =
+        creating || !sourceId
+          ? await createPcBuild(payload)
+          : await updatePcBuild({ id: sourceId, ...payload });
       const { pictureEditToken, ...detail } = saved;
       rememberBuildPictureEditToken(saved.id, pictureEditToken);
       queryClient.setQueryData(pcBuildKeys.detail(saved.id), detail);
       setSaveDialogOpen(false);
+      setForceCreate(false);
       skipHydrateRef.current = true;
       navigate(builderViewHref(saved.id));
-      resetBuild();
+      if (!forceCreate) {
+        resetBuild();
+      }
     } catch (error) {
-      setFormError(saveFailureMessage(sourceId, error));
+      setFormError(saveFailureMessage(creating ? null : sourceId, error));
     } finally {
       setIsSaving(false);
     }
@@ -554,6 +589,7 @@ function useSaveBuildDialog(input: {
 
   return {
     saveDialogOpen,
+    dialogTitle: forceCreate ? ui.action("saveACopy") : ui.action("saveBuild"),
     saveName,
     saveDescription,
     saveIsPublic,
@@ -563,6 +599,7 @@ function useSaveBuildDialog(input: {
     formError,
     isSaving,
     openSaveDialog,
+    openCopyDialog,
     submitSave,
     setSaveName,
     setSaveDescription,
@@ -610,6 +647,13 @@ export function BuilderPage() {
   );
   const canEditPictures =
     canEditSaved || hasBuildPictureEditToken(buildId);
+  const canOfferCopyAction = canOfferCopy(
+    isViewing,
+    Boolean(auth?.isMember),
+    canEditSaved,
+    fields,
+  );
+  const canCopy = canCopyBuild(canOfferCopyAction, compatibility);
   const save = useSaveBuildDialog({
     fields,
     sourceId: build.sourceId,
@@ -649,6 +693,8 @@ export function BuilderPage() {
       buildId={buildId}
       canEditSaved={canEditSaved}
       canEditPictures={canEditPictures}
+      canOfferCopy={canOfferCopyAction}
+      canCopy={canCopy}
       canSave={canSave}
       hasParts={hasParts}
       compatibility={compatibility}
@@ -671,6 +717,8 @@ function BuilderWorkspace({
   buildId,
   canEditSaved,
   canEditPictures,
+  canOfferCopy,
+  canCopy,
   canSave,
   hasParts,
   compatibility,
@@ -689,6 +737,8 @@ function BuilderWorkspace({
   buildId: string | undefined;
   canEditSaved: boolean;
   canEditPictures: boolean;
+  canOfferCopy: boolean;
+  canCopy: boolean;
   canSave: boolean;
   hasParts: boolean;
   compatibility: CompatibilityQuery;
@@ -706,6 +756,7 @@ function BuilderWorkspace({
     <section className="catalog-page">
       <SaveBuildDialog
         open={save.saveDialogOpen}
+        title={save.dialogTitle}
         name={save.saveName}
         description={save.saveDescription}
         isPublic={save.saveIsPublic}
@@ -730,10 +781,15 @@ function BuilderWorkspace({
         <BuilderActions
           isViewing={isViewing}
           canEditSaved={canEditSaved}
+          canOfferCopy={canOfferCopy}
+          canCopy={canCopy}
           buildId={buildId}
           canSave={canSave}
           hasParts={hasParts}
           onSave={save.openSaveDialog}
+          onCopy={() =>
+            save.openCopyDialog(displayed.name, displayed.description)
+          }
           onClear={onClear}
         />
       </div>
@@ -910,29 +966,42 @@ function buildLead(description: string, isViewing: boolean): string {
 function BuilderActions({
   isViewing,
   canEditSaved,
+  canOfferCopy,
+  canCopy,
   buildId,
   canSave,
   hasParts,
   onSave,
+  onCopy,
   onClear,
 }: Readonly<{
   isViewing: boolean;
   canEditSaved: boolean;
+  canOfferCopy: boolean;
+  canCopy: boolean;
   buildId: string | undefined;
   canSave: boolean;
   hasParts: boolean;
   onSave: () => void;
+  onCopy: () => void;
   onClear: () => void;
 }>) {
   if (isViewing) {
-    if (!canEditSaved) {
+    if (!canEditSaved && !canOfferCopy) {
       return <div className="flex flex-wrap gap-2" />;
     }
     return (
       <div className="flex flex-wrap gap-2">
-        <Button type="button" asChild>
-          <Link to={builderHref(buildId)}>{ui.action("editThisBuild")}</Link>
-        </Button>
+        {canEditSaved ? (
+          <Button type="button" asChild>
+            <Link to={builderHref(buildId)}>{ui.action("editThisBuild")}</Link>
+          </Button>
+        ) : null}
+        {canOfferCopy ? (
+          <Button type="button" disabled={!canCopy} onClick={onCopy}>
+            {ui.action("saveACopy")}
+          </Button>
+        ) : null}
       </div>
     );
   }

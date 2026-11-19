@@ -442,6 +442,87 @@ describe("BuilderPage", () => {
     );
   });
 
+  it("saves a private copy of an opened build the member does not own", async () => {
+    const guestBuild = {
+      ...savedBuild,
+      userId: null,
+      userName: null,
+      isPublic: true,
+      name: "Guest box",
+      description: "Shared",
+    };
+    const created = {
+      ...guestBuild,
+      id: "copy-1",
+      userId: "user-1",
+      userName: "annbuilder",
+      isPublic: false,
+      name: "My copy",
+      description: "Mine",
+    };
+    getBuildById.mockImplementation(async (id: string) =>
+      id === "copy-1" ? created : guestBuild,
+    );
+    createPcBuild.mockResolvedValue(created);
+    const user = userEvent.setup();
+    renderBuilder(
+      "/builds/build-1",
+      { chassisId: "case-1" },
+      ownerAuth,
+    );
+    expect(
+      await screen.findByRole("heading", { name: "Guest box" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Edit this build" }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save a copy" }));
+    expect(
+      await screen.findByRole("heading", { name: "Save a copy" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Name")).toHaveValue("Guest box");
+    expect(screen.getByLabelText("Public")).not.toBeChecked();
+    const name = screen.getByLabelText("Name");
+    await user.clear(name);
+    await user.type(name, "My copy");
+    const description = screen.getByLabelText("Description");
+    await user.clear(description);
+    await user.type(description, "Mine");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(createPcBuild).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "My copy",
+        description: "Mine",
+        chassisId: "case-1",
+        isPublic: false,
+      }),
+    );
+    expect(updatePcBuild).not.toHaveBeenCalled();
+    expect(
+      await screen.findByRole("heading", { name: "My copy" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("link", { name: "Current draft" }));
+    expect(
+      await screen.findByRole("heading", { name: "New build" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Clear build" })).toBeEnabled();
+  });
+
+  it("hides save a copy from a guest and from the owner", async () => {
+    getBuildById.mockResolvedValue({
+      ...savedBuild,
+      userId: null,
+      userName: null,
+    });
+    renderBuilder("/builds/build-1");
+    expect(
+      await screen.findByRole("heading", { name: "Office box" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Save a copy" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("hides picture upload on another guest's build", async () => {
     getBuildById.mockResolvedValue({
       ...savedBuild,

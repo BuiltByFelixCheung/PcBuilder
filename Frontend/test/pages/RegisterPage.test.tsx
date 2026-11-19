@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authValue } from "../helpers/auth.ts";
 
@@ -77,5 +77,31 @@ describe("RegisterPage", () => {
     await user.type(screen.getByLabelText("Confirm password"), "Password1!");
     await user.click(screen.getByRole("button", { name: "Create account" }));
     expect(await screen.findByText("Taken.")).toBeInTheDocument();
+  });
+
+  it("returns to the build page that started registration", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: "/register",
+            state: { from: { pathname: "/builds/build-1" } },
+          },
+        ]}
+      >
+        <Routes>
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/builds/:buildId" element={<p>Opened build</p>} />
+          <Route path="/account" element={<p>Account page</p>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    await user.type(screen.getByLabelText("Username"), "annbuilder");
+    await user.type(screen.getByLabelText("Email"), "ann@example.com");
+    await user.type(screen.getByLabelText("Password"), "Password1!");
+    await user.type(screen.getByLabelText("Confirm password"), "Password1!");
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+    expect(await screen.findByText("Opened build")).toBeInTheDocument();
   });
 });

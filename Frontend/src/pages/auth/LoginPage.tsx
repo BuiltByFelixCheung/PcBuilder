@@ -80,7 +80,10 @@ export function LoginPage() {
           {isSubmitting ? ui.label("signingIn") : ui.action("signIn")}
         </Button>
         <p className="auth-switch" style={{ textAlign: "center" }}>
-          {ui.message("newHere")} <Link to="/register">{ui.action("createAccount")}</Link>
+          {ui.message("newHere")}{" "}
+          <Link to="/register" state={location.state}>
+            {ui.action("createAccount")}
+          </Link>
         </p>
       </form>
     </section>
