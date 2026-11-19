@@ -1,7 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { parseApiError } from "../../api/errors.ts";
+import { getPostLoginPath } from "../../auth/redirect.ts";
 import { registerSchema, type RegisterValues } from "../../auth/schemas.ts";
 import { useAuth } from "../../auth/use-auth.ts";
 import { FormTextField } from "../../components/FormTextField.tsx";
@@ -19,6 +20,7 @@ import { ui } from "@/i18n/translate-enum";
 export function RegisterPage() {
   const { register: registerAccount } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema()),
     defaultValues: {
@@ -42,7 +44,7 @@ export function RegisterPage() {
         password: values.password,
         userName: values.userName,
       });
-      void navigate("/account", { replace: true });
+      void navigate(getPostLoginPath(location.state), { replace: true });
     } catch (error) {
       const parsed = parseApiError(error);
       applyApiFieldErrors(setError, parsed.fieldErrors, [
@@ -107,7 +109,10 @@ export function RegisterPage() {
           label={ui.page("createAccount")}
         />
         <p className="auth-switch" style={{ textAlign: "center" }}>
-          {ui.message("alreadyHaveAccount")} <Link to="/login">{ui.action("signIn")}</Link>
+          {ui.message("alreadyHaveAccount")}{" "}
+          <Link to="/login" state={location.state}>
+            {ui.action("signIn")}
+          </Link>
         </p>
       </form>
     </section>

@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authValue } from "../helpers/auth.ts";
 
@@ -65,5 +65,26 @@ describe("LoginPage", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Invalid email or password.",
     );
+  });
+
+  it("returns to the build page that started sign-in", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter
+        initialEntries={[
+          { pathname: "/login", state: { from: { pathname: "/builds/build-1" } } },
+        ]}
+      >
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/builds/:buildId" element={<p>Opened build</p>} />
+          <Route path="/account" element={<p>Account page</p>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    await user.type(screen.getByLabelText("Email"), "ann@example.com");
+    await user.type(screen.getByLabelText("Password"), "secret");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+    expect(await screen.findByText("Opened build")).toBeInTheDocument();
   });
 });
