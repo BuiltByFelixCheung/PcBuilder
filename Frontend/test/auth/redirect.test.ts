@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getPostLoginPath } from "@/auth/redirect.ts";
+import { buildViewReturnState, getPostLoginPath } from "@/auth/redirect.ts";
 
 describe("getPostLoginPath", () => {
   it("returns a safe in-app path from location state", () => {
@@ -18,5 +18,20 @@ describe("getPostLoginPath", () => {
     );
     expect(getPostLoginPath(null)).toBe("/account");
     expect(getPostLoginPath("nope")).toBe("/account");
+  });
+});
+
+describe("buildViewReturnState", () => {
+  it("returns the open build page", () => {
+    expect(buildViewReturnState("/builds/build-1")).toEqual({
+      from: { pathname: "/builds/build-1" },
+    });
+  });
+
+  it("ignores the builder, my builds, and other pages", () => {
+    expect(buildViewReturnState("/builds/current")).toBeUndefined();
+    expect(buildViewReturnState("/builds/me")).toBeUndefined();
+    expect(buildViewReturnState("/builds")).toBeUndefined();
+    expect(buildViewReturnState("/account")).toBeUndefined();
   });
 });
