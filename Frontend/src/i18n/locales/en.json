@@ -712,6 +712,7 @@
     "addToBuild": "Add to Build",
     "clearBuild": "Clear build",
     "saveBuild": "Save build",
+    "saveACopy": "Save a copy",
     "deleteBuild": "Delete build",
     "manageMyBuilds": "Manage My Builds",
     "changePassword": "Change Password",

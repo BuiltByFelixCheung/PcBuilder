@@ -712,6 +712,7 @@
     "addToBuild": "加入砌機組合",
     "clearBuild": "清空砌機組合",
     "saveBuild": "儲存砌機組合",
+    "saveACopy": "另存副本",
     "deleteBuild": "刪除砌機組合",
     "manageMyBuilds": "管理我的砌機組合",
     "changePassword": "更改密碼",
