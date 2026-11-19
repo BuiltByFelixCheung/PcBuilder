@@ -25,24 +25,29 @@ function renderHeader(path: string) {
 }
 
 describe("Anonymous", () => {
-  it("carries the open build into sign-in and registration", async () => {
-    const user = userEvent.setup();
-    renderHeader("/builds/build-1");
-    await user.click(screen.getByRole("link", { name: "Sign in" }));
-    expect(await screen.findByText("/builds/build-1")).toBeInTheDocument();
-  });
-
-  it("carries the open build into registration", async () => {
-    const user = userEvent.setup();
-    renderHeader("/builds/build-1");
-    await user.click(screen.getByRole("link", { name: "Create account" }));
-    expect(await screen.findByText("/builds/build-1")).toBeInTheDocument();
-  });
-
-  it("leaves other pages on the account path", async () => {
-    const user = userEvent.setup();
-    renderHeader("/");
-    await user.click(screen.getByRole("link", { name: "Sign in" }));
-    expect(await screen.findByText("/account")).toBeInTheDocument();
-  });
+  it.each([
+    {
+      path: "/builds/build-1",
+      link: "Sign in",
+      expected: "/builds/build-1",
+    },
+    {
+      path: "/builds/build-1",
+      link: "Create account",
+      expected: "/builds/build-1",
+    },
+    {
+      path: "/",
+      link: "Sign in",
+      expected: "/account",
+    },
+  ])(
+    "from $path, $link returns $expected",
+    async ({ path, link, expected }) => {
+      const user = userEvent.setup();
+      renderHeader(path);
+      await user.click(screen.getByRole("link", { name: link }));
+      expect(await screen.findByText(expected)).toBeInTheDocument();
+    },
+  );
 });
