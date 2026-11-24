@@ -173,9 +173,52 @@ export const COMPATIBILITY_SLOTS = [
 
 export type CompatibilitySlot = (typeof COMPATIBILITY_SLOTS)[number];
 
+export const COMPATIBILITY_ASPECTS = [
+  "Socket",
+  "Chipset",
+  "MotherboardFormFactor",
+  "PsuFormFactor",
+  "RadiatorClass",
+  "LengthMm",
+  "HeightMm",
+  "WidthMm",
+  "CoolerHeightMm",
+  "RamHeightMm",
+  "DdrGeneration",
+  "RamFormFactor",
+  "TotalMemoryGb",
+  "DimmSizeGb",
+  "ModuleCount",
+  "RamRank",
+  "MemorySpeedMts",
+  "PcieGeneration",
+  "PcieSlotCount",
+  "UsbVersion",
+  "PowerBudgetWatts",
+  "MotherboardCable",
+  "CpuPowerCable",
+  "PciePowerCable",
+  "SataCable",
+  "SataPortCount",
+  "FanHeaderPwm",
+  "FanHeaderDc",
+  "DriveBays",
+  "FanMounts",
+  "M2Slot",
+  "UsbPort",
+] as const;
+export type CompatibilityAspect = (typeof COMPATIBILITY_ASPECTS)[number];
+
 export type CompatibilityPartRef = {
   slot: CompatibilitySlot;
   partId: string | null;
+  name?: string | null;
+};
+
+export type CompatibilityFact = {
+  aspect: CompatibilityAspect | string;
+  limit: string | null;
+  actual: string | null;
 };
 
 export type CompatibilityIssue = {
@@ -183,6 +226,7 @@ export type CompatibilityIssue = {
   reason: CompatibilityCheckReason;
   rated: string | null;
   executing: string | null;
+  facts?: CompatibilityFact[];
   parts: CompatibilityPartRef[];
 };
 

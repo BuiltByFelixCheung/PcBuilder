@@ -15,7 +15,17 @@ public static class CpuCoolerCpuCompatibility
     public static PartsCompatibilityResult Evaluate(CpuCooler cooler, Cpu cpu) =>
         HasSocketCompiled(cooler, cpu.SocketId)
             ? PartsCompatibilityResult.Compatible()
-            : PartsCompatibilityResult.Incompatible(CompatibilityReason.MissingCpuCoolerSocket);
+            : PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.MissingCpuCoolerSocket,
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.Socket,
+                        string.Join(
+                            ',',
+                            cooler.CpuCoolerSockets.Select(socket =>
+                                CompatibilityFact.NameOrId(socket.Socket, socket.SocketId))),
+                        CompatibilityFact.NameOrId(cpu.Socket, cpu.SocketId))
+                ]);
 
     public static Expression<Func<CpuCooler, bool>> Filter(Guid socketId) =>
         CompatibilityExpression.Bind(HasSocket, socketId);
@@ -34,7 +44,14 @@ public static class CpuCoolerRamCompatibility
 
     public static PartsCompatibilityResult Evaluate(CpuCooler cooler, Ram ram) =>
         ExceedsCompiled(cooler, ram.HeightMm)
-            ? PartsCompatibilityResult.Incompatible(CompatibilityReason.RamHeightExceedsCoolerLimit)
+            ? PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.RamHeightExceedsCoolerLimit,
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.RamHeightMm,
+                        cooler.MaxRamHeightMm is { } limit ? CompatibilityFact.Number(limit) : null,
+                        CompatibilityFact.Number(ram.HeightMm))
+                ])
             : PartsCompatibilityResult.Compatible();
 
     public static Expression<Func<CpuCooler, bool>> Filter(decimal ramHeightMm) =>

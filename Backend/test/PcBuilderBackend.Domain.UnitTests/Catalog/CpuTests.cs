@@ -115,10 +115,27 @@ public class CpuTests
         var wrongGen = CreateRam(DdrGeneration.Ddr4, 2, RamRank.DualRank, 3200);
 
         cpu.CheckMemoryCompatibility(matching).Status.Should().Be(PartsCompatibility.Compatible);
-        cpu.CheckMemoryCompatibility(tooFast).Status.Should().Be(PartsCompatibility.CompatibleReduced);
-        cpu.CheckMemoryCompatibility(tooFast).Reason.Should().Be(CompatibilityReason.MemorySpeedExceedsCpuSupport);
-        cpu.CheckMemoryCompatibility(wrongGen).Status.Should().Be(PartsCompatibility.Incompatible);
-        cpu.CheckMemoryCompatibility(wrongGen).Reason.Should().Be(CompatibilityReason.NoMatchingRamConfig);
+        cpu.CheckMemoryCompatibility(matching).Facts.Should().BeEmpty();
+
+        var reduced = cpu.CheckMemoryCompatibility(tooFast);
+        reduced.Status.Should().Be(PartsCompatibility.CompatibleReduced);
+        reduced.Reason.Should().Be(CompatibilityReason.MemorySpeedExceedsCpuSupport);
+        reduced.Facts.Should().ContainSingle(fact =>
+            fact.Aspect == CompatibilityAspect.MemorySpeedMts
+            && fact.Limit == "6000"
+            && fact.Actual == "7200");
+
+        var mismatch = cpu.CheckMemoryCompatibility(wrongGen);
+        mismatch.Status.Should().Be(PartsCompatibility.Incompatible);
+        mismatch.Reason.Should().Be(CompatibilityReason.NoMatchingRamConfig);
+        mismatch.Facts.Should().Contain(fact =>
+            fact.Aspect == CompatibilityAspect.DdrGeneration
+            && fact.Limit == null
+            && fact.Actual == nameof(DdrGeneration.Ddr4));
+        mismatch.Facts.Should().Contain(fact =>
+            fact.Aspect == CompatibilityAspect.ModuleCount && fact.Actual == "2");
+        mismatch.Facts.Should().Contain(fact =>
+            fact.Aspect == CompatibilityAspect.RamRank && fact.Actual == nameof(RamRank.DualRank));
     }
 
     private static Cpu Create() =>

@@ -36,7 +36,16 @@ public static class MotherboardStorageCompatibility
 
         var sataBayCount = list.Count(drive => ConsumesSataPortCompiled(drive.FormFactor));
         if (!SataCountFitsCompiled(sataBayCount, sataPorts))
-            return PartsCompatibilityResult.Incompatible(CompatibilityReason.InsufficientSataPorts);
+        {
+            return PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.InsufficientSataPorts,
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.SataPortCount,
+                        CompatibilityFact.Number(sataPorts),
+                        CompatibilityFact.Number(sataBayCount))
+                ]);
+        }
 
         return AssignM2Demands(m2Slots, list.Where(drive => drive.IsM2).Select(ToM2Demand));
     }
@@ -118,15 +127,26 @@ public static class MotherboardStorageCompatibility
         var candidates = m2Slots.Where(slot => IsM2Candidate(slot, demand)).ToList();
         if (candidates.Count == 0)
         {
+            var demandToken = M2DemandToken(demand);
             if (demand.RequiresSata && m2Slots.Any(slot => MatchesM2KeyAndForm(slot, demand)))
-                return PartsCompatibilityResult.Incompatible(CompatibilityReason.SlotDoesNotSupportSata);
+            {
+                return PartsCompatibilityResult.Incompatible(
+                    CompatibilityReason.SlotDoesNotSupportSata,
+                    [new CompatibilityFact(CompatibilityAspect.M2Slot, "Sata", demandToken)]);
+            }
 
-            return PartsCompatibilityResult.Incompatible(CompatibilityReason.NoMatchingM2Slot);
+            return PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.NoMatchingM2Slot,
+                [new CompatibilityFact(CompatibilityAspect.M2Slot, M2SlotSummary(m2Slots), demandToken)]);
         }
 
         var available = candidates.Where(slot => remaining[slot] > 0).ToList();
         if (available.Count == 0)
-            return PartsCompatibilityResult.Incompatible(CompatibilityReason.NoMatchingM2Slot);
+        {
+            return PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.NoMatchingM2Slot,
+                [new CompatibilityFact(CompatibilityAspect.M2Slot, M2SlotSummary(m2Slots), M2DemandToken(demand))]);
+        }
 
         var chosen = available.MaxBy(slot => slot.PcieGeneration)!;
         remaining[chosen]--;
@@ -148,6 +168,17 @@ public static class MotherboardStorageCompatibility
     private static bool MatchesM2KeyAndForm(MotherboardM2 slot, M2Demand demand) =>
         M2KeyCompatibility.FitsSlot(demand.Key, slot.Key)
         && slot.FormFactors.Any(formFactor => formFactor.FormFactor == demand.FormFactor);
+
+    private static string M2DemandToken(M2Demand demand) =>
+        $"{demand.Key}|{demand.FormFactor}|{(demand.RequiresSata ? "Sata" : "Nvme")}";
+
+    private static string M2SlotSummary(IReadOnlyCollection<MotherboardM2> slots) =>
+        slots.Count == 0
+            ? ""
+            : string.Join(
+                ';',
+                slots.Select(slot =>
+                    $"{slot.Key}|{string.Join(',', slot.FormFactors.Select(form => form.FormFactor))}|{slot.SlotCount}"));
 
     private static M2Demand ToM2Demand(StorageDrive drive) =>
         new(

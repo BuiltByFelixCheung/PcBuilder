@@ -243,9 +243,25 @@ describe("BuilderPage", () => {
           reason: "SocketMismatch",
           rated: null,
           executing: null,
+          facts: [
+            { aspect: "Socket", limit: "AM5", actual: "AM4" },
+          ],
           parts: [
-            { slot: "Cpu", partId: "cpu-1" },
-            { slot: "Motherboard", partId: "mb-1" },
+            { slot: "Motherboard", partId: "mb-1", name: "B650" },
+            { slot: "Cpu", partId: "cpu-1", name: "7700" },
+          ],
+        },
+        {
+          status: "Incompatible",
+          reason: "PartSizeExceedsLimits",
+          rated: null,
+          executing: null,
+          facts: [
+            { aspect: "LengthMm", limit: "320", actual: "400" },
+          ],
+          parts: [
+            { slot: "Chassis", partId: "case-1", name: "Lancool 216" },
+            { slot: "GraphicsCard", partId: "gpu-1", name: "RTX 4080" },
           ],
         },
       ],
@@ -254,8 +270,22 @@ describe("BuilderPage", () => {
       route: "/builds/current",
       initialBuild: { cpuId: "cpu-1", motherboardId: "mb-1" },
     });
-    expect(await screen.findByText("Incompatible")).toBeInTheDocument();
+    expect(await screen.findAllByText("Incompatible")).not.toHaveLength(0);
     expect(await screen.findByText("Socket mismatch")).toBeInTheDocument();
+    expect(screen.getByText("Motherboard · B650")).toBeInTheDocument();
+    expect(screen.getByText("CPU · 7700")).toBeInTheDocument();
+    expect(
+      screen.getByText("Supported socket is AM5. This part is AM4."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Length is 400 mm. The limit is 320 mm."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Chassis").closest("tr"),
+    ).toHaveAttribute("data-compatibility", "issue");
+    expect(
+      screen.getByText("Motherboard").closest("tr"),
+    ).toHaveAttribute("data-compatibility", "issue");
   });
 
   it("shows a saved build as read-only on /builds/:id", async () => {

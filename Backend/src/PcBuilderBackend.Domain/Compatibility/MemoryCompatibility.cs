@@ -26,6 +26,52 @@ public static class MotherboardMemoryCompatibility
             board.MaxDimmSizeGb,
             board.RamSlots);
 
+    public static IReadOnlyList<CompatibilityFact> Explain(Motherboard board, Ram memory)
+    {
+        var facts = new List<CompatibilityFact>();
+        if (memory.DdrGeneration != board.DdrGeneration)
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.DdrGeneration,
+                CompatibilityFact.Token(board.DdrGeneration),
+                CompatibilityFact.Token(memory.DdrGeneration)));
+        }
+
+        if (memory.RamFormFactor != board.RamFormFactor)
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.RamFormFactor,
+                CompatibilityFact.Token(board.RamFormFactor),
+                CompatibilityFact.Token(memory.RamFormFactor)));
+        }
+
+        if (memory.TotalMemorySizeGb > board.MaxMemoryGb)
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.TotalMemoryGb,
+                CompatibilityFact.Number(board.MaxMemoryGb),
+                CompatibilityFact.Number(memory.TotalMemorySizeGb)));
+        }
+
+        if (memory.MemorySizePerStickGb > board.MaxDimmSizeGb)
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.DimmSizeGb,
+                CompatibilityFact.Number(board.MaxDimmSizeGb),
+                CompatibilityFact.Number(memory.MemorySizePerStickGb)));
+        }
+
+        if (memory.ModulesCount > board.RamSlots)
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.ModuleCount,
+                CompatibilityFact.Number(board.RamSlots),
+                CompatibilityFact.Number(memory.ModulesCount)));
+        }
+
+        return facts;
+    }
+
     public static Expression<Func<Ram, bool>> Filter(Motherboard board) =>
         CompatibilityExpression.Bind<Ram>(
             Body,
@@ -63,7 +109,24 @@ public static class CpuMemoryCompatibility
         }
 
         if (match is null)
-            return PartsCompatibilityResult.Incompatible(CompatibilityReason.NoMatchingRamConfig);
+        {
+            return PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.NoMatchingRamConfig,
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.DdrGeneration,
+                        null,
+                        CompatibilityFact.Token(memory.DdrGeneration)),
+                    new CompatibilityFact(
+                        CompatibilityAspect.ModuleCount,
+                        null,
+                        CompatibilityFact.Number(memory.ModulesCount)),
+                    new CompatibilityFact(
+                        CompatibilityAspect.RamRank,
+                        null,
+                        CompatibilityFact.Token(memory.RamRank))
+                ]);
+        }
 
         return SpeedCompiled(memory, match.MaxSpeedMts)
             ? PartsCompatibilityResult.CompatibleReduced(

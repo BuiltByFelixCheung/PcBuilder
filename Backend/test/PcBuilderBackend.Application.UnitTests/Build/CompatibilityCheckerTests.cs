@@ -118,8 +118,14 @@ public class CompatibilityCheckerTests
 
         var issue = results.Should().ContainSingle(r => r.Result.Reason == CompatibilityReason.InsufficientSataPorts)
             .Subject;
-        issue.Parts.Should().Contain(p => p.Slot == CompatibilitySlot.Motherboard && p.PartId == board.Id);
-        issue.Parts.Should().Contain(p => p.Slot == CompatibilitySlot.StorageDevices && p.PartId == ssd.Id);
+        issue.Result.Facts.Should().ContainSingle(fact =>
+            fact.Aspect == CompatibilityAspect.SataPortCount
+            && fact.Limit == "1"
+            && fact.Actual == "2");
+        issue.Parts.Should().Contain(p =>
+            p.Slot == CompatibilitySlot.Motherboard && p.PartId == board.Id && p.Name == "B650");
+        issue.Parts.Should().Contain(p =>
+            p.Slot == CompatibilitySlot.StorageDevices && p.PartId == ssd.Id && p.Name == "MX500");
     }
 
     [Fact]
@@ -320,10 +326,125 @@ public class CompatibilityCheckerTests
 
         var issue = results.Should().ContainSingle(r => r.Result.Reason == CompatibilityReason.PartSizeExceedsLimits)
             .Subject;
-        issue.Parts.Should().Contain(p => p.Slot == CompatibilitySlot.Chassis && p.PartId == chassis.Id);
-        issue.Parts.Should().Contain(p => p.Slot == CompatibilitySlot.GraphicsCard && p.PartId == graphicsCard.Id);
+        issue.Result.Facts.Should().ContainSingle(fact =>
+            fact.Aspect == CompatibilityAspect.LengthMm
+            && fact.Limit == "320"
+            && fact.Actual == "400");
+        issue.Parts.Should().Contain(p =>
+            p.Slot == CompatibilitySlot.Chassis && p.PartId == chassis.Id && p.Name == "Case");
+        issue.Parts.Should().Contain(p =>
+            p.Slot == CompatibilitySlot.GraphicsCard && p.PartId == graphicsCard.Id && p.Name == "Long card");
         issue.Parts.Should().NotContain(p => p.Slot.ToString().Contains("Gpu"));
     }
+
+    [Fact]
+    public async Task Socket_mismatch_names_both_parts_and_sockets()
+    {
+        var catalog = new FakeCatalog();
+        var boardSocket = new Socket(ManufacturerId, "AM5");
+        var cpuSocket = new Socket(ManufacturerId, "AM4");
+        var board = new Motherboard(ManufacturerId, "B650", new MotherboardSpecs
+        {
+            SocketId = boardSocket.Id,
+            ChipsetId = Guid.NewGuid(),
+            RamSlots = 4,
+            MaxMemoryGb = 128,
+            MaxDimmSizeGb = 48,
+            SataPorts = 4,
+            PwmFanHeaders = 4,
+            DcFanHeaders = 0,
+            EpsConnectors = 1,
+            WidthMm = 244,
+            HeightMm = 305,
+            DdrGeneration = DdrGeneration.Ddr5,
+            RamFormFactor = RamFormFactor.UDimm,
+            MbFormFactor = MbFormFactor.Atx,
+            WifiEnabled = false,
+            BluetoothEnabled = false
+        });
+        SetProperty(board, nameof(Motherboard.Socket), boardSocket);
+        var cpu = new Cpu("7700", ManufacturerId, new CpuSpecs
+        {
+            SocketId = cpuSocket.Id,
+            SeriesId = Guid.NewGuid(),
+            MaxMemoryGb = 128,
+            IntegratedGraphics = true,
+            IncludedStockCooler = true,
+            ThermalDesignPower = 65,
+            PowerConsumptionWatts = 88
+        });
+        SetProperty(cpu, nameof(Cpu.Socket), cpuSocket);
+        catalog.Motherboards[board.Id] = board;
+        catalog.Cpus[cpu.Id] = cpu;
+
+        var checker = new CompatibilityChecker(catalog);
+        var results = await checker.CheckCompatibilityAsync(Request(motherboardId: board.Id, cpuId: cpu.Id));
+
+        var issue = results.Should().ContainSingle(r => r.Result.Reason == CompatibilityReason.SocketMismatch).Subject;
+        issue.Result.Facts.Should().ContainSingle(fact =>
+            fact.Aspect == CompatibilityAspect.Socket && fact.Limit == "AM5" && fact.Actual == "AM4");
+        issue.Parts.Should().Contain(p => p.Slot == CompatibilitySlot.Motherboard && p.Name == "B650");
+        issue.Parts.Should().Contain(p => p.Slot == CompatibilitySlot.Cpu && p.Name == "7700");
+    }
+
+    [Fact]
+    public async Task Power_budget_reports_required_and_available_watts()
+    {
+        var catalog = new FakeCatalog();
+        var cpu = new Cpu("7700", ManufacturerId, new CpuSpecs
+        {
+            SocketId = Guid.NewGuid(),
+            SeriesId = Guid.NewGuid(),
+            MaxMemoryGb = 128,
+            IntegratedGraphics = true,
+            IncludedStockCooler = true,
+            ThermalDesignPower = 65,
+            PowerConsumptionWatts = 200
+        });
+        var psu = new Psu("RM650", ManufacturerId, new PsuSpecs
+        {
+            Wattage = 300,
+            Modularity = PsuModularity.FullModular,
+            FormFactor = PsuFormFactor.Atx,
+            LengthMm = 140,
+            WidthMm = 150,
+            HeightMm = 86
+        });
+        catalog.Cpus[cpu.Id] = cpu;
+        catalog.Psus[psu.Id] = psu;
+
+        var checker = new CompatibilityChecker(catalog);
+        var results = await checker.CheckCompatibilityAsync(Request(cpuId: cpu.Id, psuId: psu.Id));
+
+        var issue = results.Should().ContainSingle(r => r.Result.Reason == CompatibilityReason.ExceedsPowerBudget)
+            .Subject;
+        issue.Result.Facts.Should().ContainSingle(fact =>
+            fact.Aspect == CompatibilityAspect.PowerBudgetWatts
+            && fact.Limit == "300"
+            && fact.Actual == "328");
+        issue.Parts.Should().Contain(p => p.Slot == CompatibilitySlot.Psu && p.Name == "RM650");
+        issue.Parts.Should().Contain(p => p.Slot == CompatibilitySlot.Cpu && p.Name == "7700");
+    }
+
+    private static CompatibilityCheckRequest Request(
+        Guid? chassisId = null,
+        Guid? motherboardId = null,
+        Guid? cpuId = null,
+        Guid? psuId = null) =>
+        new()
+        {
+            ChassisId = chassisId,
+            MotherboardId = motherboardId,
+            CpuId = cpuId,
+            PsuId = psuId,
+            ChassisFans = [],
+            StorageDevices = [],
+            WiredNetworkAdapters = [],
+            WirelessNetworkAdapters = []
+        };
+
+    private static void SetProperty(object target, string property, object value) =>
+        target.GetType().GetProperty(property)!.GetSetMethod(nonPublic: true)!.Invoke(target, [value]);
 
     private static Motherboard CreateMotherboard(int sataPorts) =>
         new(ManufacturerId, "B650", new MotherboardSpecs
@@ -353,6 +474,8 @@ public class CompatibilityCheckerTests
         public Dictionary<Guid, Motherboard> Motherboards { get; } = new();
         public Dictionary<Guid, StorageDrive> Drives { get; } = new();
         public Dictionary<Guid, GraphicsCard> GraphicsCards { get; } = new();
+        public Dictionary<Guid, Cpu> Cpus { get; } = new();
+        public Dictionary<Guid, Psu> Psus { get; } = new();
         public Dictionary<Guid, WiredNetworkAdapter> Wired { get; } = new();
         public Dictionary<Guid, WirelessNetworkAdapter> Wireless { get; } = new();
 
@@ -365,7 +488,8 @@ public class CompatibilityCheckerTests
         public Task<List<ChassisFan>> GetChassisFansByIdsAsync(IReadOnlyCollection<Guid> ids) =>
             Task.FromResult(ids.Select(id => Fans.GetValueOrDefault(id)).Where(x => x is not null).Cast<ChassisFan>().ToList());
 
-        public Task<Cpu?> GetCpuByIdAsync(Guid id) => Task.FromResult<Cpu?>(null);
+        public Task<Cpu?> GetCpuByIdAsync(Guid id) =>
+            Task.FromResult(Cpus.GetValueOrDefault(id));
 
         public Task<CpuCooler?> GetCpuCoolerByIdAsync(Guid id) => Task.FromResult<CpuCooler?>(null);
 
@@ -383,7 +507,8 @@ public class CompatibilityCheckerTests
         public Task<List<StorageDrive>> GetStorageDevicesByIdsAsync(IReadOnlyCollection<Guid> ids) =>
             Task.FromResult(ids.Select(id => Drives.GetValueOrDefault(id)).Where(x => x is not null).Cast<StorageDrive>().ToList());
 
-        public Task<Psu?> GetPowerSupplyByIdAsync(Guid id) => Task.FromResult<Psu?>(null);
+        public Task<Psu?> GetPowerSupplyByIdAsync(Guid id) =>
+            Task.FromResult(Psus.GetValueOrDefault(id));
 
         public Task<WiredNetworkAdapter?> GetWiredNetworkAdapterByIdAsync(Guid id) =>
             Task.FromResult(Wired.GetValueOrDefault(id));

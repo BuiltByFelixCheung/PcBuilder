@@ -31,6 +31,7 @@ public record CompatibilityIssueDto
     public CompatibilityReason Reason { get; init; }
     public string? Rated { get; init; }
     public string? Executing { get; init; }
+    public List<CompatibilityFactDto> Facts { get; init; } = [];
     public List<CompatibilityPartRefDto> Parts { get; init; } = [];
 
     public static CompatibilityIssueDto From(CompatibilityCheck check)
@@ -42,7 +43,8 @@ public record CompatibilityIssueDto
             Reason = check.Result.Reason,
             Rated = rated,
             Executing = executing,
-            Parts = [.. check.Parts.Select(part => new CompatibilityPartRefDto(part.Slot, part.PartId))]
+            Facts = [.. check.Result.Facts.Select(fact => new CompatibilityFactDto(fact.Aspect, fact.Limit, fact.Actual))],
+            Parts = [.. check.Parts.Select(part => new CompatibilityPartRefDto(part.Slot, part.PartId, part.Name))]
         };
     }
 
@@ -56,4 +58,6 @@ public record CompatibilityIssueDto
         };
 }
 
-public record CompatibilityPartRefDto(CompatibilitySlot Slot, Guid? PartId);
+public record CompatibilityFactDto(CompatibilityAspect Aspect, string? Limit, string? Actual);
+
+public record CompatibilityPartRefDto(CompatibilitySlot Slot, Guid? PartId, string? Name = null);
