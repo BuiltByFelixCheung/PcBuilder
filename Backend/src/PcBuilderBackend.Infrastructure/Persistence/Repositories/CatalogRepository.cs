@@ -29,12 +29,14 @@ public class CatalogRepository(PcBuilderDbContext context) : ICatalogRepository
             .Include(c => c.Socket)
             .Include(c => c.RamCompats)
             .Include(c => c.SupportedChipsets)
+            .ThenInclude(support => support.Chipset)
             .AsSplitQuery()
             .FirstOrDefaultAsync(c => c.Id == id);
 
     public Task<CpuCooler?> GetCpuCoolerByIdAsync(Guid id) =>
         context.CpuCoolers
             .Include(c => c.CpuCoolerSockets)
+            .ThenInclude(socket => socket.Socket)
             .FirstOrDefaultAsync(c => c.Id == id);
 
     public Task<GraphicsCard?> GetGraphicsCardByIdAsync(Guid id) =>
@@ -43,6 +45,7 @@ public class CatalogRepository(PcBuilderDbContext context) : ICatalogRepository
     public Task<Motherboard?> GetMotherboardByIdAsync(Guid id) =>
         context.Motherboards
             .Include(m => m.Socket)
+            .Include(m => m.Chipset)
             .Include(m => m.PcieSlots)
             .Include(m => m.M2Slots)
             .ThenInclude(s => s.FormFactors)

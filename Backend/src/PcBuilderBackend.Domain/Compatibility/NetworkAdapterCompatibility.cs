@@ -26,8 +26,22 @@ public static class NetworkAdapterCompatibility
             .GroupBy(slotType => slotType)
             .ToList();
 
-        if (pcieNeeded.Any(group => !HasCapacity(CountPcie(pcieSlots, group.Key), group.Count())))
-            return PartsCompatibilityResult.Incompatible(CompatibilityReason.NotEnoughPcieSlots);
+        var pcieFacts = new List<CompatibilityFact>();
+        foreach (var group in pcieNeeded)
+        {
+            var available = CountPcie(pcieSlots, group.Key);
+            var needed = group.Count();
+            if (!HasCapacity(available, needed))
+            {
+                pcieFacts.Add(new CompatibilityFact(
+                    CompatibilityAspect.PcieSlotCount,
+                    CompatibilityFact.Number(available),
+                    $"{group.Key}|{needed}"));
+            }
+        }
+
+        if (pcieFacts.Count > 0)
+            return PartsCompatibilityResult.Incompatible(CompatibilityReason.NotEnoughPcieSlots, pcieFacts);
 
         PartsCompatibilityResult? reduced = null;
 
@@ -43,8 +57,19 @@ public static class NetworkAdapterCompatibility
         foreach (var group in usbNeeded)
         {
             var ports = usbPorts.Where(port => port.UsbType == group.Key).ToList();
-            if (!HasCapacity(CountUsb(ports, group.Key), group.Count()))
-                return PartsCompatibilityResult.Incompatible(CompatibilityReason.NoMatchingUsbPort);
+            var usbAvailable = CountUsb(ports, group.Key);
+            var usbDemand = group.Count();
+            if (!HasCapacity(usbAvailable, usbDemand))
+            {
+                return PartsCompatibilityResult.Incompatible(
+                    CompatibilityReason.NoMatchingUsbPort,
+                    [
+                        new CompatibilityFact(
+                            CompatibilityAspect.UsbPort,
+                            CompatibilityFact.Number(usbAvailable),
+                            $"{group.Key}|{usbDemand}")
+                    ]);
+            }
 
             var maxVersion = ports.Max(port => port.UsbVersion);
             var rated = group.Max(usb => usb.Version);

@@ -165,7 +165,12 @@ public class MotherboardTests
         var nvme = CreateNvme(PcieGeneration.Gen4);
 
         board.CheckStorageCompatibility(nvme).Status.Should().Be(PartsCompatibility.Compatible);
-        board.CheckStorageCompatibility([nvme, nvme]).Reason.Should().Be(CompatibilityReason.NoMatchingM2Slot);
+        var exhausted = board.CheckStorageCompatibility([nvme, nvme]);
+        exhausted.Reason.Should().Be(CompatibilityReason.NoMatchingM2Slot);
+        exhausted.Facts.Should().ContainSingle(fact =>
+            fact.Aspect == CompatibilityAspect.M2Slot
+            && fact.Limit == "M|M22280|1|Nvme"
+            && fact.Actual == "M|M22280|Nvme");
     }
 
     [Fact]
@@ -175,7 +180,12 @@ public class MotherboardTests
         AddM2(board, M2Key.M, PcieGeneration.Gen4, slotCount: 1, supportsSata: false);
         var sataM2 = CreateSataM2();
 
-        board.CheckStorageCompatibility(sataM2).Reason.Should().Be(CompatibilityReason.SlotDoesNotSupportSata);
+        var result = board.CheckStorageCompatibility(sataM2);
+        result.Reason.Should().Be(CompatibilityReason.SlotDoesNotSupportSata);
+        result.Facts.Should().ContainSingle(fact =>
+            fact.Aspect == CompatibilityAspect.M2Slot
+            && fact.Limit == "M|M22280|1|Nvme"
+            && fact.Actual == "BM|M22280|Sata");
     }
 
     [Fact]

@@ -54,6 +54,10 @@ public class CompatibilityCheckDtoTests
         reduced.Status.Should().Be(PartsCompatibility.CompatibleReduced);
         reduced.Rated.Should().Be(nameof(PcieGeneration.Gen5));
         reduced.Executing.Should().Be(nameof(PcieGeneration.Gen4));
+        reduced.Facts.Should().ContainSingle(fact =>
+            fact.Aspect == CompatibilityAspect.PcieGeneration
+            && fact.Limit == nameof(PcieGeneration.Gen4)
+            && fact.Actual == nameof(PcieGeneration.Gen5));
         reduced.Parts.Should().Contain(p => p.Slot == CompatibilitySlot.GraphicsCard && p.PartId == graphicsCardId);
         reduced.Parts.Should().NotContain(p => p.Slot.ToString().Contains("Gpu"));
     }

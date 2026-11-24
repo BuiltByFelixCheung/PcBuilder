@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using PcBuilderBackend.Domain.Entities;
 using PcBuilderBackend.Domain.Enums;
+using PcBuilderBackend.Domain.ValueObjects;
 
 namespace PcBuilderBackend.Domain.Compatibility;
 
@@ -16,6 +17,37 @@ public static class ChassisMotherboardCompatibility
 
     public static bool Matches(Chassis chassis, Motherboard board) =>
         Compiled(board, FormFactors(chassis), chassis.MotherboardMaxHeightMm, chassis.MotherboardMaxWidthMm);
+
+    public static IReadOnlyList<CompatibilityFact> Explain(Chassis chassis, Motherboard board)
+    {
+        var facts = new List<CompatibilityFact>();
+        var formFactors = FormFactors(chassis);
+        if (!formFactors.Contains(board.FormFactor))
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.MotherboardFormFactor,
+                CompatibilityFact.Tokens(formFactors),
+                CompatibilityFact.Token(board.FormFactor)));
+        }
+
+        if (board.HeightMm > chassis.MotherboardMaxHeightMm)
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.HeightMm,
+                CompatibilityFact.Number(chassis.MotherboardMaxHeightMm),
+                CompatibilityFact.Number(board.HeightMm)));
+        }
+
+        if (board.WidthMm > chassis.MotherboardMaxWidthMm)
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.WidthMm,
+                CompatibilityFact.Number(chassis.MotherboardMaxWidthMm),
+                CompatibilityFact.Number(board.WidthMm)));
+        }
+
+        return facts;
+    }
 
     public static Expression<Func<Motherboard, bool>> Filter(Chassis chassis)
     {
@@ -44,6 +76,29 @@ public static class ChassisPsuCompatibility
 
     public static bool Matches(Chassis chassis, Psu psu) =>
         Compiled(psu, FormFactors(chassis), chassis.MaxPsuLengthMm);
+
+    public static IReadOnlyList<CompatibilityFact> Explain(Chassis chassis, Psu psu)
+    {
+        var facts = new List<CompatibilityFact>();
+        var formFactors = FormFactors(chassis);
+        if (!formFactors.Contains(psu.FormFactor))
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.PsuFormFactor,
+                CompatibilityFact.Tokens(formFactors),
+                CompatibilityFact.Token(psu.FormFactor)));
+        }
+
+        if (psu.LengthMm > chassis.MaxPsuLengthMm)
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.LengthMm,
+                CompatibilityFact.Number(chassis.MaxPsuLengthMm),
+                CompatibilityFact.Number(psu.LengthMm)));
+        }
+
+        return facts;
+    }
 
     public static Expression<Func<Psu, bool>> Filter(Chassis chassis)
     {
@@ -77,6 +132,47 @@ public static class ChassisCpuCoolerCompatibility
     public static bool Matches(Chassis chassis, CpuCooler cooler) =>
         Compiled(cooler, chassis.MaxCpuCoolerHeightMm, RadiatorLengths(chassis));
 
+    public static IReadOnlyList<CompatibilityFact> Explain(Chassis chassis, CpuCooler cooler)
+    {
+        if (cooler.Type == CpuCoolerType.Air)
+        {
+            if (cooler.CoolerHeightMm is not { } height || height > chassis.MaxCpuCoolerHeightMm)
+            {
+                return
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.CoolerHeightMm,
+                        CompatibilityFact.Number(chassis.MaxCpuCoolerHeightMm),
+                        cooler.CoolerHeightMm is { } actual ? CompatibilityFact.Number(actual) : null)
+                ];
+            }
+
+            return [];
+        }
+
+        if (cooler.Type == CpuCoolerType.Water)
+        {
+            var lengths = RadiatorLengths(chassis);
+            if (cooler.RadiatorClass is not { } radiator || !lengths.Contains(radiator))
+            {
+                return
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.RadiatorClass,
+                        CompatibilityFact.Tokens(lengths),
+                        cooler.RadiatorClass?.ToString())
+                ];
+            }
+
+            return [];
+        }
+
+        return
+        [
+            new CompatibilityFact(CompatibilityAspect.RadiatorClass, null, cooler.Type.ToString())
+        ];
+    }
+
     public static Expression<Func<CpuCooler, bool>> Filter(Chassis chassis)
     {
         var lengths = RadiatorLengths(chassis);
@@ -105,6 +201,30 @@ public static class ChassisGraphicsCardCompatibility
         return Compiled(card, chassis.MaxGraphicsCardLengthMm, lowProfile, fullHeight);
     }
 
+    public static IReadOnlyList<CompatibilityFact> Explain(Chassis chassis, GraphicsCard card)
+    {
+        var facts = new List<CompatibilityFact>();
+        if (card.LengthMm > chassis.MaxGraphicsCardLengthMm)
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.LengthMm,
+                CompatibilityFact.Number(chassis.MaxGraphicsCardLengthMm),
+                CompatibilityFact.Number(card.LengthMm)));
+        }
+
+        var (lowProfile, fullHeight) = SlotCapacity(chassis);
+        var capacity = card.IsLowProfile ? lowProfile : fullHeight;
+        if (card.PcieSlotsUsed > capacity)
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.PcieSlotCount,
+                CompatibilityFact.Number(capacity),
+                CompatibilityFact.Number(card.PcieSlotsUsed)));
+        }
+
+        return facts;
+    }
+
     public static Expression<Func<GraphicsCard, bool>> Filter(Chassis chassis)
     {
         var (lowProfile, fullHeight) = SlotCapacity(chassis);
@@ -127,6 +247,30 @@ public static class ChassisGraphicsCardCompatibility
     }
 }
 
+public static class ChassisFanMountCompatibility
+{
+    public static IReadOnlyList<CompatibilityFact> Explain(Chassis chassis, IEnumerable<ChassisFan> fans)
+    {
+        var list = fans as IList<ChassisFan> ?? [.. fans];
+        if (chassis.CheckFanCompatibility(list))
+            return [];
+
+        var demand = string.Join(
+            ',',
+            list.GroupBy(fan => fan.DiameterMm)
+                .Select(group => $"{group.Key}|{group.Sum(fan => fan.FansCountPerPack)}"));
+        var mounts = string.Join(
+            ';',
+            chassis.FanMounts.SelectMany(mount => mount.Options.Select(option =>
+                $"{mount.Location}|{option.Diameter}|{option.SlotCount}")));
+
+        return
+        [
+            new CompatibilityFact(CompatibilityAspect.FanMounts, mounts, demand)
+        ];
+    }
+}
+
 public static class ChassisStorageCompatibility
 {
     private static readonly Expression<Func<int, int, int, int, int, bool>> Fits =
@@ -142,6 +286,22 @@ public static class ChassisStorageCompatibility
         var (need25, need35) = CountDemand(drives);
         var (only25, only35, shared) = CountBays(chassis);
         return FitsCompiled(need25, need35, only25, only35, shared);
+    }
+
+    public static IReadOnlyList<CompatibilityFact> Explain(Chassis chassis, IEnumerable<StorageDrive> drives)
+    {
+        var (need25, need35) = CountDemand(drives);
+        var (only25, only35, shared) = CountBays(chassis);
+        if (FitsCompiled(need25, need35, only25, only35, shared))
+            return [];
+
+        return
+        [
+            new CompatibilityFact(
+                CompatibilityAspect.DriveBays,
+                $"{only25}|{only35}|{shared}",
+                $"{need25}|{need35}")
+        ];
     }
 
     public static Expression<Func<StorageDrive, bool>> Filter(Chassis chassis)

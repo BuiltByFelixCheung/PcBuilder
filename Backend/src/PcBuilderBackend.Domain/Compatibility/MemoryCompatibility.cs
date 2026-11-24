@@ -26,6 +26,52 @@ public static class MotherboardMemoryCompatibility
             board.MaxDimmSizeGb,
             board.RamSlots);
 
+    public static IReadOnlyList<CompatibilityFact> Explain(Motherboard board, Ram memory)
+    {
+        var facts = new List<CompatibilityFact>();
+        if (memory.DdrGeneration != board.DdrGeneration)
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.DdrGeneration,
+                CompatibilityFact.Token(board.DdrGeneration),
+                CompatibilityFact.Token(memory.DdrGeneration)));
+        }
+
+        if (memory.RamFormFactor != board.RamFormFactor)
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.RamFormFactor,
+                CompatibilityFact.Token(board.RamFormFactor),
+                CompatibilityFact.Token(memory.RamFormFactor)));
+        }
+
+        if (memory.TotalMemorySizeGb > board.MaxMemoryGb)
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.TotalMemoryGb,
+                CompatibilityFact.Number(board.MaxMemoryGb),
+                CompatibilityFact.Number(memory.TotalMemorySizeGb)));
+        }
+
+        if (memory.MemorySizePerStickGb > board.MaxDimmSizeGb)
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.DimmSizeGb,
+                CompatibilityFact.Number(board.MaxDimmSizeGb),
+                CompatibilityFact.Number(memory.MemorySizePerStickGb)));
+        }
+
+        if (memory.ModulesCount > board.RamSlots)
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.ModuleCount,
+                CompatibilityFact.Number(board.RamSlots),
+                CompatibilityFact.Number(memory.ModulesCount)));
+        }
+
+        return facts;
+    }
+
     public static Expression<Func<Ram, bool>> Filter(Motherboard board) =>
         CompatibilityExpression.Bind<Ram>(
             Body,
@@ -63,7 +109,11 @@ public static class CpuMemoryCompatibility
         }
 
         if (match is null)
-            return PartsCompatibilityResult.Incompatible(CompatibilityReason.NoMatchingRamConfig);
+        {
+            return PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.NoMatchingRamConfig,
+                ExplainUnmatched(cpu, memory));
+        }
 
         return SpeedCompiled(memory, match.MaxSpeedMts)
             ? PartsCompatibilityResult.CompatibleReduced(
@@ -85,4 +135,56 @@ public static class CpuMemoryCompatibility
 
         return CompatibilityExpression.Or(clauses);
     }
+
+    private static List<CompatibilityFact> ExplainUnmatched(Cpu cpu, Ram memory)
+    {
+        var configs = cpu.RamCompats.ToList();
+        if (configs.Count == 0)
+            return [CpuRamConfigFact(memory, configs)];
+
+        var facts = new List<CompatibilityFact>();
+        var generations = configs.Select(config => config.DdrGeneration).Distinct().Order().ToList();
+        if (!generations.Contains(memory.DdrGeneration))
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.DdrGeneration,
+                CompatibilityFact.Tokens(generations),
+                CompatibilityFact.Token(memory.DdrGeneration)));
+        }
+
+        var moduleCounts = configs.Select(config => config.RamModuleCount).Distinct().Order().ToList();
+        if (!moduleCounts.Contains(memory.ModulesCount))
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.ModuleCount,
+                string.Join(',', moduleCounts.Select(CompatibilityFact.Number)),
+                CompatibilityFact.Number(memory.ModulesCount)));
+        }
+
+        var ranks = configs.Select(config => config.RamRank).Distinct().Order().ToList();
+        if (!ranks.Contains(memory.RamRank))
+        {
+            facts.Add(new CompatibilityFact(
+                CompatibilityAspect.RamRank,
+                CompatibilityFact.Tokens(ranks),
+                CompatibilityFact.Token(memory.RamRank)));
+        }
+
+        if (facts.Count == 0)
+            facts.Add(CpuRamConfigFact(memory, configs));
+
+        return facts;
+    }
+
+    private static CompatibilityFact CpuRamConfigFact(Ram memory, IReadOnlyList<CpuRamCompat> configs) =>
+        new(
+            CompatibilityAspect.CpuRamConfig,
+            configs.Count == 0
+                ? null
+                : string.Join(';', configs.Select(config =>
+                    RamConfigToken(config.DdrGeneration, config.RamModuleCount, config.RamRank))),
+            RamConfigToken(memory.DdrGeneration, memory.ModulesCount, memory.RamRank));
+
+    private static string RamConfigToken(DdrGeneration ddr, int modules, RamRank rank) =>
+        $"{ddr}|{CompatibilityFact.Number(modules)}|{rank}";
 }

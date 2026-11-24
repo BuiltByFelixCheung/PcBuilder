@@ -40,11 +40,29 @@ public static class MotherboardFanHeaderCompatibility
         }
 
         if (pwmNeeded > pwmFanHeaders)
-            return PartsCompatibilityResult.Incompatible(CompatibilityReason.InsufficientFanHeaders);
+        {
+            return PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.InsufficientFanHeaders,
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.FanHeaderPwm,
+                        CompatibilityFact.Number(pwmFanHeaders),
+                        CompatibilityFact.Number(pwmNeeded))
+                ]);
+        }
 
         var remainingPwm = pwmFanHeaders - pwmNeeded;
         if (dcNeeded > dcFanHeaders + remainingPwm)
-            return PartsCompatibilityResult.Incompatible(CompatibilityReason.InsufficientFanHeaders);
+        {
+            return PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.InsufficientFanHeaders,
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.FanHeaderDc,
+                        CompatibilityFact.Number(dcFanHeaders + remainingPwm),
+                        CompatibilityFact.Number(dcNeeded))
+                ]);
+        }
 
         return PartsCompatibilityResult.Compatible();
     }

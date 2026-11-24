@@ -1,0 +1,38 @@
+namespace PcBuilderBackend.Domain.Enums;
+
+public enum CompatibilityAspect
+{
+    Socket = 0,
+    Chipset,
+    MotherboardFormFactor,
+    PsuFormFactor,
+    RadiatorClass,
+    LengthMm,
+    HeightMm,
+    WidthMm,
+    CoolerHeightMm,
+    RamHeightMm,
+    DdrGeneration,
+    RamFormFactor,
+    TotalMemoryGb,
+    DimmSizeGb,
+    ModuleCount,
+    RamRank,
+    MemorySpeedMts,
+    PcieGeneration,
+    PcieSlotCount,
+    UsbVersion,
+    PowerBudgetWatts,
+    MotherboardCable,
+    CpuPowerCable,
+    PciePowerCable,
+    SataCable,
+    SataPortCount,
+    FanHeaderPwm,
+    FanHeaderDc,
+    DriveBays,
+    FanMounts,
+    M2Slot,
+    UsbPort,
+    CpuRamConfig
+}
