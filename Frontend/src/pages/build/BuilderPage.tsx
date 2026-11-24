@@ -36,6 +36,7 @@ import {
   workspaceToDraft,
   type CompatibilityCheckResult,
   type CompatibilityIssue,
+  type CompatibilitySlot,
   type PcBuildDetail,
   type PcBuildDraft,
   type PcBuildFields,
@@ -44,6 +45,7 @@ import {
 import { PageStatus } from "@/components/PageStatus.tsx";
 import { BuildPictures } from "@/components/build/BuildPictures";
 import { enumText, ui } from "@/i18n/translate-enum";
+import { formatCompatibilityFact } from "@/pages/build/compatibility-facts";
 import { usePublicBuildMeta } from "@/seo/catalog-meta";
 import { usePcBuildCompatibility } from "@/hooks/use-pc-build-compatibility";
 import { usePcBuildDetail } from "@/hooks/use-pc-build-detail";
@@ -144,22 +146,43 @@ function CompatibilityDetails({
       {query.data.issues.length === 0 ? (
         <p>{ui.message("noIssues")}</p>
       ) : (
-        <ul className="list-disc space-y-1 pl-5">
+        <ul className="list-disc space-y-3 pl-5">
           {query.data.issues.map((issue, index) => (
             <li key={issueKey(issue, index)}>
-              {enumText.compatibilityReason(issue.reason)}
-              {issue.rated && issue.executing
-                ? ` ${ui.message("executingVsRated", {
-                    executing: issue.executing,
-                    rated: issue.rated,
-                  })}`
-                : null}
+              <p>{enumText.compatibilityStatus(issue.status)}</p>
+              {issue.parts.map((part) => (
+                <p key={part.slot + ":" + (part.partId ?? "")}>
+                  {enumText.compatibilitySlot(part.slot)}
+                  {part.name ? ` · ${part.name}` : ""}
+                </p>
+              ))}
+              <p>{enumText.compatibilityReason(issue.reason)}</p>
+              {(issue.facts ?? []).map((fact) => (
+                <p key={fact.aspect + ":" + (fact.limit ?? "") + ":" + (fact.actual ?? "")}>
+                  {formatCompatibilityFact(fact)}
+                </p>
+              ))}
             </li>
           ))}
         </ul>
       )}
     </div>
   );
+}
+
+function flaggedCompatibilitySlots(
+  result: CompatibilityCheckResult | undefined,
+): Set<CompatibilitySlot> {
+  const slots = new Set<CompatibilitySlot>();
+  for (const issue of result?.issues ?? []) {
+    if (issue.status !== "Incompatible" && issue.status !== "CompatibleActionRequired") {
+      continue;
+    }
+    for (const part of issue.parts) {
+      slots.add(part.slot);
+    }
+  }
+  return slots;
 }
 
 function issueKey(issue: CompatibilityIssue, index: number): string {
@@ -752,6 +775,7 @@ function BuilderWorkspace({
   save: ReturnType<typeof useSaveBuildDialog>;
   onClear: () => void;
 }>) {
+  const flaggedSlots = flaggedCompatibilitySlots(compatibility.data);
   return (
     <section className="catalog-page">
       <SaveBuildDialog
@@ -823,6 +847,7 @@ function BuilderWorkspace({
                 partId={displayed.chassisId}
                 query={chassis}
                 readOnly={isViewing}
+                flagged={flaggedSlots.has("Chassis")}
               />
               <SingularSlot
                 label={ui.label("motherboard")}
@@ -836,6 +861,7 @@ function BuilderWorkspace({
                 partId={displayed.motherboardId}
                 query={motherboard}
                 readOnly={isViewing}
+                flagged={flaggedSlots.has("Motherboard")}
               />
               <SingularSlot
                 label={ui.label("cpu")}
@@ -846,6 +872,7 @@ function BuilderWorkspace({
                 partId={displayed.cpuId}
                 query={cpu}
                 readOnly={isViewing}
+                flagged={flaggedSlots.has("Cpu")}
               />
               <SingularSlot
                 label={ui.label("cpuCooler")}
@@ -859,6 +886,7 @@ function BuilderWorkspace({
                 partId={displayed.cpuCoolerId}
                 query={cpuCooler}
                 readOnly={isViewing}
+                flagged={flaggedSlots.has("CpuCooler")}
               />
               <SingularSlot
                 label={ui.label("memory")}
@@ -872,6 +900,7 @@ function BuilderWorkspace({
                 partId={displayed.ramKitId}
                 query={ram}
                 readOnly={isViewing}
+                flagged={flaggedSlots.has("RamKit")}
               />
               <SingularSlot
                 label={ui.label("graphicsCard")}
@@ -885,6 +914,7 @@ function BuilderWorkspace({
                 partId={displayed.graphicsCardId}
                 query={graphicsCard}
                 readOnly={isViewing}
+                flagged={flaggedSlots.has("GraphicsCard")}
               />
               <SingularSlot
                 label={ui.label("powerSupply")}
@@ -895,6 +925,7 @@ function BuilderWorkspace({
                 partId={displayed.psuId}
                 query={psu}
                 readOnly={isViewing}
+                flagged={flaggedSlots.has("Psu")}
               />
               <SingularSlot
                 label={ui.label("storage")}
@@ -906,6 +937,7 @@ function BuilderWorkspace({
                 usePart={useStorageDrive}
                 detailHref={(id) => `/catalog/storage/${id}`}
                 readOnly={isViewing}
+                flagged={flaggedSlots.has("StorageDevices")}
               />
               <SingularSlot
                 label={ui.label("chassisFans")}
@@ -917,6 +949,7 @@ function BuilderWorkspace({
                 usePart={useChassisFan}
                 detailHref={(id) => `/catalog/chassis-fans/${id}`}
                 readOnly={isViewing}
+                flagged={flaggedSlots.has("ChassisFans")}
               />
               <SingularSlot
                 label={ui.label("wiredNetwork")}
@@ -928,6 +961,7 @@ function BuilderWorkspace({
                 usePart={useWiredNetworkAdapter}
                 detailHref={(id) => `/catalog/wired-network-adapters/${id}`}
                 readOnly={isViewing}
+                flagged={flaggedSlots.has("WiredNetworkAdapters")}
               />
               <SingularSlot
                 label={ui.label("wirelessNetwork")}
@@ -939,6 +973,7 @@ function BuilderWorkspace({
                 usePart={useWirelessNetworkAdapter}
                 detailHref={(id) => `/catalog/wireless-network-adapters/${id}`}
                 readOnly={isViewing}
+                flagged={flaggedSlots.has("WirelessNetworkAdapters")}
               />
             </TableBody>
           </Table>
@@ -1039,6 +1074,7 @@ function SingularSlot(
         partId?: string;
         query: PartQuery;
         readOnly?: boolean;
+        flagged?: boolean;
         addLabel?: never;
         parts?: never;
         usePart?: never;
@@ -1053,6 +1089,7 @@ function SingularSlot(
         usePart: (id: string | undefined) => PartQuery;
         detailHref: (id: string) => string;
         readOnly?: boolean;
+        flagged?: boolean;
         partId?: never;
         query?: never;
       }
@@ -1063,7 +1100,10 @@ function SingularSlot(
   }
 
   return (
-    <TableRow>
+    <TableRow
+      className={props.flagged ? "bg-destructive/10" : undefined}
+      data-compatibility={props.flagged ? "issue" : undefined}
+    >
       <TableCell>{props.label}</TableCell>
       <TableCell>
         <SelectedSingularPart
@@ -1160,6 +1200,7 @@ function MultiSlot({
   usePart,
   detailHref,
   readOnly,
+  flagged,
 }: Readonly<{
   label: string;
   chooseLabel: string;
@@ -1170,11 +1211,15 @@ function MultiSlot({
   usePart: (id: string | undefined) => PartQuery;
   detailHref: (id: string) => string;
   readOnly?: boolean;
+  flagged?: boolean;
 }>) {
   const navigate = useNavigate();
 
   return (
-    <TableRow>
+    <TableRow
+      className={flagged ? "bg-destructive/10" : undefined}
+      data-compatibility={flagged ? "issue" : undefined}
+    >
       <TableCell>{label}</TableCell>
       <TableCell>
         {parts.length === 0 ? (

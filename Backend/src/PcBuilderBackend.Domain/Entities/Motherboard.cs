@@ -94,7 +94,7 @@ public class Motherboard : ProductEntity
         MotherboardMemoryCompatibility.Matches(this, memory);
 
     public PartsCompatibilityResult CheckCpuCompatibility(Cpu cpu) =>
-        MotherboardCpuCompatibility.Evaluate(SocketId, ChipsetId, cpu);
+        MotherboardCpuCompatibility.Evaluate(this, cpu);
 
     public PartsCompatibilityResult CheckGraphicsCardCompatibility(GraphicsCard graphicsCard) =>
         MotherboardGraphicsCompatibility.Evaluate(_pcieSlots, graphicsCard);

@@ -21,10 +21,24 @@ public static class PsuPowerBudgetCompatibility
 
     private static readonly Func<Psu, int, int, bool> CoversCompiled = PsuCovers.Compile();
 
-    public static PartsCompatibilityResult Evaluate(Psu psu, Cpu cpu, GraphicsCard? gpu) =>
-        CoversCompiled(psu, cpu.PowerConsumptionWatts, gpu?.PowerConsumptionWatts ?? 0)
-            ? PartsCompatibilityResult.Compatible()
-            : PartsCompatibilityResult.Incompatible(CompatibilityReason.ExceedsPowerBudget);
+    public static PartsCompatibilityResult Evaluate(Psu psu, Cpu cpu, GraphicsCard? gpu)
+    {
+        var gpuWatts = gpu?.PowerConsumptionWatts ?? 0;
+        if (CoversCompiled(psu, cpu.PowerConsumptionWatts, gpuWatts))
+            return PartsCompatibilityResult.Compatible();
+
+        var demand = cpu.PowerConsumptionWatts / CpuVrmEfficiency * CpuHeadroom
+            + gpuWatts * GpuHeadroom
+            + PlatformOverheadWatts;
+        return PartsCompatibilityResult.Incompatible(
+            CompatibilityReason.ExceedsPowerBudget,
+            [
+                new CompatibilityFact(
+                    CompatibilityAspect.PowerBudgetWatts,
+                    CompatibilityFact.Number(psu.Wattage),
+                    CompatibilityFact.Watts(demand))
+            ]);
+    }
 
     public static Expression<Func<Psu, bool>> Filter(Cpu cpu, GraphicsCard? gpu) =>
         CompatibilityExpression.Bind(PsuCovers, cpu.PowerConsumptionWatts, gpu?.PowerConsumptionWatts ?? 0);
@@ -47,17 +61,37 @@ public static class PsuMotherboardCompatibility
     public static PartsCompatibilityResult Evaluate(Psu psu, Motherboard motherboard)
     {
         if (!HasMotherboardCableCompiled(psu))
-            return PartsCompatibilityResult.Incompatible(CompatibilityReason.MissingMotherboardPowerCable);
+        {
+            return PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.MissingMotherboardPowerCable,
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.MotherboardCable,
+                        CompatibilityFact.Number(CableCount(psu, PsuCableType.Motherboard24Pin)),
+                        "1")
+                ]);
+        }
 
+        var cpuCables = CableCount(psu, PsuCableType.Cpu4Plus4Pin);
         return HasCpuCablesCompiled(psu, motherboard.EpsConnectors)
             ? PartsCompatibilityResult.Compatible()
-            : PartsCompatibilityResult.Incompatible(CompatibilityReason.InsufficientCpuPowerCables);
+            : PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.InsufficientCpuPowerCables,
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.CpuPowerCable,
+                        CompatibilityFact.Number(cpuCables),
+                        CompatibilityFact.Number(motherboard.EpsConnectors))
+                ]);
     }
 
     public static Expression<Func<Psu, bool>> Filter(Motherboard motherboard) =>
         CompatibilityExpression.And(
             HasMotherboardCable,
             CompatibilityExpression.Bind(HasCpuCables, motherboard.EpsConnectors));
+
+    private static int CableCount(Psu psu, params PsuCableType[] types) =>
+        psu.Cables.Where(cable => types.Contains(cable.Type)).Sum(cable => cable.CablesCount);
 }
 
 public static class PsuGraphicsCardCompatibility
@@ -81,13 +115,26 @@ public static class PsuGraphicsCardCompatibility
         if (RequiresNoExternalPower(gpu))
             return PartsCompatibilityResult.Compatible();
 
+        var cable = gpu.PowerConnectorType == PsuCableType.Pcie6Pin
+            ? PsuCableType.Pcie6Pin
+            : RequiredCable(gpu);
+        var available = gpu.PowerConnectorType == PsuCableType.Pcie6Pin
+            ? CableCount(psu, PsuCableType.Pcie6Pin, PsuCableType.Pcie6Plus2Pin)
+            : CableCount(psu, cable);
         var compatible = gpu.PowerConnectorType == PsuCableType.Pcie6Pin
             ? HasSixPinCablesCompiled(psu, gpu.PowerConnectorCount)
-            : HasCablesCompiled(psu, RequiredCable(gpu), gpu.PowerConnectorCount);
+            : HasCablesCompiled(psu, cable, gpu.PowerConnectorCount);
 
         return compatible
             ? PartsCompatibilityResult.Compatible()
-            : PartsCompatibilityResult.Incompatible(CompatibilityReason.InsufficientPciePowerCables);
+            : PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.InsufficientPciePowerCables,
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.PciePowerCable,
+                        $"{cable}|{available}",
+                        $"{cable}|{gpu.PowerConnectorCount}")
+                ]);
     }
 
     public static Expression<Func<Psu, bool>> Filter(GraphicsCard gpu)
@@ -99,6 +146,9 @@ public static class PsuGraphicsCardCompatibility
             ? CompatibilityExpression.Bind(HasSixPinCables, gpu.PowerConnectorCount)
             : CompatibilityExpression.Bind(HasCables, RequiredCable(gpu), gpu.PowerConnectorCount);
     }
+
+    private static int CableCount(Psu psu, params PsuCableType[] types) =>
+        psu.Cables.Where(cable => types.Contains(cable.Type)).Sum(cable => cable.CablesCount);
 
     private static bool RequiresNoExternalPower(GraphicsCard gpu) =>
         gpu.PowerConnectorType == PsuCableType.None || gpu.PowerConnectorCount == 0;
@@ -124,11 +174,21 @@ public static class PsuStorageCompatibility
 
     private static readonly Func<Psu, int, bool> HasSataCablesCompiled = HasSataCables.Compile();
 
+    private static int CableCount(Psu psu, params PsuCableType[] types) =>
+        psu.Cables.Where(cable => types.Contains(cable.Type)).Sum(cable => cable.CablesCount);
+
     public static PartsCompatibilityResult Evaluate(Psu psu, IEnumerable<StorageDrive> drives)
     {
         var sataDriveCount = drives.Count(drive => drive.Interface == StorageInterface.Sata);
         return HasSataCablesCompiled(psu, sataDriveCount)
             ? PartsCompatibilityResult.Compatible()
-            : PartsCompatibilityResult.Incompatible(CompatibilityReason.InsufficientSataCables);
+            : PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.InsufficientSataCables,
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.SataCable,
+                        CompatibilityFact.Number(CableCount(psu, PsuCableType.Sata)),
+                        CompatibilityFact.Number(sataDriveCount))
+                ]);
     }
 }

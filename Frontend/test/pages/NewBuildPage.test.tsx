@@ -243,9 +243,25 @@ describe("BuilderPage", () => {
           reason: "SocketMismatch",
           rated: null,
           executing: null,
+          facts: [
+            { aspect: "Socket", limit: "AM5", actual: "AM4" },
+          ],
           parts: [
-            { slot: "Cpu", partId: "cpu-1" },
-            { slot: "Motherboard", partId: "mb-1" },
+            { slot: "Motherboard", partId: "mb-1", name: "B650" },
+            { slot: "Cpu", partId: "cpu-1", name: "7700" },
+          ],
+        },
+        {
+          status: "Incompatible",
+          reason: "PartSizeExceedsLimits",
+          rated: null,
+          executing: null,
+          facts: [
+            { aspect: "LengthMm", limit: "320", actual: "400" },
+          ],
+          parts: [
+            { slot: "Chassis", partId: "case-1", name: "Lancool 216" },
+            { slot: "GraphicsCard", partId: "gpu-1", name: "RTX 4080" },
           ],
         },
       ],
@@ -254,8 +270,79 @@ describe("BuilderPage", () => {
       route: "/builds/current",
       initialBuild: { cpuId: "cpu-1", motherboardId: "mb-1" },
     });
-    expect(await screen.findByText("Incompatible")).toBeInTheDocument();
+    expect(await screen.findAllByText("Incompatible")).not.toHaveLength(0);
     expect(await screen.findByText("Socket mismatch")).toBeInTheDocument();
+    expect(screen.getByText("Motherboard · B650")).toBeInTheDocument();
+    expect(screen.getByText("CPU · 7700")).toBeInTheDocument();
+    expect(
+      screen.getByText("Supported socket is AM5. This part is AM4."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Length is 400 mm. The limit is 320 mm."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Chassis").closest("tr"),
+    ).toHaveAttribute("data-compatibility", "issue");
+    expect(
+      screen.getByText("Motherboard").closest("tr"),
+    ).toHaveAttribute("data-compatibility", "issue");
+  });
+
+  it("prints compared RAM and M.2 values on the issue", async () => {
+    checkPcBuildCompatibility.mockResolvedValue({
+      status: "Incompatible",
+      issues: [
+        {
+          status: "Incompatible",
+          reason: "NoMatchingRamConfig",
+          rated: null,
+          executing: null,
+          facts: [
+            {
+              aspect: "DdrGeneration",
+              limit: "Ddr5",
+              actual: "Ddr4",
+            },
+          ],
+          parts: [
+            { slot: "Cpu", partId: "cpu-1", name: "7800X3D" },
+            { slot: "RamKit", partId: "ram-1", name: "Vengeance" },
+          ],
+        },
+        {
+          status: "Incompatible",
+          reason: "SlotDoesNotSupportSata",
+          rated: null,
+          executing: null,
+          facts: [
+            {
+              aspect: "M2Slot",
+              limit: "M|M22280|1|Nvme",
+              actual: "BM|M22280|Sata",
+            },
+          ],
+          parts: [
+            { slot: "Motherboard", partId: "mb-1", name: "B650" },
+            { slot: "StorageDevices", partId: "ssd-1", name: "870 EVO" },
+          ],
+        },
+      ],
+    });
+    renderWithQuery(<BuilderPage />, {
+      route: "/builds/current",
+      initialBuild: { cpuId: "cpu-1", motherboardId: "mb-1" },
+    });
+
+    expect(
+      await screen.findByText("Memory is DDR4. Required generation is DDR5."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "M.2 demand is B+M key, M.2 2280, SATA. Slots: 1 × M key (M.2 2280), NVMe.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("CPU · 7800X3D")).toBeInTheDocument();
+    expect(screen.getByText("RAM kit · Vengeance")).toBeInTheDocument();
   });
 
   it("shows a saved build as read-only on /builds/:id", async () => {

@@ -31,6 +31,10 @@ public class PsuCompatibilityTests
 
         result.Status.Should().Be(PartsCompatibility.Incompatible);
         result.Reason.Should().Be(CompatibilityReason.ExceedsPowerBudget);
+        result.Facts.Should().ContainSingle(fact =>
+            fact.Aspect == CompatibilityAspect.PowerBudgetWatts
+            && fact.Limit == "300"
+            && fact.Actual == "328");
     }
 
     [Fact]

@@ -21,19 +21,52 @@ public static class MotherboardCpuCompatibility
     private static readonly Func<Cpu, Guid, bool> ChipsetCompiled = ChipsetListed.Compile();
     private static readonly Func<Cpu, Guid, bool> BiosCompiled = BiosUpdateRequired.Compile();
 
-    public static PartsCompatibilityResult Evaluate(Guid socketId, Guid chipsetId, Cpu cpu)
+    public static PartsCompatibilityResult Evaluate(Motherboard board, Cpu cpu)
     {
-        if (!SocketCompiled(cpu, socketId))
-            return PartsCompatibilityResult.Incompatible(CompatibilityReason.SocketMismatch);
+        if (!SocketCompiled(cpu, board.SocketId))
+        {
+            return PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.SocketMismatch,
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.Socket,
+                        CompatibilityFact.NameOrId(board.Socket, board.SocketId),
+                        CompatibilityFact.NameOrId(cpu.Socket, cpu.SocketId))
+                ]);
+        }
 
-        if (!ChipsetCompiled(cpu, chipsetId))
-            return PartsCompatibilityResult.Incompatible(CompatibilityReason.ChipsetNotSupported);
+        if (!ChipsetCompiled(cpu, board.ChipsetId))
+        {
+            return PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.ChipsetNotSupported,
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.Chipset,
+                        CompatibilityFact.NameOrId(board.Chipset, board.ChipsetId),
+                        SupportedChipsets(cpu))
+                ]);
+        }
 
-        if (BiosCompiled(cpu, chipsetId))
-            return PartsCompatibilityResult.CompatibleActionRequired(CompatibilityReason.RequiresBiosUpdate);
+        if (BiosCompiled(cpu, board.ChipsetId))
+        {
+            return PartsCompatibilityResult.CompatibleActionRequired(
+                CompatibilityReason.RequiresBiosUpdate,
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.Chipset,
+                        CompatibilityFact.NameOrId(board.Chipset, board.ChipsetId),
+                        null)
+                ]);
+        }
 
         return PartsCompatibilityResult.Compatible();
     }
+
+    private static string SupportedChipsets(Cpu cpu) =>
+        string.Join(
+            ',',
+            cpu.SupportedChipsets.Select(support =>
+                CompatibilityFact.NameOrId(support.Chipset, support.ChipsetId)));
 
     public static Expression<Func<Cpu, bool>> SocketFilter(Guid socketId) =>
         CompatibilityExpression.Bind(SocketMatches, socketId);
@@ -57,7 +90,17 @@ public static class MotherboardGraphicsCompatibility
     {
         var list = slots as IList<MotherboardPcie> ?? [.. slots];
         if (!HasX16(list))
-            return PartsCompatibilityResult.Incompatible(CompatibilityReason.NotEnoughPcieSlots);
+        {
+            var available = list.Where(slot => slot.SlotType == PcieSlotType.X16).Sum(slot => slot.SlotCount);
+            return PartsCompatibilityResult.Incompatible(
+                CompatibilityReason.NotEnoughPcieSlots,
+                [
+                    new CompatibilityFact(
+                        CompatibilityAspect.PcieSlotCount,
+                        CompatibilityFact.Number(available),
+                        "X16|1")
+                ]);
+        }
 
         var maxBoardGeneration = list.Max(slot => slot.Generation);
         return GenerationCompiled(card.PcieGeneration, maxBoardGeneration)
