@@ -42,17 +42,20 @@ public static class CpuCoolerRamCompatibility
 
     private static readonly Func<CpuCooler, decimal, bool> ExceedsCompiled = ExceedsRamHeight.Compile();
 
-    public static PartsCompatibilityResult Evaluate(CpuCooler cooler, Ram ram) =>
-        ExceedsCompiled(cooler, ram.HeightMm)
-            ? PartsCompatibilityResult.Incompatible(
-                CompatibilityReason.RamHeightExceedsCoolerLimit,
-                [
-                    new CompatibilityFact(
-                        CompatibilityAspect.RamHeightMm,
-                        cooler.MaxRamHeightMm is { } limit ? CompatibilityFact.Number(limit) : null,
-                        CompatibilityFact.Number(ram.HeightMm))
-                ])
-            : PartsCompatibilityResult.Compatible();
+    public static PartsCompatibilityResult Evaluate(CpuCooler cooler, Ram ram)
+    {
+        if (!ExceedsCompiled(cooler, ram.HeightMm) || cooler.MaxRamHeightMm is not decimal limit)
+            return PartsCompatibilityResult.Compatible();
+
+        return PartsCompatibilityResult.Incompatible(
+            CompatibilityReason.RamHeightExceedsCoolerLimit,
+            [
+                new CompatibilityFact(
+                    CompatibilityAspect.RamHeightMm,
+                    CompatibilityFact.Number(limit),
+                    CompatibilityFact.Number(ram.HeightMm))
+            ]);
+    }
 
     public static Expression<Func<CpuCooler, bool>> Filter(decimal ramHeightMm) =>
         CompatibilityExpression.Not(CompatibilityExpression.Bind(ExceedsRamHeight, ramHeightMm));

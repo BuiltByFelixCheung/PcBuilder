@@ -288,6 +288,63 @@ describe("BuilderPage", () => {
     ).toHaveAttribute("data-compatibility", "issue");
   });
 
+  it("prints compared RAM and M.2 values on the issue", async () => {
+    checkPcBuildCompatibility.mockResolvedValue({
+      status: "Incompatible",
+      issues: [
+        {
+          status: "Incompatible",
+          reason: "NoMatchingRamConfig",
+          rated: null,
+          executing: null,
+          facts: [
+            {
+              aspect: "DdrGeneration",
+              limit: "Ddr5",
+              actual: "Ddr4",
+            },
+          ],
+          parts: [
+            { slot: "Cpu", partId: "cpu-1", name: "7800X3D" },
+            { slot: "RamKit", partId: "ram-1", name: "Vengeance" },
+          ],
+        },
+        {
+          status: "Incompatible",
+          reason: "SlotDoesNotSupportSata",
+          rated: null,
+          executing: null,
+          facts: [
+            {
+              aspect: "M2Slot",
+              limit: "M|M22280|1|Nvme",
+              actual: "BM|M22280|Sata",
+            },
+          ],
+          parts: [
+            { slot: "Motherboard", partId: "mb-1", name: "B650" },
+            { slot: "StorageDevices", partId: "ssd-1", name: "870 EVO" },
+          ],
+        },
+      ],
+    });
+    renderWithQuery(<BuilderPage />, {
+      route: "/builds/current",
+      initialBuild: { cpuId: "cpu-1", motherboardId: "mb-1" },
+    });
+
+    expect(
+      await screen.findByText("Memory is DDR4. Required generation is DDR5."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "M.2 demand is B+M key, M.2 2280, SATA. Slots: 1 × M key (M.2 2280), NVMe.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("CPU · 7800X3D")).toBeInTheDocument();
+    expect(screen.getByText("RAM kit · Vengeance")).toBeInTheDocument();
+  });
+
   it("shows a saved build as read-only on /builds/:id", async () => {
     getBuildById.mockResolvedValue(savedBuild);
     getChassisById.mockResolvedValue({

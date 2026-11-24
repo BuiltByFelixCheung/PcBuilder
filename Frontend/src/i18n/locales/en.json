@@ -1131,7 +1131,10 @@
       "totalMemoryGb": "Kit is {{actual}} GB. The limit is {{limit}} GB.",
       "dimmSizeGb": "Each module is {{actual}} GB. The limit is {{limit}} GB.",
       "moduleCount": "{{actual}} modules. The limit is {{limit}}.",
-      "ramRank": "Rank is {{actual}}.",
+      "ramRank": "Rank is {{actual}}. Required rank is {{limit}}.",
+      "cpuRamConfig": "Kit is {{actual}}. CPU supports {{limit}}.",
+      "cpuRamConfigEntry": "{{generation}} × {{modules}}, {{rank}}",
+      "cpuRamConfigNone": "Kit is {{actual}}. The CPU lists no supported memory configurations.",
       "memorySpeedMts": "Rated {{actual}} MT/s. Runs at {{limit}} MT/s.",
       "pcieGeneration": "Rated {{actual}}. Runs at {{limit}}.",
       "pcieSlotCount": "Needs {{actual}}. Available: {{limit}}.",
@@ -1147,6 +1150,8 @@
       "driveBays": "Needs {{need25}} × 2.5 in and {{need35}} × 3.5 in. Bays: {{only25}} × 2.5 in, {{only35}} × 3.5 in, {{shared}} shared.",
       "fanMounts": "Fans needed: {{actual}}. Mounts: {{limit}}.",
       "m2Slot": "M.2 demand is {{actual}}. Slots: {{limit}}.",
+      "m2Demand": "{{key}} key, {{form}}, {{interface}}",
+      "m2SlotEntry": "{{count}} × {{key}} key ({{forms}}), {{interface}}",
       "usbPort": "USB needed: {{actual}}. Available: {{limit}}."
     },
     "cableCounts": "{{cables}} cables, {{connectors}} connectors"

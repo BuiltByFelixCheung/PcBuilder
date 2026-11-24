@@ -128,11 +128,12 @@ public static class MotherboardStorageCompatibility
         if (candidates.Count == 0)
         {
             var demandToken = M2DemandToken(demand);
-            if (demand.RequiresSata && m2Slots.Any(slot => MatchesM2KeyAndForm(slot, demand)))
+            var matched = m2Slots.Where(slot => MatchesM2KeyAndForm(slot, demand)).ToList();
+            if (demand.RequiresSata && matched.Count > 0)
             {
                 return PartsCompatibilityResult.Incompatible(
                     CompatibilityReason.SlotDoesNotSupportSata,
-                    [new CompatibilityFact(CompatibilityAspect.M2Slot, "Sata", demandToken)]);
+                    [new CompatibilityFact(CompatibilityAspect.M2Slot, M2SlotSummary(matched), demandToken)]);
             }
 
             return PartsCompatibilityResult.Incompatible(
@@ -178,7 +179,12 @@ public static class MotherboardStorageCompatibility
             : string.Join(
                 ';',
                 slots.Select(slot =>
-                    $"{slot.Key}|{string.Join(',', slot.FormFactors.Select(form => form.FormFactor))}|{slot.SlotCount}"));
+                    string.Join(
+                        '|',
+                        slot.Key,
+                        string.Join(',', slot.FormFactors.Select(form => form.FormFactor)),
+                        slot.SlotCount,
+                        slot.SupportsSata ? "Sata" : "Nvme")));
 
     private static M2Demand ToM2Demand(StorageDrive drive) =>
         new(

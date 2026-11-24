@@ -1131,7 +1131,10 @@
       "totalMemoryGb": "套裝是 {{actual}} GB。上限是 {{limit}} GB。",
       "dimmSizeGb": "每條記憶體是 {{actual}} GB。上限是 {{limit}} GB。",
       "moduleCount": "{{actual}} 條模組。上限是 {{limit}}。",
-      "ramRank": "Rank 是 {{actual}}。",
+      "ramRank": "Rank 是 {{actual}}。需要的 Rank 是 {{limit}}。",
+      "cpuRamConfig": "套裝是 {{actual}}。CPU 支援 {{limit}}。",
+      "cpuRamConfigEntry": "{{generation}} × {{modules}}、{{rank}}",
+      "cpuRamConfigNone": "套裝是 {{actual}}。CPU 沒有列出支援的記憶體配置。",
       "memorySpeedMts": "標示 {{actual}} MT/s。實際運行 {{limit}} MT/s。",
       "pcieGeneration": "標示 {{actual}}。實際運行 {{limit}}。",
       "pcieSlotCount": "需要 {{actual}}。可用：{{limit}}。",
@@ -1147,6 +1150,8 @@
       "driveBays": "需要 {{need25}} 個 2.5 吋和 {{need35}} 個 3.5 吋。插槽：{{only25}} 個 2.5 吋、{{only35}} 個 3.5 吋、{{shared}} 個共用。",
       "fanMounts": "需要的風扇：{{actual}}。安裝位：{{limit}}。",
       "m2Slot": "M.2 需求是 {{actual}}。插槽：{{limit}}。",
+      "m2Demand": "{{key}} 鍵、{{form}}、{{interface}}",
+      "m2SlotEntry": "{{count}} × {{key}} 鍵（{{forms}}）、{{interface}}",
       "usbPort": "需要 USB：{{actual}}。可用：{{limit}}。"
     },
     "cableCounts": "{{cables}} 條線材，{{connectors}} 個接頭"

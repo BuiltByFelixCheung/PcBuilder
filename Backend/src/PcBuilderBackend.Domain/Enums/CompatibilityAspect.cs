@@ -33,5 +33,6 @@ public enum CompatibilityAspect
     DriveBays,
     FanMounts,
     M2Slot,
-    UsbPort
+    UsbPort,
+    CpuRamConfig
 }

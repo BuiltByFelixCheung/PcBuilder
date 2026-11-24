@@ -128,14 +128,55 @@ public class CpuTests
         var mismatch = cpu.CheckMemoryCompatibility(wrongGen);
         mismatch.Status.Should().Be(PartsCompatibility.Incompatible);
         mismatch.Reason.Should().Be(CompatibilityReason.NoMatchingRamConfig);
-        mismatch.Facts.Should().Contain(fact =>
+        mismatch.Facts.Should().ContainSingle(fact =>
             fact.Aspect == CompatibilityAspect.DdrGeneration
-            && fact.Limit == null
+            && fact.Limit == nameof(DdrGeneration.Ddr5)
             && fact.Actual == nameof(DdrGeneration.Ddr4));
-        mismatch.Facts.Should().Contain(fact =>
-            fact.Aspect == CompatibilityAspect.ModuleCount && fact.Actual == "2");
-        mismatch.Facts.Should().Contain(fact =>
-            fact.Aspect == CompatibilityAspect.RamRank && fact.Actual == nameof(RamRank.DualRank));
+    }
+
+    [Fact]
+    public void Memory_mismatch_reports_failed_clauses_and_compared_configs()
+    {
+        var cpu = Create();
+        cpu.AddRamCompat(new CpuRamCompat(cpu.Id, DdrGeneration.Ddr5, 2, RamRank.DualRank, 6000));
+        cpu.AddRamCompat(new CpuRamCompat(cpu.Id, DdrGeneration.Ddr5, 1, RamRank.SingleRank, 5600));
+
+        var wrongCount = cpu.CheckMemoryCompatibility(
+            CreateRam(DdrGeneration.Ddr5, 4, RamRank.DualRank, 5600));
+        wrongCount.Facts.Should().ContainSingle(fact =>
+            fact.Aspect == CompatibilityAspect.ModuleCount
+            && fact.Limit == "1,2"
+            && fact.Actual == "4");
+
+        var wrongGeneration = cpu.CheckMemoryCompatibility(
+            CreateRam(DdrGeneration.Ddr4, 2, RamRank.DualRank, 3200));
+        wrongGeneration.Facts.Should().ContainSingle(fact =>
+            fact.Aspect == CompatibilityAspect.DdrGeneration
+            && fact.Limit == nameof(DdrGeneration.Ddr5)
+            && fact.Actual == nameof(DdrGeneration.Ddr4));
+
+        var dualOnly = Create();
+        dualOnly.AddRamCompat(new CpuRamCompat(dualOnly.Id, DdrGeneration.Ddr5, 2, RamRank.DualRank, 6000));
+        var wrongRank = dualOnly.CheckMemoryCompatibility(
+            CreateRam(DdrGeneration.Ddr5, 2, RamRank.SingleRank, 5600));
+        wrongRank.Facts.Should().ContainSingle(fact =>
+            fact.Aspect == CompatibilityAspect.RamRank
+            && fact.Limit == nameof(RamRank.DualRank)
+            && fact.Actual == nameof(RamRank.SingleRank));
+
+        var combination = cpu.CheckMemoryCompatibility(
+            CreateRam(DdrGeneration.Ddr5, 2, RamRank.SingleRank, 5600));
+        combination.Facts.Should().ContainSingle(fact =>
+            fact.Aspect == CompatibilityAspect.CpuRamConfig
+            && fact.Actual == "Ddr5|2|SingleRank"
+            && fact.Limit == "Ddr5|2|DualRank;Ddr5|1|SingleRank");
+
+        var unconfigured = Create().CheckMemoryCompatibility(
+            CreateRam(DdrGeneration.Ddr5, 2, RamRank.DualRank, 5600));
+        unconfigured.Facts.Should().ContainSingle(fact =>
+            fact.Aspect == CompatibilityAspect.CpuRamConfig
+            && fact.Limit == null
+            && fact.Actual == "Ddr5|2|DualRank");
     }
 
     private static Cpu Create() =>

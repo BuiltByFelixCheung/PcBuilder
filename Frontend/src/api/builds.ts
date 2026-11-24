@@ -206,6 +206,7 @@ export const COMPATIBILITY_ASPECTS = [
   "FanMounts",
   "M2Slot",
   "UsbPort",
+  "CpuRamConfig",
 ] as const;
 export type CompatibilityAspect = (typeof COMPATIBILITY_ASPECTS)[number];
 
@@ -216,7 +217,7 @@ export type CompatibilityPartRef = {
 };
 
 export type CompatibilityFact = {
-  aspect: CompatibilityAspect | string;
+  aspect: CompatibilityAspect;
   limit: string | null;
   actual: string | null;
 };

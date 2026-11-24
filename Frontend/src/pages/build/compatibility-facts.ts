@@ -62,26 +62,64 @@ function formatFanMounts(fact: CompatibilityFact): string {
   return ui.message("compatibilityFact.fanMounts", { actual, limit });
 }
 
-function formatM2(fact: CompatibilityFact): string {
-  const actual = (fact.actual ?? "")
-    .split("|")
+function formatM2Demand(value: string): string {
+  const [key = "", form = "", iface = ""] = value.split("|");
+  return ui.message("compatibilityFact.m2Demand", {
+    key: translateToken(key),
+    form: translateToken(form),
+    interface: translateToken(iface),
+  });
+}
+
+function formatM2SlotEntry(slot: string): string {
+  const [key = "", forms = "", count = "", iface = ""] = slot.split("|");
+  const formText = forms
+    .split(",")
     .filter(Boolean)
     .map((part) => translateToken(part))
-    .join(" ");
+    .join(", ");
+  return ui.message("compatibilityFact.m2SlotEntry", {
+    count,
+    key: translateToken(key),
+    forms: formText,
+    interface: translateToken(iface),
+  });
+}
+
+function formatM2(fact: CompatibilityFact): string {
+  const actual = fact.actual ? formatM2Demand(fact.actual) : "";
   const limit = fact.limit
     ? fact.limit
         .split(";")
+        .filter(Boolean)
         .map((slot) =>
-          slot
-            .split("|")
-            .flatMap((part) => part.split(","))
-            .filter(Boolean)
-            .map((part) => translateToken(part))
-            .join(" "),
+          slot.includes("|") ? formatM2SlotEntry(slot) : translateToken(slot),
         )
         .join(", ")
     : "";
   return ui.message("compatibilityFact.m2Slot", { actual, limit });
+}
+
+function formatCpuRamConfigEntry(token: string): string {
+  const [generation = "", modules = "", rank = ""] = token.split("|");
+  return ui.message("compatibilityFact.cpuRamConfigEntry", {
+    generation: translateToken(generation),
+    modules,
+    rank: translateToken(rank),
+  });
+}
+
+function formatCpuRamConfig(fact: CompatibilityFact): string {
+  const actual = formatCpuRamConfigEntry(fact.actual ?? "");
+  const limit = (fact.limit ?? "")
+    .split(";")
+    .filter(Boolean)
+    .map((entry) => formatCpuRamConfigEntry(entry))
+    .join("; ");
+  if (!limit) {
+    return ui.message("compatibilityFact.cpuRamConfigNone", { actual });
+  }
+  return ui.message("compatibilityFact.cpuRamConfig", { actual, limit });
 }
 
 export function formatCompatibilityFact(fact: CompatibilityFact): string {
@@ -93,6 +131,9 @@ export function formatCompatibilityFact(fact: CompatibilityFact): string {
   }
   if (fact.aspect === "M2Slot") {
     return formatM2(fact);
+  }
+  if (fact.aspect === "CpuRamConfig") {
+    return formatCpuRamConfig(fact);
   }
   if (
     fact.aspect === "PciePowerCable" ||

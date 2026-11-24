@@ -204,7 +204,9 @@ public class CompatibilityChecker(ICatalogRepository catalog) : ICompatibilityCh
             results.Add(FromBool(
                 compatible,
                 CompatibilityReason.PartSizeExceedsLimits,
-                compatible ? [] : ChassisFanMountCompatibility.Explain(parts.Chassis, parts.Fans),
+                FactsWhenIncompatible(
+                    compatible,
+                    () => ChassisFanMountCompatibility.Explain(parts.Chassis, parts.Fans)),
                 Collection(
                     Ref(CompatibilitySlot.Chassis, parts.Chassis),
                     CompatibilitySlot.ChassisFans,
@@ -225,7 +227,9 @@ public class CompatibilityChecker(ICatalogRepository catalog) : ICompatibilityCh
             results.Add(FromBool(
                 compatible,
                 CompatibilityReason.PartSizeExceedsLimits,
-                compatible ? [] : ChassisStorageCompatibility.Explain(parts.Chassis, parts.Drives),
+                FactsWhenIncompatible(
+                    compatible,
+                    () => ChassisStorageCompatibility.Explain(parts.Chassis, parts.Drives)),
                 Collection(
                     Ref(CompatibilitySlot.Chassis, parts.Chassis),
                     CompatibilitySlot.StorageDevices,
@@ -253,6 +257,11 @@ public class CompatibilityChecker(ICatalogRepository catalog) : ICompatibilityCh
                 parts.Motherboard.CheckNetworkAdapterCompatibility(parts.Wired, parts.Wireless),
                 NetworkRefs(parts.Motherboard, parts.Wired, parts.Wireless)));
     }
+
+    private static IReadOnlyList<CompatibilityFact> FactsWhenIncompatible(
+        bool compatible,
+        Func<IReadOnlyList<CompatibilityFact>> explain) =>
+        compatible ? [] : explain();
 
     private static async Task<T?> LoadOptional<T>(Guid? id, Func<Guid, Task<T?>> load) where T : class =>
         id is { } value ? RequireFound(await load(value), value) : null;
