@@ -32,9 +32,7 @@
       <Content Update="wwwroot\**" CopyToPublishDirectory="Never" />
     </ItemGroup>
 
-    <Target Name="PublishFrontend"
-            AfterTargets="ComputeFilesToPublish"
-            Condition="'$(SkipSpaBuild)' != 'true' And '$(DesignTimeBuild)' != 'true'">
+    <Target Name="PublishFrontend" AfterTargets="ComputeFilesToPublish" Condition="'$(SkipSpaBuild)' != 'true' And '$(DesignTimeBuild)' != 'true'">
         <Message Importance="high" Text="Building frontend into wwwroot..." />
         <Exec WorkingDirectory="$(SpaRoot)" Command="npm ci" />
         <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
