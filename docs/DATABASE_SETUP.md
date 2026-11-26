@@ -77,7 +77,7 @@ ConnectionStrings__IdentityConnection=Host=...;Port=5432;Database=pcbuilder;User
 
 ### Catalog (`PcBuilderDbContext`)
 
-Catalog migrations are **not** applied automatically at startup. From `Backend/` with the .NET 10 SDK (and `DefaultConnection` pointing at a user that can create objects in `public`, typically `pc_builder_app`):
+Catalog migrations are **not** applied automatically at startup. From `Backend/` with the .NET 11 SDK (and `DefaultConnection` pointing at a user that can create objects in `public`, typically `pc_builder_app`):
 
 ```bash
 dotnet tool restore

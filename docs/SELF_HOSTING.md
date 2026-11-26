@@ -82,7 +82,7 @@ App__PublicBaseUrl=https://pcbuilder.example.com
 
 ## 5. Apply database migrations
 
-The published image does **not** run EF Core migrations. Apply them before the first useful deploy, from a machine with the .NET 10 SDK and network access to your databases (connection strings in `appsettings` or environment variables):
+The published image does **not** run EF Core migrations. Apply them before the first useful deploy, from a machine with the .NET 11 SDK and network access to your databases (connection strings in `appsettings` or environment variables):
 
 ```bash
 cd Backend

@@ -12,7 +12,7 @@ Guidance for coding agents working in this repository. User instructions in chat
 
 PcBuilder is a PC parts catalog and compatibility builder.
 
-- Backend: ASP.NET Core on .NET 10, minimal APIs, MediatR, FluentValidation, AutoMapper, EF Core, PostgreSQL (Npgsql).
+- Backend: ASP.NET Core on .NET 11, minimal APIs, MediatR, FluentValidation, AutoMapper, EF Core, PostgreSQL (Npgsql).
 - Frontend: React 19, TypeScript, Vite, Tailwind CSS 4, shadcn/ui, TanStack Query, React Router, react-hook-form, Zod, Vitest.
 - Secrets and connection strings come from gitignored `appsettings*.json`, environment variables, and optionally Infisical. Do not commit them.
 
