@@ -147,7 +147,7 @@ export function listMotherboards(params: MotherboardListParams) {
   }
 
   return api
-    .post<PagedResult<MotherboardListItem>>("/catalog/motherboard/query", {
+    .query<PagedResult<MotherboardListItem>>("/catalog/motherboard", {
       ...paging,
       filter: toMotherboardFilterBody(params.filter),
     })

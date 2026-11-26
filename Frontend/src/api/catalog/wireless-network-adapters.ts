@@ -107,8 +107,8 @@ export function listWirelessNetworkAdapters(
   }
 
   return api
-    .post<PagedResult<WirelessNetworkAdapter>>(
-      "/catalog/wireless-network-adapter/query",
+    .query<PagedResult<WirelessNetworkAdapter>>(
+      "/catalog/wireless-network-adapter",
       {
         ...paging,
         filter: {

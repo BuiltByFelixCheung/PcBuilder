@@ -31,12 +31,12 @@ public static class CpuCoolerEndpoints
             .WithSummary("Browse CPU coolers")
             .WithDescription("\n    GET /catalog/cpu-cooler");
 
-        subgroup.MapPost("/query", QueryCpuCoolers)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryCpuCoolers)
             .Produces<PagedResult<CpuCoolerListItemDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter CPU coolers")
             .WithDescription(
-                "\n    POST /api/catalog/cpu-cooler/query" +
+                "\n    QUERY /api/catalog/cpu-cooler" +
                 "\n    All filters are optional. When cpuId, chassisId, or ramId is provided, " +
                 "results are limited to coolers that are not incompatible with that part.");
 
@@ -51,13 +51,13 @@ public static class CpuCoolerEndpoints
             .Produces<CpuCoolerDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add a CPU cooler")
-            .WithDescription("\n    POST /catalog/cpu-cooler");
+            .WithDescription("\n    QUERY /catalog/cpu-cooler");
 
         subgroup.MapPost("/bulk", BulkCreateCpuCoolers)
             .Produces<List<CpuCoolerDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple CPU coolers")
-            .WithDescription("\n    POST /catalog/cpu-cooler/bulk");
+            .WithDescription("\n    QUERY /catalog/cpu-cooler/bulk");
 
         subgroup.MapPut("/", UpdateCpuCooler)
             .Produces<CpuCoolerDto>()
@@ -93,7 +93,7 @@ public static class CpuCoolerEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import CPU coolers from Excel")
-            .WithDescription("\n    POST /catalog/cpu-cooler/import");
+            .WithDescription("\n    QUERY /catalog/cpu-cooler/import");
 
         var socketGroup = subgroup.MapGroup("{cpuCoolerId:guid}/socket")
             .WithDescription("Manage CPU cooler supported sockets");

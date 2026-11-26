@@ -29,13 +29,11 @@ public static class GraphicsCardEndpoints
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Browse graphics cards")
             .WithDescription("\n    GET /catalog/graphics-card");
-        
-        // Complex filter-with-body: industry standard is POST .../query (OpenAPI 3.1 / Scalar have no QUERY).
-        subgroup.MapPost("/query", QueryGraphicsCards)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryGraphicsCards)
             .Produces<PagedResult<GraphicsCardListItemDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter graphics cards")
-            .WithDescription("\n    POST /catalog/graphics-card/query");
+            .WithDescription("\n    QUERY /catalog/graphics-card");
 
         subgroup.MapGet("/{id:guid}", GetGraphicsCardById)
             .Produces<GraphicsCardDto>()
@@ -48,13 +46,13 @@ public static class GraphicsCardEndpoints
             .Produces<GraphicsCardDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add a graphics card")
-            .WithDescription("\n    POST /catalog/graphics-card");
+            .WithDescription("\n    QUERY /catalog/graphics-card");
 
         subgroup.MapPost("/bulk", BulkCreateGraphicsCards)
             .Produces<List<GraphicsCardDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple graphics cards")
-            .WithDescription("\n    POST /catalog/graphics-card/bulk");
+            .WithDescription("\n    QUERY /catalog/graphics-card/bulk");
 
         subgroup.MapPut("/", UpdateGraphicsCard)
             .Produces<GraphicsCardDto>()
@@ -90,7 +88,7 @@ public static class GraphicsCardEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import graphics cards from Excel")
-            .WithDescription("\n    POST /catalog/graphics-card/import");
+            .WithDescription("\n    QUERY /catalog/graphics-card/import");
     }
 
     private static async Task<Ok<PagedResult<GraphicsCardListItemDto>>> GetGraphicsCards(

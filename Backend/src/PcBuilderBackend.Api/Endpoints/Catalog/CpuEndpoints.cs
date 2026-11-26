@@ -35,14 +35,12 @@ public static class CpuEndpoints
                 "\n    All filters are optional. When motherboardId is provided, results are limited " +
                 "to CPUs that are not physically incompatible with that motherboard " +
                 "(domain CheckCpuCompatibility; CompatibleActionRequired e.g. BIOS is still included).");
-
-        // Complex filter-with-body: industry standard is POST .../query (OpenAPI 3.1 / Scalar have no QUERY).
-        subgroup.MapPost("/query", QueryCpus)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryCpus)
             .Produces<PagedResult<CpuListItemDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Query CPUs")
             .WithDescription(
-                "\n    POST /api/catalog/cpu/query" +
+                "\n    QUERY /api/catalog/cpu" +
                 "\n    All filters are optional. When motherboardId is provided, results are limited " +
                 "to CPUs that are not physically incompatible with that motherboard " +
                 "(domain CheckCpuCompatibility; CompatibleActionRequired e.g. BIOS is still included).");
@@ -72,13 +70,13 @@ public static class CpuEndpoints
             .Produces<CpuDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add CPU")
-            .WithDescription("\n    POST /catalog/cpu");
+            .WithDescription("\n    QUERY /catalog/cpu");
 
         subgroup.MapPost("/bulk", BulkCreateCpus)
             .Produces<List<CpuDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple CPUs")
-            .WithDescription("\n    POST /catalog/cpu/bulk");
+            .WithDescription("\n    QUERY /catalog/cpu/bulk");
 
         subgroup.MapDelete("/{id}", DeleteCpu)
             .Produces(StatusCodes.Status204NoContent)
@@ -100,7 +98,7 @@ public static class CpuEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import CPUs from Excel")
-            .WithDescription("\n    POST /catalog/cpu/import");
+            .WithDescription("\n    QUERY /catalog/cpu/import");
 
         var ramCompatGroup = subgroup.MapGroup("{cpuId}/ram-compats")
             .WithDescription("Manage CPU RAM compatibility entries");

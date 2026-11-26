@@ -30,11 +30,11 @@ public static class WirelessNetworkAdapterEndpoints
             .WithSummary("Browse wireless network adapters")
             .WithDescription("\n    GET /catalog/wireless-network-adapter");
 
-        subgroup.MapPost("/query", QueryWirelessNetworkAdapters)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryWirelessNetworkAdapters)
             .Produces<PagedResult<WirelessNetworkAdapterDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter wireless network adapters")
-            .WithDescription("\n    POST /catalog/wireless-network-adapter/query");
+            .WithDescription("\n    QUERY /catalog/wireless-network-adapter");
 
         subgroup.MapGet("/{id:guid}", GetWirelessNetworkAdapterById)
             .Produces<WirelessNetworkAdapterDto>()
@@ -47,13 +47,13 @@ public static class WirelessNetworkAdapterEndpoints
             .Produces<WirelessNetworkAdapterDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add a wireless network adapter")
-            .WithDescription("\n    POST /catalog/wireless-network-adapter");
+            .WithDescription("\n    QUERY /catalog/wireless-network-adapter");
 
         subgroup.MapPost("/bulk", BulkCreateWirelessNetworkAdapters)
             .Produces<List<WirelessNetworkAdapterDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple wireless network adapters")
-            .WithDescription("\n    POST /catalog/wireless-network-adapter/bulk");
+            .WithDescription("\n    QUERY /catalog/wireless-network-adapter/bulk");
 
         subgroup.MapPut("/", UpdateWirelessNetworkAdapter)
             .Produces<WirelessNetworkAdapterDto>()
@@ -89,7 +89,7 @@ public static class WirelessNetworkAdapterEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import wireless network adapters from Excel")
-            .WithDescription("\n    POST /catalog/wireless-network-adapter/import");
+            .WithDescription("\n    QUERY /catalog/wireless-network-adapter/import");
     }
 
     private static async Task<Ok<PagedResult<WirelessNetworkAdapterDto>>> GetWirelessNetworkAdapters(

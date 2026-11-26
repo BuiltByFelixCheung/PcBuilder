@@ -30,11 +30,11 @@ public static class WiredNetworkAdapterEndpoints
             .WithSummary("Browse wired network adapters")
             .WithDescription("\n    GET /catalog/wired-network-adapter");
 
-        subgroup.MapPost("/query", QueryWiredNetworkAdapters)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryWiredNetworkAdapters)
             .Produces<PagedResult<WiredNetworkAdapterDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter wired network adapters")
-            .WithDescription("\n    POST /catalog/wired-network-adapter/query");
+            .WithDescription("\n    QUERY /catalog/wired-network-adapter");
 
         subgroup.MapGet("/{id:guid}", GetWiredNetworkAdapterById)
             .Produces<WiredNetworkAdapterDto>()
@@ -47,13 +47,13 @@ public static class WiredNetworkAdapterEndpoints
             .Produces<WiredNetworkAdapterDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add a wired network adapter")
-            .WithDescription("\n    POST /catalog/wired-network-adapter");
+            .WithDescription("\n    QUERY /catalog/wired-network-adapter");
 
         subgroup.MapPost("/bulk", BulkCreateWiredNetworkAdapters)
             .Produces<List<WiredNetworkAdapterDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple wired network adapters")
-            .WithDescription("\n    POST /catalog/wired-network-adapter/bulk");
+            .WithDescription("\n    QUERY /catalog/wired-network-adapter/bulk");
 
         subgroup.MapPut("/", UpdateWiredNetworkAdapter)
             .Produces<WiredNetworkAdapterDto>()
@@ -89,7 +89,7 @@ public static class WiredNetworkAdapterEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import wired network adapters from Excel")
-            .WithDescription("\n    POST /catalog/wired-network-adapter/import");
+            .WithDescription("\n    QUERY /catalog/wired-network-adapter/import");
     }
 
     private static async Task<Ok<PagedResult<WiredNetworkAdapterDto>>> GetWiredNetworkAdapters(

@@ -29,13 +29,11 @@ public static class MemoryEndpoints
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Browse RAMs")
             .WithDescription("\n    GET /catalog/ram");
-
-        // Complex filter-with-body: industry standard is POST .../query (OpenAPI 3.1 / Scalar have no QUERY).
-        subgroup.MapPost("/query", QueryMemories)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryMemories)
             .Produces<PagedResult<RamDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter RAMs")
-            .WithDescription("\n    POST /api/catalog/ram/query");
+            .WithDescription("\n    QUERY /api/catalog/ram");
 
         subgroup.MapGet("/{id}", GetMemoryById)
             .Produces<RamDto>()
@@ -62,13 +60,13 @@ public static class MemoryEndpoints
             .Produces<RamDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add a new RAM")
-            .WithDescription("\n    POST /catalog/ram");
+            .WithDescription("\n    QUERY /catalog/ram");
         
         subgroup.MapPost("/bulk", BulkCreateMemories)
             .Produces<List<RamDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple new RAMs")
-            .WithDescription("\n    POST /catalog/ram/bulk");
+            .WithDescription("\n    QUERY /catalog/ram/bulk");
 
         subgroup.MapDelete("/{id}", DeleteMemory)
             .Produces(StatusCodes.Status204NoContent)
@@ -90,7 +88,7 @@ public static class MemoryEndpoints
             .Produces<List<RamDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Import RAMs from Excel")
-            .WithDescription("\n    POST /catalog/ram/import");
+            .WithDescription("\n    QUERY /catalog/ram/import");
     }
 
     private static async Task<Ok<PagedResult<RamDto>>> GetMemories(

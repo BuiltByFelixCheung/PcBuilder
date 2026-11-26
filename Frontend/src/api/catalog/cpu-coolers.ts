@@ -100,7 +100,7 @@ export function listCpuCoolers(params: CpuCoolerListParams) {
   }
 
   return api
-    .post<PagedResult<CpuCoolerListItem>>("/catalog/cpu-cooler/query", {
+    .query<PagedResult<CpuCoolerListItem>>("/catalog/cpu-cooler", {
       ...paging,
       filter: toCpuCoolerFilterBody(params.filter),
     })

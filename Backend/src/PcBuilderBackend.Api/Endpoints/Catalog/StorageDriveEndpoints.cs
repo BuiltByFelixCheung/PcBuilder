@@ -29,13 +29,11 @@ public static class StorageDriveEndpoints
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Browse storage drives")
             .WithDescription("\n    GET /catalog/storage-drive");
-
-        // Complex filter-with-body: industry standard is POST .../query (OpenAPI 3.1 / Scalar have no QUERY).
-        subgroup.MapPost("/query", QueryStorageDrives)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryStorageDrives)
             .Produces<PagedResult<StorageDriveDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter storage drives")
-            .WithDescription("\n    POST /catalog/storage-drive/query");
+            .WithDescription("\n    QUERY /catalog/storage-drive");
 
         subgroup.MapGet("/{id:guid}", GetStorageDriveById)
             .Produces<StorageDriveDto>()
@@ -48,13 +46,13 @@ public static class StorageDriveEndpoints
             .Produces<StorageDriveDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add a storage drive")
-            .WithDescription("\n    POST /catalog/storage-drive");
+            .WithDescription("\n    QUERY /catalog/storage-drive");
 
         subgroup.MapPost("/bulk", BulkCreateStorageDrives)
             .Produces<List<StorageDriveDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple storage drives")
-            .WithDescription("\n    POST /catalog/storage-drive/bulk");
+            .WithDescription("\n    QUERY /catalog/storage-drive/bulk");
 
         subgroup.MapPut("/", UpdateStorageDrive)
             .Produces<StorageDriveDto>()
@@ -90,7 +88,7 @@ public static class StorageDriveEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import storage drives from Excel")
-            .WithDescription("\n    POST /catalog/storage-drive/import");
+            .WithDescription("\n    QUERY /catalog/storage-drive/import");
     }
 
     private static async Task<Ok<PagedResult<StorageDriveDto>>> GetStorageDrives(

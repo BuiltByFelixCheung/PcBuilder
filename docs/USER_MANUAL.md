@@ -139,7 +139,7 @@ Typical workflow:
 4. **Import** — upload an Excel file matching the expected sheet layout for that product type.
 5. Open a part → **Edit** for full details and child collections (PCIe/M.2/USB on motherboards, cables on PSUs, drive bays / mounts on chassis, and similar).
 
-Catalog reads (`GET` and `POST …/query`) stay available without admin rights; only writes require Admin.
+Catalog reads (`GET` and `QUERY`) stay available without admin rights; only writes require Admin.
 
 ---
 

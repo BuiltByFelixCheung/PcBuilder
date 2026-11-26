@@ -12,7 +12,9 @@ public static class MutationAuthorizationRules
         if (methods.Count == 0)
             return null;
 
-        if (methods.Any(method => method.Equals("GET", StringComparison.OrdinalIgnoreCase)))
+        if (methods.Any(method =>
+                method.Equals("GET", StringComparison.OrdinalIgnoreCase)
+                || method.Equals("QUERY", StringComparison.OrdinalIgnoreCase)))
             return null;
 
         if (IsQueryRoute(route))

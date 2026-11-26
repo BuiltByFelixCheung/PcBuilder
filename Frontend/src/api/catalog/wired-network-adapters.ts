@@ -83,8 +83,8 @@ export function listWiredNetworkAdapters(
   }
 
   return api
-    .post<PagedResult<WiredNetworkAdapter>>(
-      "/catalog/wired-network-adapter/query",
+    .query<PagedResult<WiredNetworkAdapter>>(
+      "/catalog/wired-network-adapter",
       {
         ...paging,
         filter: {

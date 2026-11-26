@@ -44,11 +44,11 @@ public static class ChassisEndpoints
             .WithSummary("Get Chassis by ID")
             .WithDescription("\n    GET /catalog/chassis/{id}");
 
-        subgroup.MapPost("/query", QueryChassis)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryChassis)
             .Produces<PagedResult<ChassisListItemDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter Chassis")
-            .WithDescription("\n    POST /catalog/chassis/query");
+            .WithDescription("\n    QUERY /catalog/chassis");
 
         subgroup.MapPut("/", UpdateChassis)
             .Produces<ChassisDto>()
@@ -61,7 +61,7 @@ public static class ChassisEndpoints
             .Produces<ChassisDto>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Create Chassis")
-            .WithDescription("\n    POST /catalog/chassis");
+            .WithDescription("\n    QUERY /catalog/chassis");
 
         subgroup.MapDelete("/{id}", DeleteChassis)
             .Produces(StatusCodes.Status404NotFound)
@@ -80,7 +80,7 @@ public static class ChassisEndpoints
             .Produces<List<ChassisDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Bulk Create Chassis")
-            .WithDescription("\n    POST /catalog/chassis/bulk");
+            .WithDescription("\n    QUERY /catalog/chassis/bulk");
         
         subgroup.MapDelete("/bulk", BulkDeleteChassis)
             .Produces(StatusCodes.Status404NotFound)
@@ -94,7 +94,7 @@ public static class ChassisEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import Chassis from Excel")
-            .WithDescription("\n    POST /catalog/chassis/import");
+            .WithDescription("\n    QUERY /catalog/chassis/import");
 
         var driveBayGroup = subgroup.MapGroup("{chassisId:guid}/drive-bay")
             .WithDescription("Manage chassis drive bays");

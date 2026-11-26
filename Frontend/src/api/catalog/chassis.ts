@@ -127,7 +127,7 @@ export function listChassis(params: ChassisListParams) {
   }
 
   return api
-    .post<PagedResult<ChassisListItem>>("/catalog/chassis/query", {
+    .query<PagedResult<ChassisListItem>>("/catalog/chassis", {
       ...paging,
       filter: toChassisFilterBody(params.filter),
     })
