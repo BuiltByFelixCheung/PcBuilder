@@ -4,7 +4,7 @@
 
 Catalog of PC parts, with compatibility checks and saved builds.
 
-The API is ASP.NET Core on .NET 10. The UI is a React 19 app built with Vite. PostgreSQL stores the catalog and ASP.NET Identity in separate databases. Redis caches data. Configuration and secrets are loaded from a local `appsettings.json`, environment variables, and optionally [Infisical](https://infisical.com/).
+The API is ASP.NET Core on .NET 11. The UI is a React 19 app built with Vite. PostgreSQL stores the catalog and ASP.NET Identity in separate databases. Redis caches data. Configuration and secrets are loaded from a local `appsettings.json`, environment variables, and optionally [Infisical](https://infisical.com/).
 
 Coding agents should follow [AGENTS.md](AGENTS.md).
 
@@ -16,7 +16,7 @@ For PostgreSQL roles, migrations, and seeding an admin, see [docs/DATABASE_SETUP
 
 ## Prerequisites
 
-- .NET 10 SDK
+- .NET 11 SDK
 - Node.js 22
 - PostgreSQL
 - Redis on `localhost:6379`, or another address in configuration
