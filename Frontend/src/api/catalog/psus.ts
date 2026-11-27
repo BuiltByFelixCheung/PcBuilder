@@ -90,7 +90,7 @@ export function listPsus(params: PsuListParams) {
   }
 
   return api
-    .post<PagedResult<PsuListItem>>("/catalog/psu/query", {
+    .query<PagedResult<PsuListItem>>("/catalog/psu", {
       ...paging,
       filter: toPsuFilterBody(params.filter),
     })

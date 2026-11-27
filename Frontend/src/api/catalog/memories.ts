@@ -85,7 +85,7 @@ export function listMemories(params: MemoryListParams) {
   }
 
   return api
-    .post<PagedResult<MemoryDetail>>("/catalog/ram/query", {
+    .query<PagedResult<MemoryDetail>>("/catalog/ram", {
       ...paging,
       filter: toMemoryFilterBody(params.filter),
     })

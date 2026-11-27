@@ -32,11 +32,11 @@ public static class MotherboardEndpoints
             .WithSummary("Browse Motherboards")
             .WithDescription("\n    GET /catalog/motherboard");
 
-        subgroup.MapPost("/query", FilterMotherboards)
+        subgroup.MapMethods("/", [HttpMethods.Query], FilterMotherboards)
             .Produces<PagedResult<MotherboardListItemDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter Motherboards")
-            .WithDescription("\n    POST /catalog/motherboard/query");
+            .WithDescription("\n    QUERY /catalog/motherboard");
 
         subgroup.MapGet("/{id}", GetMotherboardById)
             .Produces<MotherboardDto>()

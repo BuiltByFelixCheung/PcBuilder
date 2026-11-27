@@ -8,11 +8,13 @@ import type { WirelessNetworkAdapter } from "@/api/catalog/wireless-network-adap
 
 const get = vi.fn();
 const post = vi.fn();
+const query = vi.fn();
 
 vi.mock("@/api/client.ts", () => ({
   api: {
     get: (...args: unknown[]) => get(...args),
     post: (...args: unknown[]) => post(...args),
+    query: (...args: unknown[]) => query(...args),
   },
 }));
 
@@ -123,11 +125,12 @@ describe("remaining catalog APIs", () => {
   beforeEach(() => {
     get.mockReset();
     post.mockReset();
+    query.mockReset();
   });
 
   it("uses GET when filters are blank and POST when they are set", async () => {
     get.mockResolvedValue({ data: { items: [psu], totalCount: 1 } });
-    post.mockResolvedValue({ data: { items: [psu], totalCount: 1 } });
+    query.mockResolvedValue({ data: { items: [psu], totalCount: 1 } });
 
     expect(isPsuFilterActive({ name: "  " })).toBe(false);
     expect(isPsuFilterActive({ cpuId: "cpu-1" })).toBe(true);
@@ -157,40 +160,40 @@ describe("remaining catalog APIs", () => {
     expect(get).toHaveBeenCalledWith("/catalog/psu", { params: paging });
 
     await listStorageDrives({ ...paging, filter: { name: "990" } });
-    expect(post).toHaveBeenCalledWith(
-      "/catalog/storage-drive/query",
+    expect(query).toHaveBeenCalledWith(
+      "/catalog/storage-drive",
       expect.objectContaining({
         filter: expect.objectContaining({ name: "990" }),
       }),
     );
 
     await listCpuCoolers({ ...paging, filter: { name: "NH" } });
-    expect(post).toHaveBeenCalledWith(
-      "/catalog/cpu-cooler/query",
+    expect(query).toHaveBeenCalledWith(
+      "/catalog/cpu-cooler",
       expect.objectContaining({
         filter: expect.objectContaining({ name: "NH" }),
       }),
     );
 
     await listChassisFans({ ...paging, filter: { name: "AF" } });
-    expect(post).toHaveBeenCalledWith(
-      "/catalog/chassis-fan/query",
+    expect(query).toHaveBeenCalledWith(
+      "/catalog/chassis-fan",
       expect.objectContaining({
         filter: expect.objectContaining({ name: "AF" }),
       }),
     );
 
     await listWiredNetworkAdapters({ ...paging, filter: { name: "I225" } });
-    expect(post).toHaveBeenCalledWith(
-      "/catalog/wired-network-adapter/query",
+    expect(query).toHaveBeenCalledWith(
+      "/catalog/wired-network-adapter",
       expect.objectContaining({
         filter: expect.objectContaining({ name: "I225" }),
       }),
     );
 
     await listWirelessNetworkAdapters({ ...paging, filter: { name: "AX" } });
-    expect(post).toHaveBeenCalledWith(
-      "/catalog/wireless-network-adapter/query",
+    expect(query).toHaveBeenCalledWith(
+      "/catalog/wireless-network-adapter",
       expect.objectContaining({
         filter: expect.objectContaining({ name: "AX" }),
       }),
@@ -198,12 +201,12 @@ describe("remaining catalog APIs", () => {
   });
 
   it("omits incomplete ranges from PSU query bodies", async () => {
-    post.mockResolvedValue({ data: { items: [], totalCount: 0 } });
+    query.mockResolvedValue({ data: { items: [], totalCount: 0 } });
     await listPsus({
       ...paging,
       filter: { name: "RM", wattage: { min: 500, max: null } },
     });
-    const body = post.mock.calls[0][1] as { filter: Record<string, unknown> };
+    const body = query.mock.calls[0][1] as { filter: Record<string, unknown> };
     expect(body.filter.wattage).toBeUndefined();
   });
 

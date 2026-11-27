@@ -29,13 +29,11 @@ public static class StorageDriveEndpoints
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Browse storage drives")
             .WithDescription("\n    GET /catalog/storage-drive");
-
-        // Complex filter-with-body: industry standard is POST .../query (OpenAPI 3.1 / Scalar have no QUERY).
-        subgroup.MapPost("/query", QueryStorageDrives)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryStorageDrives)
             .Produces<PagedResult<StorageDriveDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter storage drives")
-            .WithDescription("\n    POST /catalog/storage-drive/query");
+            .WithDescription("\n    QUERY /catalog/storage-drive");
 
         subgroup.MapGet("/{id:guid}", GetStorageDriveById)
             .Produces<StorageDriveDto>()

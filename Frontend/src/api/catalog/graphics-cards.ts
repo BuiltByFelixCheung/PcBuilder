@@ -100,7 +100,7 @@ export function listGraphicsCards(params: GraphicsCardListParams) {
   }
 
   return api
-    .post<PagedResult<GraphicsCardListItem>>("/catalog/graphics-card/query", {
+    .query<PagedResult<GraphicsCardListItem>>("/catalog/graphics-card", {
       ...paging,
       filter: toGraphicsCardFilterBody(params.filter),
     })

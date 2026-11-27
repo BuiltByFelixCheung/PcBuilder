@@ -91,7 +91,7 @@ export function listCpus(params: CpuListParams) {
   }
 
   return api
-    .post<PagedResult<CpuListItem>>("/catalog/cpu/query", {
+    .query<PagedResult<CpuListItem>>("/catalog/cpu", {
       ...paging,
       filter: toCpuFilterBody(params.filter),
     })

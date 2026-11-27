@@ -31,12 +31,12 @@ public static class CpuCoolerEndpoints
             .WithSummary("Browse CPU coolers")
             .WithDescription("\n    GET /catalog/cpu-cooler");
 
-        subgroup.MapPost("/query", QueryCpuCoolers)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryCpuCoolers)
             .Produces<PagedResult<CpuCoolerListItemDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter CPU coolers")
             .WithDescription(
-                "\n    POST /api/catalog/cpu-cooler/query" +
+                "\n    QUERY /api/catalog/cpu-cooler" +
                 "\n    All filters are optional. When cpuId, chassisId, or ramId is provided, " +
                 "results are limited to coolers that are not incompatible with that part.");
 
