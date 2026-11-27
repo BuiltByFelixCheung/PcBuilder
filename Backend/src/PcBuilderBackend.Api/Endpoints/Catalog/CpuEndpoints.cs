@@ -70,13 +70,13 @@ public static class CpuEndpoints
             .Produces<CpuDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add CPU")
-            .WithDescription("\n    QUERY /catalog/cpu");
+            .WithDescription("\n    POST /catalog/cpu");
 
         subgroup.MapPost("/bulk", BulkCreateCpus)
             .Produces<List<CpuDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple CPUs")
-            .WithDescription("\n    QUERY /catalog/cpu/bulk");
+            .WithDescription("\n    POST /catalog/cpu/bulk");
 
         subgroup.MapDelete("/{id}", DeleteCpu)
             .Produces(StatusCodes.Status204NoContent)
@@ -98,7 +98,7 @@ public static class CpuEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import CPUs from Excel")
-            .WithDescription("\n    QUERY /catalog/cpu/import");
+            .WithDescription("\n    POST /catalog/cpu/import");
 
         var ramCompatGroup = subgroup.MapGroup("{cpuId}/ram-compats")
             .WithDescription("Manage CPU RAM compatibility entries");

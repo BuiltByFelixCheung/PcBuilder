@@ -60,13 +60,13 @@ public static class MemoryEndpoints
             .Produces<RamDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add a new RAM")
-            .WithDescription("\n    QUERY /catalog/ram");
+            .WithDescription("\n    POST /catalog/ram");
         
         subgroup.MapPost("/bulk", BulkCreateMemories)
             .Produces<List<RamDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple new RAMs")
-            .WithDescription("\n    QUERY /catalog/ram/bulk");
+            .WithDescription("\n    POST /catalog/ram/bulk");
 
         subgroup.MapDelete("/{id}", DeleteMemory)
             .Produces(StatusCodes.Status204NoContent)
@@ -88,7 +88,7 @@ public static class MemoryEndpoints
             .Produces<List<RamDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Import RAMs from Excel")
-            .WithDescription("\n    QUERY /catalog/ram/import");
+            .WithDescription("\n    POST /catalog/ram/import");
     }
 
     private static async Task<Ok<PagedResult<RamDto>>> GetMemories(

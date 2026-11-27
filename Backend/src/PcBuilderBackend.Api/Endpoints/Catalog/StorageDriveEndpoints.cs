@@ -46,13 +46,13 @@ public static class StorageDriveEndpoints
             .Produces<StorageDriveDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add a storage drive")
-            .WithDescription("\n    QUERY /catalog/storage-drive");
+            .WithDescription("\n    POST /catalog/storage-drive");
 
         subgroup.MapPost("/bulk", BulkCreateStorageDrives)
             .Produces<List<StorageDriveDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple storage drives")
-            .WithDescription("\n    QUERY /catalog/storage-drive/bulk");
+            .WithDescription("\n    POST /catalog/storage-drive/bulk");
 
         subgroup.MapPut("/", UpdateStorageDrive)
             .Produces<StorageDriveDto>()
@@ -88,7 +88,7 @@ public static class StorageDriveEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import storage drives from Excel")
-            .WithDescription("\n    QUERY /catalog/storage-drive/import");
+            .WithDescription("\n    POST /catalog/storage-drive/import");
     }
 
     private static async Task<Ok<PagedResult<StorageDriveDto>>> GetStorageDrives(

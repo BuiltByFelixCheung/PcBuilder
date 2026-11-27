@@ -61,7 +61,7 @@ public static class ChassisEndpoints
             .Produces<ChassisDto>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Create Chassis")
-            .WithDescription("\n    QUERY /catalog/chassis");
+            .WithDescription("\n    POST /catalog/chassis");
 
         subgroup.MapDelete("/{id}", DeleteChassis)
             .Produces(StatusCodes.Status404NotFound)
@@ -80,7 +80,7 @@ public static class ChassisEndpoints
             .Produces<List<ChassisDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Bulk Create Chassis")
-            .WithDescription("\n    QUERY /catalog/chassis/bulk");
+            .WithDescription("\n    POST /catalog/chassis/bulk");
         
         subgroup.MapDelete("/bulk", BulkDeleteChassis)
             .Produces(StatusCodes.Status404NotFound)
@@ -94,7 +94,7 @@ public static class ChassisEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import Chassis from Excel")
-            .WithDescription("\n    QUERY /catalog/chassis/import");
+            .WithDescription("\n    POST /catalog/chassis/import");
 
         var driveBayGroup = subgroup.MapGroup("{chassisId:guid}/drive-bay")
             .WithDescription("Manage chassis drive bays");

@@ -49,7 +49,7 @@ public static class MotherboardEndpoints
             .Produces<MotherboardDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Create Motherboard")
-            .WithDescription("\n    QUERY /catalog/motherboard");
+            .WithDescription("\n    POST /catalog/motherboard");
 
         subgroup.MapPut("/", UpdateMotherboard)
             .Produces<MotherboardDto>()
@@ -85,7 +85,7 @@ public static class MotherboardEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import Motherboards from Excel")
-            .WithDescription("\n    QUERY /catalog/motherboard/import");
+            .WithDescription("\n    POST /catalog/motherboard/import");
 
         var pcieGroup = subgroup.MapGroup("{motherboardId}/pcie-slot")
             .WithDescription("Manage motherboard PCIe slots");

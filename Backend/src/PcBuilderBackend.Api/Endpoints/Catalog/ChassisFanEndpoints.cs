@@ -47,13 +47,13 @@ public static class ChassisFanEndpoints
             .Produces<ChassisFanDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add a chassis fan")
-            .WithDescription("\n    QUERY /catalog/chassis-fan");
+            .WithDescription("\n    POST /catalog/chassis-fan");
 
         subgroup.MapPost("/bulk", BulkCreateChassisFans)
             .Produces<List<ChassisFanDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple chassis fans")
-            .WithDescription("\n    QUERY /catalog/chassis-fan/bulk");
+            .WithDescription("\n    POST /catalog/chassis-fan/bulk");
 
         subgroup.MapPut("/", UpdateChassisFan)
             .Produces<ChassisFanDto>()
@@ -89,7 +89,7 @@ public static class ChassisFanEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import chassis fans from Excel")
-            .WithDescription("\n    QUERY /catalog/chassis-fan/import");
+            .WithDescription("\n    POST /catalog/chassis-fan/import");
     }
 
     private static async Task<Ok<PagedResult<ChassisFanDto>>> GetChassisFans(

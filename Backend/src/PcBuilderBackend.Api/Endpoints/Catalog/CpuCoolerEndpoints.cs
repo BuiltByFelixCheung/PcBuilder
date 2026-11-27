@@ -51,13 +51,13 @@ public static class CpuCoolerEndpoints
             .Produces<CpuCoolerDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add a CPU cooler")
-            .WithDescription("\n    QUERY /catalog/cpu-cooler");
+            .WithDescription("\n    POST /catalog/cpu-cooler");
 
         subgroup.MapPost("/bulk", BulkCreateCpuCoolers)
             .Produces<List<CpuCoolerDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple CPU coolers")
-            .WithDescription("\n    QUERY /catalog/cpu-cooler/bulk");
+            .WithDescription("\n    POST /catalog/cpu-cooler/bulk");
 
         subgroup.MapPut("/", UpdateCpuCooler)
             .Produces<CpuCoolerDto>()
@@ -93,7 +93,7 @@ public static class CpuCoolerEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import CPU coolers from Excel")
-            .WithDescription("\n    QUERY /catalog/cpu-cooler/import");
+            .WithDescription("\n    POST /catalog/cpu-cooler/import");
 
         var socketGroup = subgroup.MapGroup("{cpuCoolerId:guid}/socket")
             .WithDescription("Manage CPU cooler supported sockets");

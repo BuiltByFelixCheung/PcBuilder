@@ -48,13 +48,13 @@ public static class PsuEndpoints
             .Produces<PsuDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add a power supply")
-            .WithDescription("\n    QUERY /catalog/psu");
+            .WithDescription("\n    POST /catalog/psu");
 
         subgroup.MapPost("/bulk", BulkCreatePsus)
             .Produces<List<PsuDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple power supplies")
-            .WithDescription("\n    QUERY /catalog/psu/bulk");
+            .WithDescription("\n    POST /catalog/psu/bulk");
 
         subgroup.MapPut("/", UpdatePsu)
             .Produces<PsuDto>()
@@ -90,7 +90,7 @@ public static class PsuEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import power supplies from Excel")
-            .WithDescription("\n    QUERY /catalog/psu/import");
+            .WithDescription("\n    POST /catalog/psu/import");
 
         var cableGroup = subgroup.MapGroup("{psuId:guid}/cable")
             .WithDescription("Manage PSU cables");

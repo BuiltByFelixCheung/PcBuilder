@@ -47,13 +47,13 @@ public static class WiredNetworkAdapterEndpoints
             .Produces<WiredNetworkAdapterDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add a wired network adapter")
-            .WithDescription("\n    QUERY /catalog/wired-network-adapter");
+            .WithDescription("\n    POST /catalog/wired-network-adapter");
 
         subgroup.MapPost("/bulk", BulkCreateWiredNetworkAdapters)
             .Produces<List<WiredNetworkAdapterDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple wired network adapters")
-            .WithDescription("\n    QUERY /catalog/wired-network-adapter/bulk");
+            .WithDescription("\n    POST /catalog/wired-network-adapter/bulk");
 
         subgroup.MapPut("/", UpdateWiredNetworkAdapter)
             .Produces<WiredNetworkAdapterDto>()
@@ -89,7 +89,7 @@ public static class WiredNetworkAdapterEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import wired network adapters from Excel")
-            .WithDescription("\n    QUERY /catalog/wired-network-adapter/import");
+            .WithDescription("\n    POST /catalog/wired-network-adapter/import");
     }
 
     private static async Task<Ok<PagedResult<WiredNetworkAdapterDto>>> GetWiredNetworkAdapters(

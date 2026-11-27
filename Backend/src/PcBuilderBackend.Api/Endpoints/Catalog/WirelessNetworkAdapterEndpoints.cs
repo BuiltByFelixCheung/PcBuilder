@@ -47,13 +47,13 @@ public static class WirelessNetworkAdapterEndpoints
             .Produces<WirelessNetworkAdapterDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add a wireless network adapter")
-            .WithDescription("\n    QUERY /catalog/wireless-network-adapter");
+            .WithDescription("\n    POST /catalog/wireless-network-adapter");
 
         subgroup.MapPost("/bulk", BulkCreateWirelessNetworkAdapters)
             .Produces<List<WirelessNetworkAdapterDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple wireless network adapters")
-            .WithDescription("\n    QUERY /catalog/wireless-network-adapter/bulk");
+            .WithDescription("\n    POST /catalog/wireless-network-adapter/bulk");
 
         subgroup.MapPut("/", UpdateWirelessNetworkAdapter)
             .Produces<WirelessNetworkAdapterDto>()
@@ -89,7 +89,7 @@ public static class WirelessNetworkAdapterEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import wireless network adapters from Excel")
-            .WithDescription("\n    QUERY /catalog/wireless-network-adapter/import");
+            .WithDescription("\n    POST /catalog/wireless-network-adapter/import");
     }
 
     private static async Task<Ok<PagedResult<WirelessNetworkAdapterDto>>> GetWirelessNetworkAdapters(

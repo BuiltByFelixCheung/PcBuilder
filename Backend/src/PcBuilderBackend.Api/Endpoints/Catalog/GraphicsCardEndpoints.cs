@@ -46,13 +46,13 @@ public static class GraphicsCardEndpoints
             .Produces<GraphicsCardDto>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add a graphics card")
-            .WithDescription("\n    QUERY /catalog/graphics-card");
+            .WithDescription("\n    POST /catalog/graphics-card");
 
         subgroup.MapPost("/bulk", BulkCreateGraphicsCards)
             .Produces<List<GraphicsCardDto>>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Add multiple graphics cards")
-            .WithDescription("\n    QUERY /catalog/graphics-card/bulk");
+            .WithDescription("\n    POST /catalog/graphics-card/bulk");
 
         subgroup.MapPut("/", UpdateGraphicsCard)
             .Produces<GraphicsCardDto>()
@@ -88,7 +88,7 @@ public static class GraphicsCardEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .DisableAntiforgery()
             .WithSummary("Import graphics cards from Excel")
-            .WithDescription("\n    QUERY /catalog/graphics-card/import");
+            .WithDescription("\n    POST /catalog/graphics-card/import");
     }
 
     private static async Task<Ok<PagedResult<GraphicsCardListItemDto>>> GetGraphicsCards(
