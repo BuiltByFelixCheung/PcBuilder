@@ -44,11 +44,11 @@ public static class ChassisEndpoints
             .WithSummary("Get Chassis by ID")
             .WithDescription("\n    GET /catalog/chassis/{id}");
 
-        subgroup.MapPost("/query", QueryChassis)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryChassis)
             .Produces<PagedResult<ChassisListItemDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter Chassis")
-            .WithDescription("\n    POST /catalog/chassis/query");
+            .WithDescription("\n    QUERY /catalog/chassis");
 
         subgroup.MapPut("/", UpdateChassis)
             .Produces<ChassisDto>()

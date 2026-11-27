@@ -29,13 +29,11 @@ public static class MemoryEndpoints
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Browse RAMs")
             .WithDescription("\n    GET /catalog/ram");
-
-        // Complex filter-with-body: industry standard is POST .../query (OpenAPI 3.1 / Scalar have no QUERY).
-        subgroup.MapPost("/query", QueryMemories)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryMemories)
             .Produces<PagedResult<RamDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter RAMs")
-            .WithDescription("\n    POST /api/catalog/ram/query");
+            .WithDescription("\n    QUERY /api/catalog/ram");
 
         subgroup.MapGet("/{id}", GetMemoryById)
             .Produces<RamDto>()

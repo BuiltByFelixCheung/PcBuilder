@@ -35,14 +35,12 @@ public static class CpuEndpoints
                 "\n    All filters are optional. When motherboardId is provided, results are limited " +
                 "to CPUs that are not physically incompatible with that motherboard " +
                 "(domain CheckCpuCompatibility; CompatibleActionRequired e.g. BIOS is still included).");
-
-        // Complex filter-with-body: industry standard is POST .../query (OpenAPI 3.1 / Scalar have no QUERY).
-        subgroup.MapPost("/query", QueryCpus)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryCpus)
             .Produces<PagedResult<CpuListItemDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Query CPUs")
             .WithDescription(
-                "\n    POST /api/catalog/cpu/query" +
+                "\n    QUERY /api/catalog/cpu" +
                 "\n    All filters are optional. When motherboardId is provided, results are limited " +
                 "to CPUs that are not physically incompatible with that motherboard " +
                 "(domain CheckCpuCompatibility; CompatibleActionRequired e.g. BIOS is still included).");

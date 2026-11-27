@@ -29,13 +29,11 @@ public static class GraphicsCardEndpoints
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Browse graphics cards")
             .WithDescription("\n    GET /catalog/graphics-card");
-        
-        // Complex filter-with-body: industry standard is POST .../query (OpenAPI 3.1 / Scalar have no QUERY).
-        subgroup.MapPost("/query", QueryGraphicsCards)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryGraphicsCards)
             .Produces<PagedResult<GraphicsCardListItemDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter graphics cards")
-            .WithDescription("\n    POST /catalog/graphics-card/query");
+            .WithDescription("\n    QUERY /catalog/graphics-card");
 
         subgroup.MapGet("/{id:guid}", GetGraphicsCardById)
             .Produces<GraphicsCardDto>()

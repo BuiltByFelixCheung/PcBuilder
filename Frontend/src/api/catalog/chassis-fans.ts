@@ -69,7 +69,7 @@ export function listChassisFans(params: ChassisFanListParams) {
   }
 
   return api
-    .post<PagedResult<ChassisFan>>("/catalog/chassis-fan/query", {
+    .query<PagedResult<ChassisFan>>("/catalog/chassis-fan", {
       ...paging,
       filter: {
         name: params.filter.name?.trim() || undefined,

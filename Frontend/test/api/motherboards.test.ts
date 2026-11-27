@@ -3,12 +3,14 @@ import type { MotherboardListItem } from "@/api/catalog/motherboards";
 
 const get = vi.fn();
 const post = vi.fn();
+const query = vi.fn();
 const put = vi.fn();
 
 vi.mock("@/api/client.ts", () => ({
   api: {
     get: (...args: unknown[]) => get(...args),
     post: (...args: unknown[]) => post(...args),
+    query: (...args: unknown[]) => query(...args),
     put: (...args: unknown[]) => put(...args),
   },
 }));
@@ -58,6 +60,7 @@ describe("motherboard API", () => {
   beforeEach(() => {
     get.mockReset();
     post.mockReset();
+    query.mockReset();
     put.mockReset();
   });
 
@@ -84,6 +87,7 @@ describe("motherboard API", () => {
       params: paging,
     });
     expect(post).not.toHaveBeenCalled();
+    expect(query).not.toHaveBeenCalled();
     expect(motherboardKeys.detail("mb-1")).toEqual([
       "motherboards",
       "detail",
@@ -91,12 +95,13 @@ describe("motherboard API", () => {
     ]);
   });
 
-  it("lists with POST /query when a filter is set", async () => {
-    post.mockResolvedValue({
+  it("lists with QUERY when a filter is set", async () => {
+    query.mockResolvedValue({
       data: { items: [item], totalCount: 1, pageIndex: 0, pageSize: 10 },
     });
     await listMotherboards({ ...paging, filter: { name: "X870" } });
-    expect(post).toHaveBeenCalledWith("/catalog/motherboard/query", {
+    expect(query).toHaveBeenCalledWith(
+      "/catalog/motherboard", {
       ...paging,
       filter: expect.objectContaining({ name: "X870" }),
     });
@@ -104,7 +109,7 @@ describe("motherboard API", () => {
   });
 
   it("omits incomplete ranges from the query body", async () => {
-    post.mockResolvedValue({
+    query.mockResolvedValue({
       data: { items: [], totalCount: 0, pageIndex: 0, pageSize: 10 },
     });
     await listMotherboards({
@@ -115,22 +120,22 @@ describe("motherboard API", () => {
         heightMm: { min: 200, max: 300 },
       },
     });
-    const body = post.mock.calls[0][1] as { filter: Record<string, unknown> };
+    const body = query.mock.calls[0][1] as { filter: Record<string, unknown> };
     expect(body.filter.widthMm).toBeUndefined();
     expect(body.filter.heightMm).toEqual({ min: 200, max: 300 });
     expect(body.filter.chassisId).toBeUndefined();
   });
 
   it("posts chassisId when filtering for compatibility", async () => {
-    post.mockResolvedValue({
+    query.mockResolvedValue({
       data: { items: [item], totalCount: 1, pageIndex: 0, pageSize: 10 },
     });
     await listMotherboards({
       ...paging,
       filter: { chassisId: "case-1" },
     });
-    expect(post).toHaveBeenCalledWith(
-      "/catalog/motherboard/query",
+    expect(query).toHaveBeenCalledWith(
+      "/catalog/motherboard",
       expect.objectContaining({
         filter: expect.objectContaining({ chassisId: "case-1" }),
       }),

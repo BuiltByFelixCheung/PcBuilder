@@ -3,11 +3,13 @@ import type { CpuListItem } from "@/api/catalog/cpus";
 
 const get = vi.fn();
 const post = vi.fn();
+const query = vi.fn();
 
 vi.mock("@/api/client.ts", () => ({
   api: {
     get: (...args: unknown[]) => get(...args),
     post: (...args: unknown[]) => post(...args),
+    query: (...args: unknown[]) => query(...args),
   },
 }));
 
@@ -40,6 +42,7 @@ describe("cpu API", () => {
   beforeEach(() => {
     get.mockReset();
     post.mockReset();
+    query.mockReset();
   });
 
   it("treats blank filters as inactive", () => {
@@ -59,6 +62,7 @@ describe("cpu API", () => {
     });
     expect(get).toHaveBeenCalledWith("/catalog/cpu", { params: paging });
     expect(post).not.toHaveBeenCalled();
+    expect(query).not.toHaveBeenCalled();
   });
 
   it("maps related name columns onto entity sort paths", async () => {
@@ -75,12 +79,13 @@ describe("cpu API", () => {
     });
   });
 
-  it("lists with POST /query when a filter is set", async () => {
-    post.mockResolvedValue({
+  it("lists with QUERY when a filter is set", async () => {
+    query.mockResolvedValue({
       data: { items: [item], totalCount: 1, pageIndex: 0, pageSize: 10 },
     });
     await listCpus({ ...paging, filter: { name: "Ryzen" } });
-    expect(post).toHaveBeenCalledWith("/catalog/cpu/query", {
+    expect(query).toHaveBeenCalledWith(
+      "/catalog/cpu", {
       ...paging,
       filter: { name: "Ryzen" },
     });
@@ -88,24 +93,24 @@ describe("cpu API", () => {
   });
 
   it("does not send ddrGeneration on the query body", async () => {
-    post.mockResolvedValue({
+    query.mockResolvedValue({
       data: { items: [], totalCount: 0, pageIndex: 0, pageSize: 10 },
     });
     await listCpus({
       ...paging,
       filter: { name: "Ryzen", manufacturerId: "amd" },
     });
-    const body = post.mock.calls[0][1] as { filter: Record<string, unknown> };
+    const body = query.mock.calls[0][1] as { filter: Record<string, unknown> };
     expect(body.filter).not.toHaveProperty("ddrGeneration");
   });
 
   it("posts motherboardId when filtering for compatibility", async () => {
-    post.mockResolvedValue({
+    query.mockResolvedValue({
       data: { items: [item], totalCount: 1, pageIndex: 0, pageSize: 10 },
     });
     await listCpus({ ...paging, filter: { motherboardId: "mb-1" } });
-    expect(post).toHaveBeenCalledWith(
-      "/catalog/cpu/query",
+    expect(query).toHaveBeenCalledWith(
+      "/catalog/cpu",
       expect.objectContaining({
         filter: expect.objectContaining({ motherboardId: "mb-1" }),
       }),

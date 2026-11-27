@@ -30,11 +30,11 @@ public static class ChassisFanEndpoints
             .WithSummary("Browse chassis fans")
             .WithDescription("\n    GET /catalog/chassis-fan");
 
-        subgroup.MapPost("/query", QueryChassisFans)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryChassisFans)
             .Produces<PagedResult<ChassisFanDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter chassis fans")
-            .WithDescription("\n    POST /catalog/chassis-fan/query");
+            .WithDescription("\n    QUERY /catalog/chassis-fan");
 
         subgroup.MapGet("/{id:guid}", GetChassisFanById)
             .Produces<ChassisFanDto>()

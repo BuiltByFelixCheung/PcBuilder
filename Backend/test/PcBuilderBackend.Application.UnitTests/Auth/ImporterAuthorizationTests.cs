@@ -52,14 +52,21 @@ public class ImporterAuthorizationTests
         AuthPolicyRules.Allows(AuthPolicies.MasterDataImport, AuthRoles.Importer).Should().BeTrue();
 
         MutationAuthorizationRules.PolicyFor(
-                ["POST"],
-                "cpu/query",
+                ["QUERY"],
+                "cpu",
                 AuthPolicies.CatalogWrite,
                 AuthPolicies.CatalogImport)
             .Should().BeNull();
         MutationAuthorizationRules.PolicyFor(
                 ["GET"],
                 "cpu",
+                AuthPolicies.CatalogWrite,
+                AuthPolicies.CatalogImport)
+            .Should().BeNull();
+        // Legacy POST .../query path (if still routed) stays anonymous via IsQueryRoute.
+        MutationAuthorizationRules.PolicyFor(
+                ["POST"],
+                "cpu/query",
                 AuthPolicies.CatalogWrite,
                 AuthPolicies.CatalogImport)
             .Should().BeNull();

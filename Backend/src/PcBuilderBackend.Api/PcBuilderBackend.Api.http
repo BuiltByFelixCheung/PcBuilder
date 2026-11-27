@@ -1524,7 +1524,7 @@ Accept: application/json
 ###
 
 ### Filter CPU Coolers
-POST {{PcBuilderBackend.Api_HostAddress}}/api/catalog/cpu-cooler/query
+QUERY {{PcBuilderBackend.Api_HostAddress}}/api/catalog/cpu-cooler
 Content-Type: {{ContentType}}
 Accept: application/json
 
@@ -1879,7 +1879,7 @@ Accept: application/json
 ###
 
 ### Filter Chassis Fans
-POST {{PcBuilderBackend.Api_HostAddress}}/api/catalog/chassis-fan/query
+QUERY {{PcBuilderBackend.Api_HostAddress}}/api/catalog/chassis-fan
 Content-Type: {{ContentType}}
 Accept: application/json
 
@@ -2020,7 +2020,7 @@ Accept: application/json
 ###
 
 ### Filter Storage Drives
-POST {{PcBuilderBackend.Api_HostAddress}}/api/catalog/storage-drive/query
+QUERY {{PcBuilderBackend.Api_HostAddress}}/api/catalog/storage-drive
 Content-Type: {{ContentType}}
 Accept: application/json
 
@@ -2206,7 +2206,7 @@ Accept: application/json
 ###
 
 ### Filter Wired Network Adapters
-POST {{PcBuilderBackend.Api_HostAddress}}/api/catalog/wired-network-adapter/query
+QUERY {{PcBuilderBackend.Api_HostAddress}}/api/catalog/wired-network-adapter
 Content-Type: {{ContentType}}
 Accept: application/json
 
@@ -2383,7 +2383,7 @@ Accept: application/json
 ###
 
 ### Filter Wireless Network Adapters
-POST {{PcBuilderBackend.Api_HostAddress}}/api/catalog/wireless-network-adapter/query
+QUERY {{PcBuilderBackend.Api_HostAddress}}/api/catalog/wireless-network-adapter
 Content-Type: {{ContentType}}
 Accept: application/json
 
@@ -2589,7 +2589,7 @@ Accept: application/json
 ###
 
 ### Filter PSUs
-POST {{PcBuilderBackend.Api_HostAddress}}/api/catalog/psu/query
+QUERY {{PcBuilderBackend.Api_HostAddress}}/api/catalog/psu
 Content-Type: {{ContentType}}
 Accept: application/json
 

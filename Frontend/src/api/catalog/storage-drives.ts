@@ -91,7 +91,7 @@ export function listStorageDrives(params: StorageDriveListParams) {
   }
 
   return api
-    .post<PagedResult<StorageDrive>>("/catalog/storage-drive/query", {
+    .query<PagedResult<StorageDrive>>("/catalog/storage-drive", {
       ...paging,
       filter: toStorageDriveFilterBody(params.filter),
     })

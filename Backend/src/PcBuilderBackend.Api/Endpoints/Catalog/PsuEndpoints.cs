@@ -31,11 +31,11 @@ public static class PsuEndpoints
             .WithSummary("Browse power supplies")
             .WithDescription("\n    GET /catalog/psu");
 
-        subgroup.MapPost("/query", QueryPsus)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryPsus)
             .Produces<PagedResult<PsuListItemDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter power supplies")
-            .WithDescription("\n    POST /catalog/psu/query");
+            .WithDescription("\n    QUERY /catalog/psu");
 
         subgroup.MapGet("/{id:guid}", GetPsuById)
             .Produces<PsuDto>()

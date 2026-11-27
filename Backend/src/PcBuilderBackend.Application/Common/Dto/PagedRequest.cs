@@ -30,7 +30,7 @@ public record PagedRequest(
 }
 
 /// <summary>
-/// Paged request with a filter payload (JSON body on POST .../query endpoints).
+/// Paged request with a filter payload (JSON body on QUERY collection endpoints).
 /// </summary>
 public record PagedRequest<T>(
     T Filter,

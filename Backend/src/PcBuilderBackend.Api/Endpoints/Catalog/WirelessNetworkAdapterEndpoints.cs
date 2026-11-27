@@ -30,11 +30,11 @@ public static class WirelessNetworkAdapterEndpoints
             .WithSummary("Browse wireless network adapters")
             .WithDescription("\n    GET /catalog/wireless-network-adapter");
 
-        subgroup.MapPost("/query", QueryWirelessNetworkAdapters)
+        subgroup.MapMethods("/", [HttpMethods.Query], QueryWirelessNetworkAdapters)
             .Produces<PagedResult<WirelessNetworkAdapterDto>>()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Filter wireless network adapters")
-            .WithDescription("\n    POST /catalog/wireless-network-adapter/query");
+            .WithDescription("\n    QUERY /catalog/wireless-network-adapter");
 
         subgroup.MapGet("/{id:guid}", GetWirelessNetworkAdapterById)
             .Produces<WirelessNetworkAdapterDto>()

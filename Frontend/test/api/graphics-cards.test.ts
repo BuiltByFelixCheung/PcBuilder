@@ -3,11 +3,13 @@ import type { GraphicsCardListItem } from "@/api/catalog/graphics-cards";
 
 const get = vi.fn();
 const post = vi.fn();
+const query = vi.fn();
 
 vi.mock("@/api/client.ts", () => ({
   api: {
     get: (...args: unknown[]) => get(...args),
     post: (...args: unknown[]) => post(...args),
+    query: (...args: unknown[]) => query(...args),
   },
 }));
 
@@ -47,6 +49,7 @@ describe("graphics card API", () => {
   beforeEach(() => {
     get.mockReset();
     post.mockReset();
+    query.mockReset();
   });
 
   it("treats blank filters as inactive", () => {
@@ -68,19 +71,20 @@ describe("graphics card API", () => {
     });
   });
 
-  it("lists with POST /query when a filter is set", async () => {
-    post.mockResolvedValue({
+  it("lists with QUERY when a filter is set", async () => {
+    query.mockResolvedValue({
       data: { items: [item], totalCount: 1, pageIndex: 0, pageSize: 10 },
     });
     await listGraphicsCards({ ...paging, filter: { name: "4070" } });
-    expect(post).toHaveBeenCalledWith("/catalog/graphics-card/query", {
+    expect(query).toHaveBeenCalledWith(
+      "/catalog/graphics-card", {
       ...paging,
       filter: expect.objectContaining({ name: "4070" }),
     });
   });
 
   it("omits incomplete ranges from the query body", async () => {
-    post.mockResolvedValue({
+    query.mockResolvedValue({
       data: { items: [], totalCount: 0, pageIndex: 0, pageSize: 10 },
     });
     await listGraphicsCards({
@@ -91,7 +95,7 @@ describe("graphics card API", () => {
         powerConsumptionWatts: { min: 150, max: 250 },
       },
     });
-    const body = post.mock.calls[0][1] as { filter: Record<string, unknown> };
+    const body = query.mock.calls[0][1] as { filter: Record<string, unknown> };
     expect(body.filter.lengthMm).toBeUndefined();
     expect(body.filter.powerConsumptionWatts).toEqual({ min: 150, max: 250 });
   });

@@ -3,12 +3,14 @@ import type { ChassisListItem } from "@/api/catalog/chassis";
 
 const get = vi.fn();
 const post = vi.fn();
+const query = vi.fn();
 const put = vi.fn();
 
 vi.mock("@/api/client.ts", () => ({
   api: {
     get: (...args: unknown[]) => get(...args),
     post: (...args: unknown[]) => post(...args),
+    query: (...args: unknown[]) => query(...args),
     put: (...args: unknown[]) => put(...args),
   },
 }));
@@ -52,6 +54,7 @@ describe("chassis API", () => {
   beforeEach(() => {
     get.mockReset();
     post.mockReset();
+    query.mockReset();
     put.mockReset();
   });
 
@@ -75,21 +78,23 @@ describe("chassis API", () => {
     );
     expect(get).toHaveBeenCalledWith("/catalog/chassis", { params: paging });
     expect(post).not.toHaveBeenCalled();
+    expect(query).not.toHaveBeenCalled();
   });
 
-  it("lists with POST /query when a filter is set", async () => {
-    post.mockResolvedValue({
+  it("lists with QUERY when a filter is set", async () => {
+    query.mockResolvedValue({
       data: { items: [item], totalCount: 1, pageIndex: 0, pageSize: 10 },
     });
     await listChassis({ ...paging, filter: { name: "O11" } });
-    expect(post).toHaveBeenCalledWith("/catalog/chassis/query", {
+    expect(query).toHaveBeenCalledWith(
+      "/catalog/chassis", {
       ...paging,
       filter: expect.objectContaining({ name: "O11" }),
     });
   });
 
   it("omits incomplete ranges from the query body", async () => {
-    post.mockResolvedValue({
+    query.mockResolvedValue({
       data: { items: [], totalCount: 0, pageIndex: 0, pageSize: 10 },
     });
     await listChassis({
@@ -100,7 +105,7 @@ describe("chassis API", () => {
         widthMm: { min: 200, max: 300 },
       },
     });
-    const body = post.mock.calls[0][1] as { filter: Record<string, unknown> };
+    const body = query.mock.calls[0][1] as { filter: Record<string, unknown> };
     expect(body.filter.lengthMm).toBeUndefined();
     expect(body.filter.widthMm).toEqual({ min: 200, max: 300 });
   });

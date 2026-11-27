@@ -89,8 +89,8 @@ Identity migrations use `ApplicationIdentityDbContext` and `Persistence/Identity
 - `ValidationBehavior` runs FluentValidation before handlers. Do not validate only inside the handler.
 - Handlers take repositories, `IUnitOfWork`, and `IMapper` via primary constructors, call `SaveChangesAsync`, then map to a DTO.
 - Reads go through `I*ReadStore`. Writes go through `I*Repository`. Register both in `Infrastructure/DependencyInjection.cs`.
-- Endpoints are static `Map*Endpoints` extensions under `Api/Endpoints`. Catalog is `api/catalog`, master data is `api/master-data`. Complex filters are `POST .../query`, not GET with a large query string.
-- `RequireMutationAuthorization` applies `CatalogWrite`, `MasterDataWrite`, or `BuildWrite` to non-GET routes. GET and `POST .../query` stay anonymous. Do not put `[Authorize]` on a query route.
+- Endpoints are static `Map*Endpoints` extensions under `Api/Endpoints`. Catalog is `api/catalog`, master data is `api/master-data`. Complex filters are `QUERY` on the collection with a JSON body, not GET with a large query string.
+- `RequireMutationAuthorization` applies `CatalogWrite`, `MasterDataWrite`, or `BuildWrite` to non-GET routes. GET and `QUERY` stay anonymous. Do not put `[Authorize]` on a query route.
 - Roles are `Admin` and `Member` (`AuthRoles`). JSON enums are strings (`JsonStringEnumConverter`).
 - Domain enums stored in Postgres must be registered in both `MapDomainEnums` and `ConfigurePostgresEnums` in `NpgsqlEnumConfiguration.cs`.
 - EF configurations are `internal sealed` `IEntityTypeConfiguration<T>` classes. Call `ConfigureGuidBaseEntity()`. Dimensions in millimetres are `decimal` with precision `(6, 2)`. Foreign keys to manufacturers and other shared master data use `DeleteBehavior.Restrict`.
